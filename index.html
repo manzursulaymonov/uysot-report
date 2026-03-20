@@ -215,8 +215,8 @@ const k=r.Client+'|'+r.raqami;
 const qExtra=qm[k]||0;
 const totalSum=r._sUSD+qExtra;
 const p=pm[k]||{total:0};
-const qarz=totalSum-p.total;
-return`<tr><td class="mono" style="font-size:10px;color:var(--text3)">${r.raqami||'—'}</td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(totalSum)}${qExtra?'<span style="font-size:9px;color:var(--teal)"> +'+fmt(qExtra)+'</span>':''}</td>${hasPay?`<td class="text-r mono" style="color:var(--green)">${p.total?fmt(p.total):'—'}</td><td class="text-r mono" style="color:${qarz>0?'var(--red)':qarz<0?'var(--amber)':'var(--green)'};font-weight:${qarz>0?'600':'400'}">${totalSum?fmt(qarz):'—'}</td>`:''}<td>${sb(r.status)}</td></tr>`}).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`}
+const qarz=Math.round(totalSum-p.total)||0;const qarzD=Math.abs(qarz)<=1?0:qarz;
+return`<tr><td class="mono" style="font-size:10px;color:var(--text3)">${r.raqami||'—'}</td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(totalSum)}${qExtra?'<span style="font-size:9px;color:var(--teal)"> +'+fmt(qExtra)+'</span>':''}</td>${hasPay?`<td class="text-r mono" style="color:var(--green)">${p.total?fmt(p.total):'—'}</td><td class="text-r mono" style="color:${qarzD>0?'var(--red)':qarzD<0?'var(--amber)':'var(--green)'};font-weight:${qarzD>0?'600':'400'}">${totalSum?fmt(qarzD):'—'}</td>`:''}<td>${sb(r.status)}</td></tr>`}).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`}
 
 // MRR TABLE — computed from Shartnomalar contracts
 function mrrData(year){
@@ -497,11 +497,11 @@ let cls='mcell',tip='';
 if(ce){
   const cur=ce.cum[m]||0;const prev=m>0?(ce.cum[m-1]||0):ce.preYear;
   if(cur>0){
-    if(paid>=cur){cls='mcell mcell-g'}
-    else if(paid>prev){
+    const remaining=Math.round(cur-paid);
+    const paidThisMonth=Math.round(paid-prev);
+    if(Math.abs(remaining)<=1){cls='mcell mcell-g'}
+    else if(paidThisMonth>0){
       cls='mcell mcell-y';
-      const paidThisMonth=paid-prev;
-      const remaining=cur-paid;
       tip=` data-tip="to'landi: ${fmt(paidThisMonth)} · qoldi: ${fmt(remaining)}"`
     }
   }
