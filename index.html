@@ -287,37 +287,34 @@ Object.entries(byClient).forEach(([name,cts])=>{
 });
 newClients.sort((a,b)=>b.date-a.date);
 churnClients.sort((a,b)=>b.date-a.date);
-// Expansion: existing clients whose MRR changed between period start and end
+// Expansion: clients whose MRR changed between start and end of period
 const expClients=[];
-const startSnap=before;// snapshot before period
+const startSnap=before;
 const endSnap=snapshots[snapshots.length-1];
 const newSet=new Set(newClients.map(c=>c.name));
 const churnSet=new Set(churnClients.map(c=>c.name));
-[...endSnap.active].forEach(name=>{
+// Check all clients that were active at start OR end
+const allActive=new Set([...startSnap.active,...endSnap.active]);
+allActive.forEach(name=>{
   if(newSet.has(name)||churnSet.has(name))return;
-  if(!startSnap.active.has(name))return;// wasn't active before = new, handled above
-  // Calculate MRR at start and end for this client
-  let mrrStart=0,mrrEnd=0;
-  all.forEach(ct=>{if(ct.client===name&&ct.musd>0){
-    if(ct.st<=beforeDate&&ct.endD>=beforeDate)mrrStart+=ct.musd;
-    const endDt=points[points.length-1];
-    let snapDt=endDt;
-    if(gran==='week'){snapDt=new Date(endDt);snapDt.setDate(snapDt.getDate()+6);if(snapDt>to)snapDt=new Date(to)}
-    if(gran==='month'){snapDt=new Date(endDt.getFullYear(),endDt.getMonth()+1,0);if(snapDt>to)snapDt=new Date(to)}
-    if(ct.st<=snapDt&&ct.endD>=snapDt)mrrEnd+=ct.musd;
-  }});
-  qAll.forEach(ct=>{if(ct.client===name&&ct.musd){
-    if(ct.st<=beforeDate&&ct.endD>=beforeDate)mrrStart+=ct.musd;
-    const endDt=points[points.length-1];
-    let snapDt=endDt;
-    if(gran==='week'){snapDt=new Date(endDt);snapDt.setDate(snapDt.getDate()+6);if(snapDt>to)snapDt=new Date(to)}
-    if(gran==='month'){snapDt=new Date(endDt.getFullYear(),endDt.getMonth()+1,0);if(snapDt>to)snapDt=new Date(to)}
-    if(ct.st<=snapDt&&ct.endD>=snapDt)mrrEnd+=ct.musd;
-  }});
-  const delta=Math.round(mrrEnd-mrrStart);
-  if(delta!==0){
+  // Get per-client MRR at start and end
+  let mrrS=0,mrrE=0;
+  const endDate=points[points.length-1];
+  let snapDt=new Date(endDate);
+  if(gran==='week'){snapDt.setDate(snapDt.getDate()+6);if(snapDt>to)snapDt=new Date(to)}
+  if(gran==='month'){snapDt=new Date(endDate.getFullYear(),endDate.getMonth()+1,0);if(snapDt>to)snapDt=new Date(to)}
+  all.forEach(ct=>{if(ct.client!==name||ct.musd<=0)return;
+    if(ct.st<=beforeDate&&ct.endD>=beforeDate)mrrS+=ct.musd;
+    if(ct.st<=snapDt&&ct.endD>=snapDt)mrrE+=ct.musd;
+  });
+  qAll.forEach(ct=>{if(ct.client!==name||!ct.musd)return;
+    if(ct.st<=beforeDate&&ct.endD>=beforeDate)mrrS+=ct.musd;
+    if(ct.st<=snapDt&&ct.endD>=snapDt)mrrE+=ct.musd;
+  });
+  const delta=Math.round(mrrE-mrrS);
+  if(Math.abs(delta)>1){
     const mgr=(all.find(c=>c.client===name&&c.musd>0)||{}).mgr||'';
-    expClients.push({name,mrrStart:Math.round(mrrStart),mrrEnd:Math.round(mrrEnd),delta,mgr});
+    expClients.push({name,mrrStart:Math.round(mrrS),mrrEnd:Math.round(mrrE),delta,mgr});
   }
 });
 expClients.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
@@ -363,14 +360,14 @@ ${isCust?`<div style="display:flex;gap:4px;align-items:center;margin-left:4px">
 <div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}${totalRechurn?' · <span style="color:var(--amber)">qayta: '+totalRechurn+'</span>':''}</div></div>
 <div class="metric c4"><div class="metric-lbl">Chiqib ketgan</div><div class="metric-val">${totalChurn}</div><div class="metric-foot"><span class="dn">${totalChurn>0?'-':''}${totalChurn}</span> ${periodLabel}</div></div>
 <div class="metric c3"><div class="metric-lbl">MRR</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">${lastLabel} · USD</div></div>
-<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="up">yangi: +${fmt(mrrFromNew)}</span> · <span class="dn">churn: -${fmt(mrrFromChurn)}</span> · <span style="color:${expColor}">keng: ${mrrExpansion>0?'+':''}${fmt(mrrExpansion)}</span></div></div></div>
+<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot" style="display:flex;flex-direction:column;gap:1px;line-height:1.4"><span class="up">yangi: +${fmt(mrrFromNew)}</span><span class="dn">churn: -${fmt(mrrFromChurn)}</span><span style="color:${expColor}">keng: ${mrrExpansion>0?'+':''}${fmt(mrrExpansion)}</span></div></div></div>
 
 <div class="grid-2">
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>MRR trend — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chTrend"></canvas></div></div></div>
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Mijozlar soni — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
 </div>
 
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px">
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi (${totalNew}) <span style="color:var(--green);font-weight:600">+${fmt(mrrFromNew)}</span></span></div><div class="card-body" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${newClients.length?newClients.map(c=>'<tr><td class="mono" style="font-size:10px;color:var(--text3)">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+c.name+(c.isRechurn?' <span class="badge b-amber" style="font-size:8px;padding:1px 4px">Q</span>':'')+'</td><td style="font-size:10.5px;color:var(--text2)">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green);font-size:11px">+'+fmt(c.mrr)+'</td></tr>').join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'}</tbody></table></div></div>
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn (${totalChurn}) <span style="color:var(--red);font-weight:600">-${fmt(mrrFromChurn)}</span></span></div><div class="card-body" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${churnClients.length?churnClients.map(c=>'<tr><td class="mono" style="font-size:10px;color:var(--text3)">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+c.name+'</td><td style="font-size:10.5px;color:var(--text2)">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red);font-size:11px">-'+fmt(c.mrr)+'</td></tr>').join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'}</tbody></table></div></div>
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Kengayish (${expClients.length}) <span style="color:${expColor};font-weight:600">${mrrExpansion>0?'+':''}${fmt(mrrExpansion)}</span></span></div><div class="card-body" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Mijoz</th><th>Oldin</th><th>Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${expClients.length?expClients.map(c=>'<tr><td style="font-weight:500;font-size:12px">'+c.name+'</td><td class="mono" style="font-size:11px;color:var(--text3)">'+fmt(c.mrrStart)+'</td><td class="mono" style="font-size:11px">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;color:'+(c.delta>0?'var(--green)':'var(--red)')+'">'+( c.delta>0?'+':'')+fmt(c.delta)+'</td></tr>').join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'}</tbody></table></div></div>
