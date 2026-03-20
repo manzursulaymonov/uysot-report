@@ -188,6 +188,13 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 // CONTRACTS
 function rC(){
 const pm=calcPayments();
+// Qo'shimcha kelishuvlar summasini shartnoma bo'yicha hisoblash
+const qm={};S.qRows.forEach(r=>{
+  const c=r.Client?.trim(),sh=r.raqami?.trim();
+  if(!c||!sh)return;
+  const k=c+'|'+sh;
+  qm[k]=(qm[k]||0)+pn(r['sum USD']);
+});
 let d=[...S.rows];
 if(S.cQ){const q=S.cQ.toLowerCase();d=d.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q)||(r.INN||'').includes(q))}
 if(S.cS)d=d.filter(r=>sc(r.status)===S.cS);if(S.cM)d=d.filter(r=>r.Manager===S.cM);if(S.cR)d=d.filter(r=>r.Hudud===S.cR);
@@ -201,9 +208,11 @@ return`<div class="page-header"><div><div class="page-title">Shartnomalar</div><
 <select class="flt" onchange="S.cR=this.value;S.cP=0;render()"><option value="">Barcha hududlar</option>${uq('Hudud').map(r=>`<option value="${r}"${S.cR===r?' selected':''}>${r}</option>`).join('')}</select></div>
 <div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Mijoz</th><th>Firma</th><th>Hudud</th><th>Menejer</th><th>Sana</th><th>Tugash</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th>${hasPay?'<th class="text-r">To\'langan</th><th class="text-r">Qarz</th>':''}<th>Status</th></tr></thead><tbody>${sl.map(r=>{
 const k=r.Client+'|'+r.raqami;
+const qExtra=qm[k]||0;
+const totalSum=r._sUSD+qExtra;
 const p=pm[k]||{total:0};
-const qarz=r._sUSD-p.total;
-return`<tr><td class="mono" style="font-size:10px;color:var(--text3)">${r.raqami||'—'}</td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(r._sUSD)}</td>${hasPay?`<td class="text-r mono" style="color:var(--green)">${p.total?fmt(p.total):'—'}</td><td class="text-r mono" style="color:${qarz>0?'var(--red)':qarz<0?'var(--amber)':'var(--green)'};font-weight:${qarz>0?'600':'400'}">${r._sUSD?fmt(qarz):'—'}</td>`:''}<td>${sb(r.status)}</td></tr>`}).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`}
+const qarz=totalSum-p.total;
+return`<tr><td class="mono" style="font-size:10px;color:var(--text3)">${r.raqami||'—'}</td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(totalSum)}${qExtra?'<span style="font-size:9px;color:var(--teal)"> +'+fmt(qExtra)+'</span>':''}</td>${hasPay?`<td class="text-r mono" style="color:var(--green)">${p.total?fmt(p.total):'—'}</td><td class="text-r mono" style="color:${qarz>0?'var(--red)':qarz<0?'var(--amber)':'var(--green)'};font-weight:${qarz>0?'600':'400'}">${totalSum?fmt(qarz):'—'}</td>`:''}<td>${sb(r.status)}</td></tr>`}).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`}
 
 // MRR TABLE — computed from Shartnomalar contracts
 function mrrData(year){
