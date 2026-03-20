@@ -357,7 +357,7 @@ const mrrChange=totals.map((v,i)=>{const prev=i===0?prevDec:totals[i-1];return v
 return{clients,totals,mom,year,cpm,newPM,churnPM,newNames,churnNames,rechurnPM,rechurnNames,mrrChange,prevDec};
 }
 
-// Cumulative expected amount per client per month (with partial first/last)
+// Cumulative expected amount per client per month — ALL periods from first contract
 function calcCumExpected(year){
 const result={};
 // Collect all paid contracts per client (shartnomalar + qoshimcha)
@@ -382,34 +382,44 @@ S.qRows.forEach(r=>{
   if(!allCts[c])allCts[c]=[];
   allCts[c].push({musd,st,endD,isQ:true});
 });
+// For each client: calculate monthly expected from earliest contract to Dec of displayed year
 Object.entries(allCts).forEach(([name,cts])=>{
-  const monthly=new Array(12).fill(0);
-  cts.forEach(ct=>{
-    for(let m=0;m<12;m++){
-      const mS=new Date(year,m,1),mE=new Date(year,m+1,0);
+  // Find earliest start
+  const minSt=cts.reduce((a,c)=>c.st<a?c.st:a,cts[0].st);
+  const startY=minSt.getFullYear();
+  const startM=minSt.getMonth();
+  // Calculate expected for every month from startY/startM through year/Dec
+  let cumTotal=0;
+  const cum12=new Array(12).fill(0);// for displayed year only
+  for(let y=startY;y<=year;y++){
+    const m0=(y===startY?startM:0);
+    const m1=(y===year?11:11);
+    for(let m=m0;m<=m1;m++){
+      const mS=new Date(y,m,1),mE=new Date(y,m+1,0);
       const dim=mE.getDate();
-      if(ct.st>mE||ct.endD<mS)continue;
-      const isFirst=(ct.st>=mS&&ct.st<=mE);
-      const isLast=(ct.endD>=mS&&ct.endD<=mE);
-      if(isFirst&&isLast){
-        const days=Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1);
-        monthly[m]+=ct.musd*days/dim;
-      }else if(isFirst){
-        const days=Math.max(1,Math.round((mE-ct.st)/864e5)+1);
-        monthly[m]+=ct.musd*days/dim;
-      }else if(isLast&&ct.isQ){
-        const days=Math.max(1,ct.endD.getDate());
-        monthly[m]+=ct.musd*days/dim;
-      }else{
-        monthly[m]+=ct.musd;
-      }
+      let monthExp=0;
+      cts.forEach(ct=>{
+        if(ct.st>mE||ct.endD<mS)return;
+        const isFirst=(ct.st>=mS&&ct.st<=mE);
+        const isLast=(ct.endD>=mS&&ct.endD<=mE);
+        if(isFirst&&isLast){
+          const days=Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1);
+          monthExp+=ct.musd*days/dim;
+        }else if(isFirst){
+          const days=Math.max(1,Math.round((mE-ct.st)/864e5)+1);
+          monthExp+=ct.musd*days/dim;
+        }else if(isLast&&ct.isQ){
+          const days=Math.max(1,ct.endD.getDate());
+          monthExp+=ct.musd*days/dim;
+        }else{
+          monthExp+=ct.musd;
+        }
+      });
+      cumTotal+=monthExp;
+      if(y===year)cum12[m]=Math.round(cumTotal);
     }
-  });
-  // Cumulate
-  const cum=new Array(12).fill(0);
-  let run=0;
-  for(let m=0;m<12;m++){run+=monthly[m];cum[m]=Math.round(run)}
-  result[name]=cum;
+  }
+  result[name]=cum12;
 });
 return result;
 }
