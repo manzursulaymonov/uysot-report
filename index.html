@@ -432,6 +432,9 @@ function calcClientPayments(){
 const pm=calcPayments();
 const cp={};
 Object.values(pm).forEach(v=>{cp[v.client]=(cp[v.client]||0)+v.total});
+// Tadbiq USD ni ayirish (shartnomalar + qo'shimcha)
+S.rows.forEach(r=>{if(r.Client&&r._tUSD)cp[r.Client]=(cp[r.Client]||0)-r._tUSD});
+S.qRows.forEach(r=>{const t=pn(r['Tadbiq USD']);if(r.Client&&t)cp[r.Client]=(cp[r.Client]||0)-t});
 return cp;
 }
 
