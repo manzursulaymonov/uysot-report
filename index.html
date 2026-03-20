@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UYSOT — Shartnomalar Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f4f3ef;--bg2:#fff;--bg3:#eae9e4;--bg4:#fafaf8;--text:#141413;--text2:#5a5955;--text3:#918f88;--accent:#1746a2;--accent2:#2b5cd6;--accent-bg:#eaf0fc;--green:#117a52;--green-bg:#e4f5ed;--red:#c42b1c;--red-bg:#fce8e5;--amber:#a36207;--amber-bg:#fef4e0;--purple:#6941b8;--purple-bg:#f1ecfa;--teal:#0e7c7b;--teal-bg:#e3f5f5;--border:#dddcd7;--border2:#cccbc5;--radius:8px;--rlg:12px;--shadow:0 1px 2px rgba(20,20,19,.04),0 2px 8px rgba(20,20,19,.03);--font:'Outfit',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+html{font-size:14px}body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+.app{display:flex;min-height:100vh}
+.sidebar{width:228px;background:#1a1a18;position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;color:#b0afa8}
+.main{margin-left:228px;flex:1;padding:28px 36px 40px;min-width:0}
+.logo{padding:22px 20px 24px;display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;background:var(--accent2);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.logo-text{font-weight:600;font-size:15px;color:#e8e7e3;letter-spacing:-.3px}.logo-text span{font-weight:400;color:#7a7974;font-size:11px;display:block;margin-top:-2px}
+.nav{flex:1;padding:4px 0}.nav-group{padding:16px 20px 6px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#5a5955}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:400;transition:all .12s;border-left:2.5px solid transparent;color:#a09f98}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#d4d3ce}.nav-item.active{background:rgba(255,255,255,.07);color:#fff;border-left-color:var(--accent2);font-weight:500}
+.nav-item svg{width:17px;height:17px;opacity:.55;flex-shrink:0}.nav-item.active svg{opacity:.9}
+.sidebar-bottom{padding:14px 20px;border-top:1px solid rgba(255,255,255,.06)}.sidebar-bottom .bc{display:flex;align-items:center;gap:7px;font-size:12px;color:#7a7974;cursor:pointer;padding:6px 0;transition:color .15s}.sidebar-bottom .bc:hover{color:#c4c3be}.sidebar-bottom .bc svg{width:14px;height:14px}.sidebar-bottom .info{font-size:10.5px;color:#4a4945;margin-top:6px;line-height:1.4}
+.page-header{margin-bottom:24px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.page-title{font-size:20px;font-weight:700;letter-spacing:-.4px}.page-sub{color:var(--text2);font-size:12.5px;margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius);font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text);transition:all .12s;font-family:var(--font);white-space:nowrap}.btn:hover{border-color:var(--border2);background:var(--bg3)}.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-primary:hover{background:var(--accent2)}.btn svg{width:14px;height:14px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);box-shadow:var(--shadow);overflow:hidden}
+.card-head{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);display:flex;align-items:center;gap:7px}.card-label .dot{width:7px;height:7px;border-radius:50%}
+.card-body{padding:16px 18px}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:16px 18px;box-shadow:var(--shadow);position:relative}
+.metric::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:var(--rlg) var(--rlg) 0 0}
+.metric.c1::after{background:var(--accent)}.metric.c2::after{background:var(--green)}.metric.c3::after{background:var(--amber)}.metric.c4::after{background:var(--red)}.metric.c5::after{background:var(--purple)}
+.metric-lbl{font-size:11px;color:var(--text3);font-weight:500}.metric-val{font-size:24px;font-weight:700;letter-spacing:-1px;margin:4px 0 1px;font-family:var(--mono)}.metric-foot{font-size:11px;color:var(--text2)}.metric-foot .up{color:var(--green);font-weight:600}.metric-foot .dn{color:var(--red);font-weight:600}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.chart-wrap{position:relative;height:270px}
+.tbl-wrap{border:1px solid var(--border);border-radius:var(--rlg);background:var(--bg2);box-shadow:var(--shadow);overflow:hidden}
+.tbl-scroll{overflow-x:auto;max-height:600px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}thead{position:sticky;top:0;z-index:2}
+th{text-align:left;padding:9px 12px;background:var(--bg3);font-weight:600;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.25px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid #f0efeb;white-space:nowrap;font-size:12.5px}tr:last-child td{border-bottom:none}tbody tr:hover td{background:var(--bg4)}
+.text-r{text-align:right}.text-c{text-align:center}.mono{font-family:var(--mono);font-size:11.5px;font-weight:500}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600}
+.b-green{background:var(--green-bg);color:var(--green)}.b-red{background:var(--red-bg);color:var(--red)}.b-amber{background:var(--amber-bg);color:var(--amber)}.b-purple{background:var(--purple-bg);color:var(--purple)}.b-blue{background:var(--accent-bg);color:var(--accent)}.b-teal{background:var(--teal-bg);color:var(--teal)}.b-gray{background:var(--bg3);color:var(--text2)}
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search{position:relative;width:280px}.search input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:var(--radius);font-size:12.5px;font-family:var(--font);background:var(--bg2)}.search input:focus{outline:none;border-color:var(--accent2)}.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text3)}
+select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12.5px;font-family:var(--font);background:var(--bg2);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23918f88' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
+.rank{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono)}.rk1{background:#ffd700;color:#6b5200}.rk2{background:#d8d8d8;color:#4a4a4a}.rk3{background:#cd9b6a;color:#4a2c0f}.rkn{background:var(--bg3);color:var(--text3)}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 0;font-size:12px;color:var(--text2)}.pager-btns{display:flex;gap:3px}
+.pg{padding:5px 10px;border:1px solid var(--border);border-radius:5px;cursor:pointer;background:var(--bg2);font-size:11px;font-family:var(--font)}.pg:hover{background:var(--bg3)}.pg.on{background:var(--accent);color:#fff;border-color:var(--accent)}.pg:disabled{opacity:.35;cursor:default}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:14px}
+.spin{width:32px;height:32px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:var(--bg2);border-radius:var(--rlg);padding:28px 32px;width:540px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal h2{font-size:17px;margin-bottom:3px}.modal .sub{color:var(--text2);font-size:12.5px;margin-bottom:18px}
+.modal label{display:block;font-size:12.5px;font-weight:500;margin-bottom:5px;color:var(--text2)}.modal input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:12.5px;font-family:var(--font);margin-bottom:14px}.modal input[type=text]:focus{outline:none;border-color:var(--accent2)}
+.modal .help{font-size:11.5px;color:var(--text3);margin:-8px 0 14px;line-height:1.6}.modal-btns{display:flex;gap:7px;justify-content:flex-end;margin-top:6px}
+@media(max-width:1200px){.metrics{grid-template-columns:repeat(3,1fr)}}@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}@media(max-width:768px){.sidebar{width:0;overflow:hidden}.main{margin-left:0;padding:16px}.metrics{grid-template-columns:1fr 1fr}}
+.mrr-tbl{font-size:11.5px;border-collapse:separate;border-spacing:0}
+.mrr-tbl th,.mrr-tbl td{padding:5px 8px;border-bottom:1px solid #eee;border-right:1px solid #f0efeb}
+.mrr-tbl thead th{background:var(--bg3);position:sticky;top:0;z-index:3;font-size:10.5px;text-align:center;white-space:nowrap;border-bottom:2px solid var(--border)}
+.mrr-tbl .sticky-col{position:sticky;z-index:4;background:var(--bg2)}
+.mrr-tbl thead .sticky-col{z-index:5;background:var(--bg3)}
+.mrr-tbl .col-client{left:0;min-width:160px;max-width:160px;text-align:left;border-right:2px solid var(--border)}
+.mrr-tbl .col-mgr{left:160px;min-width:90px;max-width:90px;text-align:left;font-size:10.5px;color:var(--text2)}
+.mrr-tbl .col-mrr{left:250px;min-width:65px;max-width:65px;text-align:right;font-weight:600;border-right:2px solid var(--border)}
+.mrr-tbl .mcell{text-align:right;font-family:var(--mono);font-size:10.5px;min-width:68px;white-space:nowrap}
+.mrr-tbl .summary-row td,.mrr-tbl .summary-row th{border-bottom:2px solid var(--border);font-weight:600}
+.mrr-tbl .row-mom td{color:var(--text2);font-size:10.5px;font-style:italic}
+.mrr-tbl .row-target td{color:var(--accent);background:var(--accent-bg)}
+.mrr-tbl .row-total td{color:var(--text);background:var(--bg4);font-weight:700;font-size:12px}
+.mrr-tbl tbody tr:hover td:not(.sticky-col){background:var(--bg4)}
+.mrr-tbl tbody tr:hover .sticky-col{background:#f5f4f0}
+.mrr-val-0{color:var(--text3)}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="logo"><div class="logo-mark">U</div><div class="logo-text">UYSOT<span>Shartnomalar CRM</span></div></div>
+<nav class="nav">
+<div class="nav-group">Asosiy</div>
+<div class="nav-item active" data-sec="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</div>
+<div class="nav-item" data-sec="contracts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Shartnomalar</div>
+<div class="nav-item" data-sec="mrrtable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>MRR jadval</div>
+<div class="nav-group">Tahlil</div>
+<div class="nav-item" data-sec="managers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Menejerlar</div>
+<div class="nav-item" data-sec="clients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Mijozlar</div>
+<div class="nav-item" data-sec="topmrr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,7 13.5,15.5 8.5,10.5 2,17"/><polyline points="16,7 22,7 22,13"/></svg>Top MRR</div>
+</nav>
+<div class="sidebar-bottom"><div class="bc" onclick="showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</div><div class="info">Google Sheets → Live<br>Yangilangan: <span id="upd">—</span></div></div>
+</aside>
+<main class="main" id="root"></main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const S={url:localStorage.getItem('uysot_url')||'',rows:[],qRows:[],sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashYear:2026};
+function pn(s){return parseFloat((s||'').replace(/\s/g,'').replace(/,/g,''))||0}
+function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
+function fk(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'k':Math.round(n)}
+function parse(t){const r=Papa.parse(t,{skipEmptyLines:true});const h=r.data[0];return r.data.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k.trim()]=(row[i]||'').trim());o._mUSD=pn(o['Oylik USD']);o._mUZS=pn(o['oylik UZS']);o._sUSD=pn(o['sum USD']);o._sUZS=pn(o['sum UZS']);o._tUSD=pn(o['Tadbiq USD']);o._dur=parseFloat(o['muddati (oy)'])||0;return o}).filter(r=>r.Client||r['Firma nomi'])}
+function sc(s){if(!s)return'?';const l=s.toLowerCase();if(l.includes('active')||l==='yangi')return'A';if(l.includes('bajarildi'))return'D';if(l.includes('muammo')||l.includes('katta'))return'P';if(l.includes('eski qarz')||l.includes('tolov qilmagan'))return'Q';if(l.includes('ortiqcha'))return'O';if(l.includes('tugatildi')||l.includes('bekor'))return'X';return'B'}
+function sb(s){const c=sc(s);const m={A:'b-green',D:'b-blue',P:'b-red',Q:'b-amber',O:'b-purple',X:'b-gray',B:'b-gray','?':'b-gray'};return`<span class="badge ${m[c]}">${s||'—'}</span>`}
+function activeR(){return S.rows.filter(r=>sc(r.status)==='A')}
+function uq(key){return[...new Set(S.rows.map(r=>r[key]).filter(Boolean))].sort()}
+
+function render(){if(!S.rows.length){showWelcome();return}const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT};document.getElementById('root').innerHTML=(f[S.sec]||rD)();iC()}
+
+// DASHBOARD
+function rD(){
+const yr=S.dashYear||2026;
+const d=mrrData(yr);
+const tot=S.rows.length,clients=[...new Set(S.rows.map(r=>r.Client).filter(Boolean))];
+const done=S.rows.filter(r=>sc(r.status)==='D'),debt=S.rows.filter(r=>sc(r.status)==='Q'),prob=S.rows.filter(r=>sc(r.status)==='P');
+const recent=[...S.rows].filter(r=>r.sanasi).sort((a,b)=>(pd(b.sanasi)||0)-(pd(a.sanasi)||0)).slice(0,8);
+const tDebt=S.rows.filter(r=>sc(r.status)==='Q').sort((a,b)=>b._sUSD-a._sUSD).slice(0,6);
+// Cutoff: for current/future year → up to current month, for past years → full year
+const now=new Date();
+const maxM=yr<now.getFullYear()?11:(yr===now.getFullYear()?now.getMonth():now.getMonth());
+// Sliced data up to cutoff
+const tSlice=d.totals.slice(0,maxM+1);
+const cpmSlice=d.cpm.slice(0,maxM+1);
+const newSlice=d.newPM.slice(0,maxM+1);
+const churnSlice=d.churnPM.slice(0,maxM+1);
+// Period stats
+const curMRR=tSlice[tSlice.length-1]||0;
+const firstNonZero=tSlice.findIndex(v=>v>0);
+const startMRR=tSlice[firstNonZero]||0;
+const mrrDelta=curMRR-startMRR;
+const totalNew=newSlice.reduce((s,v)=>s+v,0);
+const totalChurn=churnSlice.reduce((s,v)=>s+v,0);
+const curClients=cpmSlice[cpmSlice.length-1]||0;
+const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+const periodLabel=yr<now.getFullYear()?`${mos[0]}–${mos[11]}`:`${mos[firstNonZero]||mos[0]}–${mos[maxM]}`;
+return`<div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">Shartnomalar — ${tot} ta shartnoma, ${clients.length} ta mijoz</div></div>
+<div style="display:flex;gap:6px"><select class="flt" onchange="S.dashYear=+this.value;render()" style="font-weight:600">
+<option value="2024"${yr===2024?' selected':''}>2024</option>
+<option value="2025"${yr===2025?' selected':''}>2025</option>
+<option value="2026"${yr===2026?' selected':''}>2026</option>
+</select><button class="btn" onclick="loadData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Yangilash</button></div></div>
+<div class="metrics"><div class="metric c1"><div class="metric-lbl">Aktiv mijozlar (${mos[maxM]})</div><div class="metric-val">${curClients}</div><div class="metric-foot">joriy oy</div></div>
+<div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}</div></div>
+<div class="metric c4"><div class="metric-lbl">Chiqib ketgan</div><div class="metric-val">${totalChurn}</div><div class="metric-foot"><span class="dn">${totalChurn>0?'-':''}${totalChurn}</span> ${periodLabel}</div></div>
+<div class="metric c3"><div class="metric-lbl">Joriy MRR (${mos[maxM]})</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">USD oylik</div></div>
+<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${startMRR?Math.round(mrrDelta/startMRR*100):0}%</span> ${periodLabel}</div></div></div>
+
+<div class="grid-2">
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>Oylik MRR trend — ${yr}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chTrend"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Mijozlar — yangi / churn — ${yr}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
+</div>
+
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Status taqsimoti</span></div><div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="chS"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Eng katta qarzlar</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>Mijoz</th><th>Firma</th><th class="text-r">Summa $</th><th>Status</th></tr></thead><tbody>${tDebt.map(r=>`<tr><td style="font-weight:500">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td class="text-r mono">${fmt(r._sUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div></div>
+<div class="card" style="margin-top:14px"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--amber)"></span>Oxirgi shartnomalar</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>Mijoz</th><th>Menejer</th><th>Sana</th><th class="text-r">Oylik $</th><th>Status</th></tr></thead><tbody>${recent.map(r=>`<tr><td style="font-weight:500">${r.Client||'—'}</td><td style="color:var(--text2)">${r.Manager||'—'}</td><td class="mono" style="font-size:11px">${r.sanasi}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div>`}
+
+// CONTRACTS
+function rC(){
+let d=[...S.rows];
+if(S.cQ){const q=S.cQ.toLowerCase();d=d.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q)||(r.INN||'').includes(q))}
+if(S.cS)d=d.filter(r=>sc(r.status)===S.cS);if(S.cM)d=d.filter(r=>r.Manager===S.cM);if(S.cR)d=d.filter(r=>r.Hudud===S.cR);
+const t=d.length,pg=Math.ceil(t/S.cN),sl=d.slice(S.cP*S.cN,(S.cP+1)*S.cN);
+const so=[{v:'',l:'Barcha'},{v:'A',l:'Aktiv'},{v:'D',l:'Bajarildi'},{v:'Q',l:'Eski qarz'},{v:'P',l:'Muammo'},{v:'O',l:'Ortiqcha'},{v:'X',l:'Bekor'}];
+return`<div class="page-header"><div><div class="page-title">Shartnomalar</div><div class="page-sub">${t} ta</div></div></div>
+<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, firma, INN..." value="${S.cQ}" oninput="S.cQ=this.value;S.cP=0;render()"></div>
+<select class="flt" onchange="S.cS=this.value;S.cP=0;render()">${so.map(o=>`<option value="${o.v}"${S.cS===o.v?' selected':''}>${o.l}</option>`).join('')}</select>
+<select class="flt" onchange="S.cM=this.value;S.cP=0;render()"><option value="">Barcha menejerlar</option>${uq('Manager').map(m=>`<option value="${m}"${S.cM===m?' selected':''}>${m}</option>`).join('')}</select>
+<select class="flt" onchange="S.cR=this.value;S.cP=0;render()"><option value="">Barcha hududlar</option>${uq('Hudud').map(r=>`<option value="${r}"${S.cR===r?' selected':''}>${r}</option>`).join('')}</select></div>
+<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Mijoz</th><th>Firma</th><th>Hudud</th><th>Menejer</th><th>Sana</th><th>Tugash</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th><th>Status</th></tr></thead><tbody>${sl.map(r=>`<tr><td class="mono" style="font-size:10px;color:var(--text3)">${r.raqami||'—'}</td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(r._sUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`}
+
+// MRR TABLE — computed from Shartnomalar contracts
+function mrrData(year){
+year=year||S.mrrYear||2026;
+// Collect ALL contracts per client (including MRR=0 for date/manager)
+const allC={};
+S.rows.forEach(r=>{
+  if(!r.Client||!r.sanasi)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st)return;
+  const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+  const c=r.Client;
+  if(!allC[c])allC[c]=[];
+  allC[c].push({musd:r._mUSD||0,st,endD,mgr:r.Manager||'',sanasi:r.sanasi||'',amal:r['amal qilishi']||''});
+});
+const cmap={};
+Object.entries(allC).forEach(([name,contracts])=>{
+  contracts.sort((a,b)=>a.st-b.st);
+  // First contract = date & manager (even if MRR=0)
+  const firstMgr=contracts[0].mgr;
+  const firstDeal=contracts[0].sanasi;
+  const firstSt=contracts[0].st;
+  const latest=contracts.reduce((a,b)=>b.endD>a.endD?b:a,contracts[0]);
+  // MRR calculation: only contracts with musd>0
+  const paid=contracts.filter(ct=>ct.musd>0);
+  const monthly=new Array(12).fill(0);
+  if(paid.length){
+    for(let m=0;m<12;m++){
+      const mS=new Date(year,m,1),mE=new Date(year,m+1,0,23,59,59);
+      const act=paid.filter(ct=>ct.st<=mE&&ct.endD>=mS);
+      if(!act.length)continue;
+      const ending=act.filter(ct=>ct.endD>=mS&&ct.endD<=mE);
+      const starting=act.filter(ct=>ct.st>=mS&&ct.st<=mE);
+      if(ending.length>0&&starting.length>0){
+        const es=new Set(ending);
+        monthly[m]=act.filter(ct=>!es.has(ct)).reduce((s,ct)=>s+ct.musd,0);
+      }else{
+        monthly[m]=act.reduce((s,ct)=>s+ct.musd,0);
+      }
+    }
+  }
+  if(Math.max(...monthly)>0){
+    cmap[name]={name,mgr:firstMgr,mrr:0,
+      dealStart:firstDeal,dealEnd:latest.amal,
+      startDate:firstSt,monthly};
+  }
+});
+// Apply qo'shimcha kelishuvlar adjustments
+S.qRows.forEach(r=>{
+  if(!r.Client||!r.sanasi)return;
+  const adj=r._mUSD; // can be negative
+  if(!adj)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st)return;
+  const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+  const c=r.Client;
+  if(!cmap[c])return;
+  const clientContracts=allC[c]||[];
+  for(let m=0;m<12;m++){
+    const mS=new Date(year,m,1),mE=new Date(year,m+1,0,23,59,59);
+    if(!(st<=mE&&endD>=mS))continue;
+    // If this qo'shimcha ENDS this month AND a new main contract STARTS this month → skip (renewal absorbed)
+    const qEndsThisMonth=(endD>=mS&&endD<=mE);
+    const newContractStarts=clientContracts.some(ct=>ct.musd>0&&ct.st>=mS&&ct.st<=mE&&ct.st>st);
+    if(qEndsThisMonth&&newContractStarts)continue;
+    cmap[c].monthly[m]+=adj;
+  }
+});
+const now=new Date();
+const curM=now.getFullYear()===year?now.getMonth():(year<now.getFullYear()?11:0);
+Object.values(cmap).forEach(c=>{c.mrr=c.monthly[curM]||Math.max(...c.monthly)});
+const clients=Object.values(cmap).sort((a,b)=>(a.startDate||0)-(b.startDate||0));
+const totals=new Array(12).fill(0);
+clients.forEach(c=>c.monthly.forEach((v,i)=>totals[i]+=v));
+// Get previous year December total for MoM
+let prevDec=0;
+const pdS=new Date(year-1,11,1),pdE=new Date(year-1,11,31,23,59,59);
+Object.values(allC).forEach(contracts=>{
+  const paid=contracts.filter(ct=>ct.musd>0);
+  if(!paid.length)return;
+  const act=paid.filter(ct=>ct.st<=pdE&&ct.endD>=pdS);
+  if(!act.length)return;
+  const ending=act.filter(ct=>ct.endD>=pdS&&ct.endD<=pdE);
+  const starting=act.filter(ct=>ct.st>=pdS&&ct.st<=pdE);
+  if(ending.length>0&&starting.length>0){
+    const es=new Set(ending);
+    prevDec+=act.filter(ct=>!es.has(ct)).reduce((s,ct)=>s+ct.musd,0);
+  }else{
+    prevDec+=act.reduce((s,ct)=>s+ct.musd,0);
+  }
+});
+// Add qo'shimcha to prevDec
+S.qRows.forEach(r=>{
+  if(!r.Client||!r.sanasi||!r._mUSD)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st)return;
+  const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+  if(st<=pdE&&endD>=pdS)prevDec+=r._mUSD;
+});
+const mom=totals.map((v,i)=>{
+  const prev=i===0?prevDec:totals[i-1];
+  return prev?((v-prev)/prev*100):0;
+});
+// Per-month client sets for stats
+const cSets=Array.from({length:12},()=>new Set());
+clients.forEach(c=>c.monthly.forEach((v,i)=>{if(v>0)cSets[i].add(c.name)}));
+const cpm=cSets.map(s=>s.size);
+// Prev Dec client set for Jan comparison
+const prevDecCl=new Set();
+clients.forEach(c=>{const pAct=(allC[c.name]||[]).filter(ct=>ct.musd>0&&ct.st<=pdE&&ct.endD>=pdS);if(pAct.length)prevDecCl.add(c.name)});
+const newPM=cSets.map((s,i)=>{const prev=i===0?prevDecCl:cSets[i-1];return[...s].filter(n=>!prev.has(n)).length});
+const churnPM=cSets.map((s,i)=>{const prev=i===0?prevDecCl:cSets[i-1];return[...prev].filter(n=>!s.has(n)).length});
+const mrrChange=totals.map((v,i)=>{const prev=i===0?prevDec:totals[i-1];return v-prev});
+return{clients,totals,mom,year,cpm,newPM,churnPM,mrrChange,prevDec};
+}
+
+function rMRR(){
+const yr=S.mrrYear||2026;
+const d=mrrData(yr);
+const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+const activeClients=d.clients;
+const totalMRR=Math.max(...d.totals);
+
+let filtered=[...d.clients];
+if(S.mrrQ){const q=S.mrrQ.toLowerCase();filtered=filtered.filter(c=>c.name.toLowerCase().includes(q)||c.mgr.toLowerCase().includes(q))}
+
+return`<div class="page-header"><div><div class="page-title">MRR jadval</div><div class="page-sub">${yr} — ${activeClients.length} ta mijoz${S.qRows.length?' — '+S.qRows.length+' ta qo\'shimcha kelishuv':''}</div></div>
+<div style="display:flex;gap:6px;align-items:center">
+<select class="flt" onchange="S.mrrYear=+this.value;render()" style="font-weight:600;font-size:13px">
+<option value="2024"${yr===2024?' selected':''}>2024</option>
+<option value="2025"${yr===2025?' selected':''}>2025</option>
+<option value="2026"${yr===2026?' selected':''}>2026</option>
+<option value="2027"${yr===2027?' selected':''}>2027</option>
+</select>
+</div></div>
+<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz yoki menejer..." value="${S.mrrQ||''}" oninput="S.mrrQ=this.value;render()"></div></div>
+<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - 200px)">
+<table class="mrr-tbl">
+<thead><tr>
+<th class="sticky-col col-client">Client</th>
+<th class="sticky-col col-mgr">Manager</th>
+<th class="sticky-col col-mrr">MRR</th>
+<th style="text-align:center;font-size:10px;min-width:78px">Date of deal</th>
+<th style="text-align:center;font-size:10px;min-width:78px;border-right:2px solid var(--border)">End of deal</th>
+${mos.map(m=>`<th class="mcell">${m}</th>`).join('')}
+</tr></thead>
+<tbody>
+<tr class="summary-row row-mom"><td class="sticky-col col-client" style="font-weight:600;font-style:italic;color:var(--text2)">MoM Growth</td><td class="sticky-col col-mgr"></td><td class="sticky-col col-mrr"></td><td></td><td style="border-right:2px solid var(--border)"></td>${d.mom.map(v=>{const c=v>0?'var(--green)':v<0?'var(--red)':'var(--text3)';return`<td class="mcell" style="color:${c};font-style:italic;font-weight:600">${v?(v>0?'+':'')+v.toFixed(2)+' %':'—'}</td>`}).join('')}</tr>
+<tr class="summary-row row-total"><td class="sticky-col col-client" style="font-weight:700;background:var(--bg4)">Total</td><td class="sticky-col col-mgr" style="background:var(--bg4)"></td><td class="sticky-col col-mrr" style="background:var(--bg4);font-weight:700">${fmt(totalMRR)}</td><td style="background:var(--bg4)"></td><td style="background:var(--bg4);border-right:2px solid var(--border)"></td>${d.totals.map(v=>`<td class="mcell" style="background:var(--bg4);font-weight:700">${v?fmt(v):'—'}</td>`).join('')}</tr>
+${filtered.map(c=>`<tr>
+<td class="sticky-col col-client" style="font-weight:500">${c.name}</td>
+<td class="sticky-col col-mgr">${c.mgr}</td>
+<td class="sticky-col col-mrr mono">${c.mrr?fmt(c.mrr):'—'}</td>
+<td class="mono" style="text-align:center;font-size:10px;color:var(--text2)">${c.dealStart||'—'}</td>
+<td class="mono" style="text-align:center;font-size:10px;color:var(--text2);border-right:2px solid var(--border)">${c.dealEnd||'—'}</td>
+${c.monthly.map(v=>`<td class="mcell${v?'':' mrr-val-0'}">${v?fmt(v):'<span style="color:#ccc">—</span>'}</td>`).join('')}
+</tr>`).join('')}
+</tbody></table></div></div>
+`}
+
+// MANAGERS
+function rM(){
+const m={};S.rows.forEach(r=>{const n=r.Manager||'Tayinlanmagan';if(!m[n])m[n]={c:0,mrr:0,s:0,a:0,q:0,cl:new Set()};m[n].c++;m[n].mrr+=r._mUSD;m[n].s+=r._sUSD;if(r.Client)m[n].cl.add(r.Client);if(sc(r.status)==='A')m[n].a++;if(sc(r.status)==='Q')m[n].q++});
+const mg=Object.entries(m).map(([n,d])=>({n,...d,cl:d.cl.size})).sort((a,b)=>b.mrr-a.mrr);
+const tM=mg.reduce((s,x)=>s+x.mrr,0);
+const co=['#1746a2','#117a52','#c42b1c','#6941b8','#a36207','#0e7c7b','#d4537e','#5a5955','#854f0b','#993556'];
+return`<div class="page-header"><div><div class="page-title">Menejerlar</div><div class="page-sub">${mg.length} ta menejer</div></div></div>
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>MRR ($)</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMM"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Shartnomalar soni</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMC"></canvas></div></div></div></div>
+<div class="tbl-wrap"><table><thead><tr><th>Menejer</th><th class="text-r">Shartnomalar</th><th class="text-r">Mijozlar</th><th class="text-r">Aktiv</th><th class="text-r">Qarz</th><th class="text-r">MRR ($)</th><th class="text-r">O'rtacha</th><th>Ulush</th></tr></thead><tbody>${mg.map((x,i)=>{const p=tM?Math.round(x.mrr/tM*100):0;const av=x.cl?Math.round(x.mrr/x.cl):0;return`<tr><td style="font-weight:600"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${co[i%co.length]};margin-right:7px;vertical-align:middle"></span>${x.n}</td><td class="text-r mono">${x.c}</td><td class="text-r mono">${x.cl}</td><td class="text-r"><span class="badge b-green">${x.a}</span></td><td class="text-r">${x.q?`<span class="badge b-red">${x.q}</span>`:'—'}</td><td class="text-r mono" style="font-weight:600">${fmt(x.mrr)}</td><td class="text-r mono">${fmt(av)}</td><td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:${co[i%co.length]};border-radius:3px"></div></div><span class="mono" style="font-size:10px;color:var(--text3);min-width:28px;text-align:right">${p}%</span></div></td></tr>`}).join('')}</tbody></table></div>`}
+
+// CLIENTS
+function rCl(){
+const m={};S.rows.forEach(r=>{const c=r.Client||'?';if(!m[c])m[c]={n:c,ct:0,a:0,mrr:0,s:0,mg:new Set(),reg:new Set()};m[c].ct++;m[c].mrr+=r._mUSD;m[c].s+=r._sUSD;if(r.Manager)m[c].mg.add(r.Manager);if(r.Hudud)m[c].reg.add(r.Hudud);if(sc(r.status)==='A')m[c].a++});
+let d=Object.values(m).sort((a,b)=>b.mrr-a.mrr);if(S.clQ){const q=S.clQ.toLowerCase();d=d.filter(r=>r.n.toLowerCase().includes(q))}
+const t=d.length,pg=Math.ceil(t/S.clN),sl=d.slice(S.clP*S.clN,(S.clP+1)*S.clN);
+return`<div class="page-header"><div><div class="page-title">Mijozlar</div><div class="page-sub">${t} ta noyob mijoz</div></div></div>
+<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz qidirish..." value="${S.clQ}" oninput="S.clQ=this.value;S.clP=0;render()"></div></div>
+<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>Mijoz</th><th class="text-r">Shartnomalar</th><th class="text-r">Aktiv</th><th>Hudud</th><th>Menejer</th><th class="text-r">MRR ($)</th><th class="text-r">Jami ($)</th></tr></thead><tbody>${sl.map(r=>`<tr><td style="font-weight:600">${r.n}</td><td class="text-r mono">${r.ct}</td><td class="text-r">${r.a?`<span class="badge b-green">${r.a}</span>`:'<span class="badge b-gray">0</span>'}</td><td style="font-size:11px">${[...r.reg].join(', ')||'—'}</td><td style="font-size:12px">${[...r.mg].join(', ')||'—'}</td><td class="text-r mono" style="font-weight:600">${fmt(r.mrr)}</td><td class="text-r mono">${fmt(r.s)}</td></tr>`).join('')}</tbody></table></div></div>${pag(S.clP,pg,t,S.clN,'clP')}`}
+
+// TOP MRR
+function rT(){
+const act=activeR().sort((a,b)=>b._mUSD-a._mUSD),tM=act.reduce((s,r)=>s+r._mUSD,0);
+const t5=act.slice(0,5).reduce((s,r)=>s+r._mUSD,0),t10=act.slice(0,10).reduce((s,r)=>s+r._mUSD,0),t20=act.slice(0,20).reduce((s,r)=>s+r._mUSD,0);
+return`<div class="page-header"><div><div class="page-title">Top MRR</div><div class="page-sub">Eng yirik aktiv shartnomalar</div></div></div>
+<div class="metrics" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+<div class="metric c5"><div class="metric-lbl">Top 5</div><div class="metric-val">${tM?Math.round(t5/tM*100):0}%</div><div class="metric-foot">${fmt(t5)} $</div></div>
+<div class="metric c1"><div class="metric-lbl">Top 10</div><div class="metric-val">${tM?Math.round(t10/tM*100):0}%</div><div class="metric-foot">${fmt(t10)} $</div></div>
+<div class="metric c2"><div class="metric-lbl">Top 20</div><div class="metric-val">${tM?Math.round(t20/tM*100):0}%</div><div class="metric-foot">${fmt(t20)} $</div></div>
+<div class="metric c3"><div class="metric-lbl">O'rtacha</div><div class="metric-val">${fmt(act.length?Math.round(tM/act.length):0)}</div><div class="metric-foot">per shartnoma</div></div></div>
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>Top 10</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chT"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--purple)"></span>Konsentratsiya</span></div><div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="chK"></canvas></div></div></div></div>
+<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono" style="font-size:11px;color:var(--text2)">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`}
+
+// CHARTS
+function iC(){
+const gc='rgba(0,0,0,.03)',tc='#918f88',bo={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+const co=['#1746a2','#117a52','#a36207','#6941b8','#c42b1c','#0e7c7b','#d4537e','#888','#854f0b','#993556'];
+const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+
+// Dashboard: MRR trend (up to today)
+const eTrend=document.getElementById('chTrend');if(eTrend){const d=mrrData(S.dashYear||2026);const _now=new Date();const _yr=S.dashYear||2026;const _mx=_yr<_now.getFullYear()?11:(_yr===_now.getFullYear()?_now.getMonth():_now.getMonth());const _mos=mos.slice(0,_mx+1);const _tots=d.totals.slice(0,_mx+1);new Chart(eTrend,{type:'line',data:{labels:_mos,datasets:[{label:'MRR',data:_tots,borderColor:'#1746a2',backgroundColor:'rgba(23,70,162,0.06)',fill:true,tension:0.35,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#1746a2'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}}}}})}
+
+// Dashboard: Clients new/churn (up to today)
+const eCl=document.getElementById('chClients');if(eCl){const d=mrrData(S.dashYear||2026);const _now=new Date();const _yr=S.dashYear||2026;const _mx=_yr<_now.getFullYear()?11:(_yr===_now.getFullYear()?_now.getMonth():_now.getMonth());const _mos=mos.slice(0,_mx+1);new Chart(eCl,{type:'bar',data:{labels:_mos,datasets:[
+{label:'Yangi',data:d.newPM.slice(0,_mx+1),backgroundColor:'#117a52',borderRadius:3},
+{label:'Churn',data:d.churnPM.slice(0,_mx+1).map(v=>-v),backgroundColor:'#c42b1c',borderRadius:3},
+{label:'Jami',data:d.cpm.slice(0,_mx+1),type:'line',borderColor:'#1746a2',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1746a2',tension:0.3,yAxisID:'y1'}
+]},options:{...bo,plugins:{legend:{display:true,labels:{boxWidth:10,padding:12,font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y1:{position:'right',grid:{display:false},ticks:{color:'#1746a2',font:{size:11}}}}}})}
+
+const e3=document.getElementById('chS');if(e3){const m={};const lb={A:'Aktiv',D:'Bajarildi',Q:'Eski qarz',P:'Muammo',O:'Ortiqcha',X:'Bekor',B:'Boshqa','?':'Noma\'lum'};S.rows.forEach(r=>{const c=sc(r.status);m[lb[c]||c]=(m[lb[c]||c]||0)+1});const e=Object.entries(m).sort((a,b)=>b[1]-a[1]);new Chart(e3,{type:'doughnut',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:['#117a52','#1746a2','#a36207','#c42b1c','#6941b8','#888','#bbb','#ddd'],borderWidth:0}]},options:{...bo,cutout:'65%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}
+
+const e4=document.getElementById('chMM');if(e4){const m={};S.rows.forEach(r=>{const n=r.Manager||'?';m[n]=(m[n]||0)+r._mUSD});const e=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);new Chart(e4,{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:co,borderRadius:4}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}}})}
+
+const e5=document.getElementById('chMC');if(e5){const m={};S.rows.forEach(r=>{const n=r.Manager||'?';m[n]=(m[n]||0)+1});const e=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);new Chart(e5,{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:co.map(c=>c+'cc'),borderRadius:4}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}}})}
+
+const e6=document.getElementById('chT');if(e6){const a=activeR().sort((a,b)=>b._mUSD-a._mUSD).slice(0,10);new Chart(e6,{type:'bar',data:{labels:a.map(r=>r.Client||'?'),datasets:[{data:a.map(r=>r._mUSD),backgroundColor:'#1746a2',borderRadius:4}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}}})}
+
+const e7=document.getElementById('chK');if(e7){const a=activeR().sort((x,y)=>y._mUSD-x._mUSD);const t=a.reduce((s,r)=>s+r._mUSD,0);const s=[a.slice(0,5),a.slice(5,10),a.slice(10,20),a.slice(20)].map(g=>g.reduce((s,r)=>s+r._mUSD,0));new Chart(e7,{type:'doughnut',data:{labels:['Top 5','Top 6-10','Top 11-20','Qolgan'],datasets:[{data:s,backgroundColor:['#c42b1c','#a36207','#1746a2','#cccbc5'],borderWidth:0}]},options:{...bo,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}}
+
+// PAGINATION
+function pag(p,t,c,n,k){if(t<=1)return'';return`<div class="pager"><span>${p*n+1}–${Math.min((p+1)*n,c)} / ${c}</span><div class="pager-btns"><button class="pg" onclick="S.${k}=${p-1};render()"${p===0?' disabled':''}>←</button>${Array.from({length:Math.min(t,7)},(_,i)=>{let x=i;if(t>7){if(p<4)x=i;else if(p>t-5)x=t-7+i;else x=p-3+i}return`<button class="pg${x===p?' on':''}" onclick="S.${k}=${x};render()">${x+1}</button>`}).join('')}<button class="pg" onclick="S.${k}=${p+1};render()"${p>=t-1?' disabled':''}>→</button></div></div>`}
+
+function pd(s){if(!s)return null;let p=s.split('.');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);p=s.split('-');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);return null}
+
+// NAV
+document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');S.sec=el.dataset.sec;render()}));
+
+// CONFIG
+function showConfig(){const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};o.innerHTML=`<div class="modal"><h2>Google Sheets ulanish</h2><div class="sub">Bitta havola — ikkala sheet avtomatik yuklanadi</div>
+<label>Google Sheets havolasi</label>
+<input type="text" id="cfgU" value="${S.url}" placeholder="https://docs.google.com/spreadsheets/d/...">
+<div class="help"><b>Qanday qilish:</b><br>1. Google Sheets → <b>File → Share → Publish to web</b> → <b>Entire document</b> → <b>Publish</b><br>2. Yoki shunchaki brauzer URL'ini nusxalang<br><br>Ichidagi <b>shartnomalar</b> va <b>qoshimcha</b> sheet'lar avtomatik aniqlanadi.<br><br><span style="color:var(--amber)">⚠ Agar havola ishlamasa</span> — CSV fayllarni qo'lda yuklang.</div>
+<div class="modal-btns">
+<button class="btn" onclick="this.closest('.overlay').remove()">Bekor</button>
+<label class="btn" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" style="display:none"></label>
+<label class="btn" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" style="display:none"></label>
+<button class="btn btn-primary" onclick="saveCfg()">Saqlash va yuklash</button>
+</div></div>`;document.body.appendChild(o)}
+function saveCfg(){
+const u=document.getElementById('cfgU').value.trim();
+if(!u&&!S.rows.length)return;
+if(u){S.url=u;localStorage.setItem('uysot_url',u)}
+document.querySelector('.overlay')?.remove();loadData()}
+
+// DATA — JSONP (bypasses CORS, works from file://)
+function getSpreadsheetId(u){let m;if(m=u.match(/spreadsheets\/d\/e\/([\w-]+)/))return{id:m[1],pub:true};if(m=u.match(/spreadsheets\/d\/([\w-]+)/))return{id:m[1],pub:false};return null}
+function gvizUrl(baseUrl,sheetName){const info=getSpreadsheetId(baseUrl);if(!info)return null;const base=info.pub?`https://docs.google.com/spreadsheets/d/e/${info.id}/gviz/tq`:`https://docs.google.com/spreadsheets/d/${info.id}/gviz/tq`;return`${base}?tqx=responseHandler:CB&sheet=${encodeURIComponent(sheetName)}`}
+function gvizToRows(table){const cols=table.cols.map(c=>c.label||c.id);return table.rows.map(r=>{const o={};r.c.forEach((cell,i)=>{let v='';if(cell){if(cell.f)v=String(cell.f);else if(cell.v!=null)v=String(cell.v)}o[cols[i]]=v.trim()});o._mUSD=pn(o['Oylik USD']);o._mUZS=pn(o['oylik UZS']);o._sUSD=pn(o['sum USD']);o._sUZS=pn(o['sum UZS']);o._tUSD=pn(o['Tadbiq USD']);o._dur=parseFloat(o['muddati (oy)'])||0;return o}).filter(r=>r.Client||r['Firma nomi'])}
+function loadJsonp(url,label){return new Promise((res,rej)=>{
+const cb='_g'+Math.random().toString(36).slice(2);
+const realUrl=url.replace('responseHandler:CB','responseHandler:'+cb);
+console.log(`[${label}] Yuklanmoqda: ${realUrl}`);
+const t=setTimeout(()=>{delete window[cb];rej(new Error(`[${label}] 12s kutildi, javob kelmadi.\nURL: ${realUrl}\n\nSabablar:\n1) Google Sheets "Publish to web" qilinmagan\n2) Sheet nomi noto'g'ri ("shartnomalar" / "qoshimcha")\n3) Internet aloqasi yo'q`))},12000);
+window[cb]=function(resp){
+clearTimeout(t);delete window[cb];
+console.log(`[${label}] Javob keldi:`,resp.status,resp.table?.rows?.length+' qator');
+if(resp.status==='error'){
+  const msg=resp.errors?.map(e=>e.detailed_message||e.message).join('; ')||'Noma\'lum xatolik';
+  return rej(new Error(`[${label}] Google Sheets xatolik: ${msg}\n\nSheet nomi: "${realUrl.match(/sheet=([^&]*)/)?.[1]||'?'}"`));
+}
+try{const rows=gvizToRows(resp.table);console.log(`[${label}] ${rows.length} ta qator yuklandi`);res(rows)}
+catch(e){rej(new Error(`[${label}] Ma'lumot parse xatolik: ${e.message}`))}
+};
+const s=document.createElement('script');
+s.src=realUrl;
+s.onerror=(ev)=>{clearTimeout(t);delete window[cb];
+rej(new Error(`[${label}] Script yuklanmadi.\nURL: ${realUrl}\n\nSabablar:\n1) Google Sheets "Publish to web" qilinmagan\n2) Havola noto'g'ri\n3) Internet aloqasi yo'q`))};
+document.head.appendChild(s);
+s.onload=()=>{s.remove();console.log(`[${label}] Script yuklandi, callback kutilmoqda...`)}
+})}
+async function loadData(){if(!S.url&&!S.rows.length){showConfig();return}
+const info=getSpreadsheetId(S.url);
+if(!info){
+document.getElementById('root').innerHTML=errPage('Havola formatini tanib bo\'lmadi','Kiritilgan URL: <code style="word-break:break-all;font-size:11px;background:var(--bg3);padding:2px 6px;border-radius:3px">'+S.url+'</code><br><br>Quyidagi formatlardan biri kutiladi:<br>• https://docs.google.com/spreadsheets/d/<b>SPREADSHEET_ID</b>/...<br>• https://docs.google.com/spreadsheets/d/e/<b>PUBLISHED_ID</b>/...');
+return}
+document.getElementById('root').innerHTML='<div class="loading"><div class="spin"></div><div style="color:var(--text2);font-size:13px">Yuklanmoqda...<br><span style="font-size:11px;color:var(--text3)">ID: '+info.id.slice(0,20)+'...</span></div></div>';
+try{
+const u1=gvizUrl(S.url,'shartnomalar');
+const u2=gvizUrl(S.url,'qoshimcha');
+console.log('Shartnomalar URL:',u1);console.log('Qo\'shimcha URL:',u2);
+if(u1)S.rows=await loadJsonp(u1,'Shartnomalar');
+if(u2)try{S.qRows=await loadJsonp(u2,'Qo\'shimcha')}catch(e){console.warn(e.message);S.qRows=[]}
+document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');render()
+}catch(e){
+console.error('loadData xatolik:',e);
+document.getElementById('root').innerHTML=errPage('Yuklanmadi',e.message.replace(/\n/g,'<br>'))}}
+function errPage(title,detail){return`<div class="loading" style="gap:12px">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+<div style="font-weight:600;color:var(--red);font-size:16px">${title}</div>
+<div style="color:var(--text2);font-size:12px;text-align:left;max-width:520px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;line-height:1.7">${detail}</div>
+<div style="display:flex;gap:6px;margin-top:4px">
+<label class="btn btn-primary" style="cursor:pointer">Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" style="display:none"></label>
+<label class="btn" style="cursor:pointer">Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" style="display:none"></label>
+</div>
+<button class="btn" onclick="showConfig()">Havolani o'zgartirish</button>
+</div>`}
+function loadFile(i,type){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{
+if(type==='extra'){S.qRows=parse(e.target.result);alert('Qo\'shimcha kelishuvlar yuklandi: '+S.qRows.length+' ta')}
+else{S.rows=parse(e.target.result)}
+document.querySelector('.overlay')?.remove();document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');render()}catch(e){alert('Xatolik: '+e.message)}};r.readAsText(f)}
+function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark" style="width:52px;height:52px;font-size:20px;border-radius:12px">U</div><h2 style="font-size:20px;font-weight:700;margin-top:4px">UYSOT Shartnomalar</h2><p style="color:var(--text2);text-align:center;max-width:400px;font-size:13px">Google Sheets jadvalini database sifatida ulab, barcha ma'lumotlarni real-time ko'ring</p><div style="display:flex;gap:10px;margin-top:12px"><button class="btn btn-primary" onclick="showConfig()" style="padding:10px 22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>Google Sheets ulash</button><label class="btn" style="padding:10px 22px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>CSV yuklash<input type="file" accept=".csv" onchange="loadFile(this,'main')" style="display:none"></label></div></div>`}
+
+if(S.url)loadData();else showWelcome();
+</script>
+</body>
+</html>
