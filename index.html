@@ -160,6 +160,8 @@ const firstNonZero=tSlice.findIndex(v=>v>0);
 const startMRR=tSlice[firstNonZero]||0;
 const mrrDelta=curMRR-startMRR;
 const totalNew=newSlice.reduce((s,v)=>s+v,0);
+const rechurnSlice=d.rechurnPM.slice(0,maxM+1);
+const totalRechurn=rechurnSlice.reduce((s,v)=>s+v,0);
 const totalChurn=churnSlice.reduce((s,v)=>s+v,0);
 const curClients=cpmSlice[cpmSlice.length-1]||0;
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
@@ -171,7 +173,7 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 <option value="2026"${yr===2026?' selected':''}>2026</option>
 </select><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Yangilash</button></div></div>
 <div class="metrics"><div class="metric c1"><div class="metric-lbl">Aktiv mijozlar (${mos[maxM]})</div><div class="metric-val">${curClients}</div><div class="metric-foot">joriy oy</div></div>
-<div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}</div></div>
+<div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}${totalRechurn?' · <span style="color:var(--amber)">qayta: '+totalRechurn+'</span>':''}</div></div>
 <div class="metric c4"><div class="metric-lbl">Chiqib ketgan</div><div class="metric-val">${totalChurn}</div><div class="metric-foot"><span class="dn">${totalChurn>0?'-':''}${totalChurn}</span> ${periodLabel}</div></div>
 <div class="metric c3"><div class="metric-lbl">Joriy MRR (${mos[maxM]})</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">USD oylik</div></div>
 <div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${startMRR?Math.round(mrrDelta/startMRR*100):0}%</span> ${periodLabel}</div></div></div>
@@ -181,7 +183,7 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Mijozlar — yangi / churn — ${yr}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
 </div>
 
-<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi mijozlar — ${yr}</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rows=[];for(let m=maxM;m>=0;m--){const names=d.newNames[m]||[];names.forEach(n=>{const c=d.clients.find(x=>x.name===n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+mos[m]+'</td><td style="font-weight:500">'+n+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green)">+'+(c?fmt(c.monthly[m]):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Ma\'lumot yo\'q</td></tr>'})()}</tbody></table></div></div>
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi mijozlar — ${yr}</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rchSet=new Set();d.rechurnNames.forEach(arr=>arr.forEach(n=>rchSet.add(n)));const rows=[];for(let m=maxM;m>=0;m--){const names=d.newNames[m]||[];const rch=new Set(d.rechurnNames[m]||[]);names.forEach(n=>{const c=d.clients.find(x=>x.name===n);const isRch=rch.has(n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+mos[m]+'</td><td style="font-weight:500">'+n+(isRch?' <span class="badge b-amber" style="font-size:9px;padding:1px 5px">qayta</span>':'')+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green)">+'+(c?fmt(c.monthly[m]):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Ma\'lumot yo\'q</td></tr>'})()}</tbody></table></div></div>
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn mijozlar — ${yr}</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">Yo'qotilgan $</th></tr></thead><tbody>${(()=>{const rows=[];for(let m=maxM;m>=0;m--){const names=d.churnNames[m]||[];names.forEach(n=>{const c=d.clients.find(x=>x.name===n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+mos[m]+'</td><td style="font-weight:500">'+n+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red)">-'+(c?fmt(c.monthly[m>0?m-1:0]||0):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Ma\'lumot yo\'q</td></tr>'})()}</tbody></table></div></div></div>
 <div class="card" style="margin-top:14px"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--amber)"></span>Oxirgi shartnomalar</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>Mijoz</th><th>Menejer</th><th>Sana</th><th class="text-r">Oylik $</th><th>Status</th></tr></thead><tbody>${recent.map(r=>`<tr><td style="font-weight:500">${r.Client||'—'}</td><td style="color:var(--text2)">${r.Manager||'—'}</td><td class="mono" style="font-size:11px">${r.sanasi}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div>`}
 
@@ -327,13 +329,104 @@ const newPM=cSets.map((s,i)=>{const prev=i===0?prevDecCl:cSets[i-1];return[...s]
 const churnPM=cSets.map((s,i)=>{const prev=i===0?prevDecCl:cSets[i-1];return[...prev].filter(n=>!s.has(n)).length});
 const newNames=cSets.map((s,i)=>{const prev=i===0?prevDecCl:cSets[i-1];return[...s].filter(n=>!prev.has(n))});
 const churnNames=cSets.map((s,i)=>{const prev=i===0?prevDecCl:cSets[i-1];return[...prev].filter(n=>!s.has(n))});
+// Rechurn: "new" this month but was active in ANY earlier period
+// Build "ever active before" for each month
+const everBefore=Array.from({length:12},()=>new Set());
+// All clients active before this year (from allC — any paid contract ending before Jan 1 of this year)
+const preYear=new Set();
+const yrStart=new Date(year,0,1);
+Object.entries(allC).forEach(([name,cts])=>{if(cts.some(ct=>ct.musd>0&&ct.endD<yrStart))preYear.add(name)});
+// prevDecCl also counts as "ever before"
+prevDecCl.forEach(n=>preYear.add(n));
+for(let m=0;m<12;m++){
+  // "ever before month m" = preYear + cSets[0..m-1]
+  preYear.forEach(n=>everBefore[m].add(n));
+  for(let j=0;j<m;j++)cSets[j].forEach(n=>everBefore[m].add(n));
+}
+const rechurnPM=cSets.map((s,i)=>{
+  const prev=i===0?prevDecCl:cSets[i-1];
+  const newOnes=[...s].filter(n=>!prev.has(n));
+  return newOnes.filter(n=>everBefore[i].has(n)).length;
+});
+const rechurnNames=cSets.map((s,i)=>{
+  const prev=i===0?prevDecCl:cSets[i-1];
+  const newOnes=[...s].filter(n=>!prev.has(n));
+  return newOnes.filter(n=>everBefore[i].has(n));
+});
 const mrrChange=totals.map((v,i)=>{const prev=i===0?prevDec:totals[i-1];return v-prev});
-return{clients,totals,mom,year,cpm,newPM,churnPM,newNames,churnNames,mrrChange,prevDec};
+return{clients,totals,mom,year,cpm,newPM,churnPM,newNames,churnNames,rechurnPM,rechurnNames,mrrChange,prevDec};
+}
+
+// Cumulative expected amount per client per month (with partial first/last)
+function calcCumExpected(year){
+const result={};
+// Collect all paid contracts per client (shartnomalar + qoshimcha)
+const allCts={};
+S.rows.forEach(r=>{
+  if(!r.Client||!r.sanasi)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st||!r._mUSD||r._mUSD<=0)return;
+  const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+  const c=r.Client;
+  if(!allCts[c])allCts[c]=[];
+  allCts[c].push({musd:r._mUSD,st,endD,isQ:false});
+});
+S.qRows.forEach(r=>{
+  if(!r.Client||!r.sanasi)return;
+  const musd=pn(r['Oylik USD']);
+  if(!musd)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st)return;
+  const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);
+  const c=r.Client;
+  if(!allCts[c])allCts[c]=[];
+  allCts[c].push({musd,st,endD,isQ:true});
+});
+Object.entries(allCts).forEach(([name,cts])=>{
+  const monthly=new Array(12).fill(0);
+  cts.forEach(ct=>{
+    for(let m=0;m<12;m++){
+      const mS=new Date(year,m,1),mE=new Date(year,m+1,0);
+      const dim=mE.getDate();
+      if(ct.st>mE||ct.endD<mS)continue;
+      const isFirst=(ct.st>=mS&&ct.st<=mE);
+      const isLast=(ct.endD>=mS&&ct.endD<=mE);
+      if(isFirst&&isLast){
+        const days=Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1);
+        monthly[m]+=ct.musd*days/dim;
+      }else if(isFirst){
+        const days=Math.max(1,Math.round((mE-ct.st)/864e5)+1);
+        monthly[m]+=ct.musd*days/dim;
+      }else if(isLast&&ct.isQ){
+        const days=Math.max(1,ct.endD.getDate());
+        monthly[m]+=ct.musd*days/dim;
+      }else{
+        monthly[m]+=ct.musd;
+      }
+    }
+  });
+  // Cumulate
+  const cum=new Array(12).fill(0);
+  let run=0;
+  for(let m=0;m<12;m++){run+=monthly[m];cum[m]=Math.round(run)}
+  result[name]=cum;
+});
+return result;
+}
+// Aggregate payments by client (not by contract)
+function calcClientPayments(){
+const pm=calcPayments();
+const cp={};
+Object.values(pm).forEach(v=>{cp[v.client]=(cp[v.client]||0)+v.total});
+return cp;
 }
 
 function rMRR(){
 const yr=S.mrrYear||2026;
 const d=mrrData(yr);
+// Payment cell coloring
+const cumExp=calcCumExpected(yr);
+const clPay=calcClientPayments();
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 const activeClients=d.clients;
 const totalMRR=Math.max(...d.totals);
@@ -370,7 +463,17 @@ ${filtered.map(c=>`<tr>
 <td class="sticky-col col-mrr mono">${c.mrr?fmt(c.mrr):'—'}</td>
 <td class="mono" style="text-align:center;font-size:10px;color:var(--text2)">${c.dealStart||'—'}</td>
 <td class="mono" style="text-align:center;font-size:10px;color:var(--text2);border-right:2px solid var(--border)">${c.dealEnd||'—'}</td>
-${c.monthly.map(v=>`<td class="mcell${v?'':' mrr-val-0'}">${v?fmt(v):'<span style="color:#ccc">—</span>'}</td>`).join('')}
+${c.monthly.map((v,m)=>{
+const ce=cumExp[c.name];const paid=clPay[c.name]||0;
+let bg='';
+if(v&&ce){
+  const cur=ce[m]||0;const prev=m>0?(ce[m-1]||0):0;
+  if(cur>0){
+    if(paid>=cur)bg='background:rgba(17,122,82,0.13)';
+    else if(paid>prev)bg='background:rgba(163,98,7,0.13)';
+  }
+}
+return`<td class="mcell${v?'':' mrr-val-0'}" style="${bg}">${v?fmt(v):'<span style="color:#ccc">—</span>'}</td>`}).join('')}
 </tr>`).join('')}
 </tbody></table></div></div>
 `}
