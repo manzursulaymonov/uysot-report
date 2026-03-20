@@ -97,7 +97,7 @@ select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radiu
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashYear:2026,mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashPre:'y',dashFrom:{y:2026,m:0},dashTo:{y:2026,m:new Date().getMonth()},mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false};
 function pn(s){return parseFloat((s||'').replace(/[$\s]/g,'').replace(/,/g,''))||0}
 function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
 function fk(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'k':Math.round(n)}
@@ -139,54 +139,103 @@ function sb(s){const c=sc(s);const m={A:'b-green',D:'b-blue',P:'b-red',Q:'b-ambe
 function activeR(){return S.rows.filter(r=>sc(r.status)==='A')}
 function uq(key){return[...new Set(S.rows.map(r=>r[key]).filter(Boolean))].sort()}
 
-function render(){if(!S.rows.length){showWelcome();return}const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT};document.getElementById('root').innerHTML=(f[S.sec]||rD)();iC()}
+let _rdT;function render(){clearTimeout(_rdT);_rdT=setTimeout(_render,0)}
+function _render(){if(!S.rows.length){showWelcome();return}
+const ae=document.activeElement;const isInput=ae&&ae.tagName==='INPUT'&&ae.type==='text';
+const sel=isInput?{s:ae.selectionStart,e:ae.selectionEnd,sec:S.sec,ph:ae.placeholder}:null;
+const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT};
+document.getElementById('root').innerHTML=(f[S.sec]||rD)();iC();
+if(sel&&sel.sec===S.sec){const inp=document.querySelector('input[placeholder="'+sel.ph+'"]');if(inp){inp.focus();inp.setSelectionRange(sel.s,sel.e)}}}
 
-// DASHBOARD
-function rD(){
-const yr=S.dashYear||2026;
-const d=mrrData(yr);
-const tot=S.rows.length,clients=[...new Set(S.rows.map(r=>r.Client).filter(Boolean))];
-const done=S.rows.filter(r=>sc(r.status)==='D'),debt=S.rows.filter(r=>sc(r.status)==='Q'),prob=S.rows.filter(r=>sc(r.status)==='P');
-const recent=[...S.rows].filter(r=>r.sanasi).sort((a,b)=>(pd(b.sanasi)||0)-(pd(a.sanasi)||0)).slice(0,8);
-// Cutoff: for current/future year → up to current month, for past years → full year
-const now=new Date();
-const maxM=yr<now.getFullYear()?11:(yr===now.getFullYear()?now.getMonth():now.getMonth());
-// Sliced data up to cutoff
-const tSlice=d.totals.slice(0,maxM+1);
-const cpmSlice=d.cpm.slice(0,maxM+1);
-const newSlice=d.newPM.slice(0,maxM+1);
-const churnSlice=d.churnPM.slice(0,maxM+1);
-// Period stats
-const curMRR=tSlice[tSlice.length-1]||0;
-const firstNonZero=tSlice.findIndex(v=>v>0);
-const startMRR=tSlice[firstNonZero]||0;
-const mrrDelta=curMRR-startMRR;
-const totalNew=newSlice.reduce((s,v)=>s+v,0);
-const rechurnSlice=d.rechurnPM.slice(0,maxM+1);
-const totalRechurn=rechurnSlice.reduce((s,v)=>s+v,0);
-const totalChurn=churnSlice.reduce((s,v)=>s+v,0);
-const curClients=cpmSlice[cpmSlice.length-1]||0;
+// DASHBOARD — presets + custom period
+function dashPreset(key){
+const now=new Date();const y=now.getFullYear(),m=now.getMonth();
+// week = Mon–Sun of current week
+const dow=now.getDay()||7;// Mon=1..Sun=7
+const wkStart=new Date(now);wkStart.setDate(now.getDate()-(dow-1));
+const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
+const presets={
+  'w':{from:{y:wkStart.getFullYear(),m:wkStart.getMonth()},to:{y:wkEnd.getFullYear(),m:wkEnd.getMonth()},label:'Bu hafta'},
+  'm':{from:{y,m},to:{y,m},label:'Bu oy'},
+  'q':{from:{y,m:Math.floor(m/3)*3},to:{y,m},label:'Bu chorak'},
+  'y':{from:{y,m:0},to:{y,m},label:y+''},
+  '30':{from:{y:new Date(now-30*864e5).getFullYear(),m:new Date(now-30*864e5).getMonth()},to:{y,m},label:'30 kun'},
+  '90':{from:{y:new Date(now-90*864e5).getFullYear(),m:new Date(now-90*864e5).getMonth()},to:{y,m},label:'90 kun'},
+  '25':{from:{y:2025,m:0},to:{y:2025,m:11},label:'2025'},
+  '24':{from:{y:2024,m:0},to:{y:2024,m:11},label:'2024'},
+};
+return presets[key]||presets['y'];
+}
+function applyPreset(key){S.dashPre=key;const p=dashPreset(key);S.dashFrom=p.from;S.dashTo=p.to;render()}
+function dashRange(){
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-const periodLabel=yr<now.getFullYear()?`${mos[0]}–${mos[11]}`:`${mos[firstNonZero]||mos[0]}–${mos[maxM]}`;
-return`<div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">Shartnomalar — ${tot} ta shartnoma, ${clients.length} ta mijoz</div></div>
-<div style="display:flex;gap:6px"><select class="flt" onchange="S.dashYear=+this.value;render()" style="font-weight:600">
-<option value="2024"${yr===2024?' selected':''}>2024</option>
-<option value="2025"${yr===2025?' selected':''}>2025</option>
-<option value="2026"${yr===2026?' selected':''}>2026</option>
-</select><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Yangilash</button></div></div>
-<div class="metrics"><div class="metric c1"><div class="metric-lbl">Aktiv mijozlar (${mos[maxM]})</div><div class="metric-val">${curClients}</div><div class="metric-foot">joriy oy</div></div>
+const now=new Date();
+const fy=S.dashFrom.y,fm=S.dashFrom.m,ty=S.dashTo.y,tm=S.dashTo.m;
+let labels=[],totals=[],cpmArr=[],newArr=[],churnArr=[],rechurnArr=[],newNamesArr=[],churnNamesArr=[],allClients=[];
+const cache={};
+for(let y=fy;y<=ty;y++){
+  if(!cache[y])cache[y]=mrrData(y);
+  const d=cache[y];
+  const m0=(y===fy?fm:0),m1=(y===ty?tm:11);
+  for(let m=m0;m<=m1;m++){
+    const span=(ty-fy)*12+(tm-fm);
+    const lbl=span<=11?mos[m]:mos[m]+' '+(y%100);
+    labels.push(lbl);totals.push(d.totals[m]);cpmArr.push(d.cpm[m]);
+    newArr.push(d.newPM[m]);churnArr.push(d.churnPM[m]);rechurnArr.push(d.rechurnPM[m]);
+    newNamesArr.push({label:lbl,names:d.newNames[m],rechurn:d.rechurnNames[m]});
+    churnNamesArr.push({label:lbl,names:d.churnNames[m]});
+  }
+  allClients=d.clients.length>allClients.length?d.clients:allClients;
+}
+return{labels,totals,cpmArr,newArr,churnArr,rechurnArr,newNamesArr,churnNamesArr,allClients};
+}
+function rD(){
+const dr=dashRange();
+const {labels,totals,cpmArr,newArr,churnArr,rechurnArr,newNamesArr,churnNamesArr,allClients}=dr;
+const tot=S.rows.length,clients=[...new Set(S.rows.map(r=>r.Client).filter(Boolean))];
+const recent=[...S.rows].filter(r=>r.sanasi).sort((a,b)=>(pd(b.sanasi)||0)-(pd(a.sanasi)||0)).slice(0,8);
+const tDebt=S.rows.filter(r=>sc(r.status)==='Q').sort((a,b)=>b._sUSD-a._sUSD).slice(0,6);
+const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+const curMRR=totals[totals.length-1]||0;
+const startMRR=totals[0]||0;
+const mrrDelta=curMRR-startMRR;
+const totalNew=newArr.reduce((s,v)=>s+v,0);
+const totalRechurn=rechurnArr.reduce((s,v)=>s+v,0);
+const totalChurn=churnArr.reduce((s,v)=>s+v,0);
+const curClients=cpmArr[cpmArr.length-1]||0;
+const periodLabel=labels.length>1?labels[0]+'–'+labels[labels.length-1]:labels[0]||'';
+const lastLabel=labels[labels.length-1]||'';
+const pre=S.dashPre||'y';
+const isCust=pre==='c';
+const presets=[{k:'w',l:'Hafta'},{k:'m',l:'Oy'},{k:'q',l:'Chorak'},{k:'y',l:'Yil'},{k:'30',l:'30k'},{k:'90',l:'90k'},{k:'25',l:'2025'},{k:'24',l:'2024'},{k:'c',l:'Oraliq'}];
+return`<div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">${tot} ta shartnoma, ${clients.length} ta mijoz</div></div>
+<div style="display:flex;align-items:center;gap:6px"><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button></div></div>
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''}" style="padding:5px 12px;font-size:11.5px" onclick="${p.k==='c'?"S.dashPre='c';render()":"applyPreset('"+p.k+"')"}">${p.l}</button>`).join('')}
+${isCust?`<div style="display:flex;gap:4px;align-items:center;margin-left:4px">
+<select class="flt" style="width:56px;font-size:11px;padding:5px" onchange="S.dashFrom.m=+this.value;render()">${mos.map((m,i)=>`<option value="${i}"${S.dashFrom.m===i?' selected':''}>${m}</option>`).join('')}</select>
+<select class="flt" style="width:58px;font-size:11px;padding:5px" onchange="S.dashFrom.y=+this.value;render()">${[2023,2024,2025,2026,2027].map(y=>`<option value="${y}"${S.dashFrom.y===y?' selected':''}>${y}</option>`).join('')}</select>
+<span style="color:var(--text3)">→</span>
+<select class="flt" style="width:56px;font-size:11px;padding:5px" onchange="S.dashTo.m=+this.value;render()">${mos.map((m,i)=>`<option value="${i}"${S.dashTo.m===i?' selected':''}>${m}</option>`).join('')}</select>
+<select class="flt" style="width:58px;font-size:11px;padding:5px" onchange="S.dashTo.y=+this.value;render()">${[2023,2024,2025,2026,2027].map(y=>`<option value="${y}"${S.dashTo.y===y?' selected':''}>${y}</option>`).join('')}</select>
+</div>`:''}
+</div>
+<div class="metrics"><div class="metric c1"><div class="metric-lbl">Aktiv mijozlar (${lastLabel})</div><div class="metric-val">${curClients}</div><div class="metric-foot">oxirgi oy</div></div>
 <div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}${totalRechurn?' · <span style="color:var(--amber)">qayta: '+totalRechurn+'</span>':''}</div></div>
 <div class="metric c4"><div class="metric-lbl">Chiqib ketgan</div><div class="metric-val">${totalChurn}</div><div class="metric-foot"><span class="dn">${totalChurn>0?'-':''}${totalChurn}</span> ${periodLabel}</div></div>
-<div class="metric c3"><div class="metric-lbl">Joriy MRR (${mos[maxM]})</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">USD oylik</div></div>
+<div class="metric c3"><div class="metric-lbl">MRR (${lastLabel})</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">USD oylik</div></div>
 <div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${startMRR?Math.round(mrrDelta/startMRR*100):0}%</span> ${periodLabel}</div></div></div>
 
 <div class="grid-2">
-<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>Oylik MRR trend — ${yr}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chTrend"></canvas></div></div></div>
-<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Mijozlar — yangi / churn — ${yr}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>MRR trend — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chTrend"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Yangi / Churn — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
 </div>
 
-<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi mijozlar — ${yr}</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rchSet=new Set();d.rechurnNames.forEach(arr=>arr.forEach(n=>rchSet.add(n)));const rows=[];for(let m=maxM;m>=0;m--){const names=d.newNames[m]||[];const rch=new Set(d.rechurnNames[m]||[]);names.forEach(n=>{const c=d.clients.find(x=>x.name===n);const isRch=rch.has(n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+mos[m]+'</td><td style="font-weight:500">'+n+(isRch?' <span class="badge b-amber" style="font-size:9px;padding:1px 5px">qayta</span>':'')+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green)">+'+(c?fmt(c.monthly[m]):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Ma\'lumot yo\'q</td></tr>'})()}</tbody></table></div></div>
-<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn mijozlar — ${yr}</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">Yo'qotilgan $</th></tr></thead><tbody>${(()=>{const rows=[];for(let m=maxM;m>=0;m--){const names=d.churnNames[m]||[];names.forEach(n=>{const c=d.clients.find(x=>x.name===n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+mos[m]+'</td><td style="font-weight:500">'+n+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red)">-'+(c?fmt(c.monthly[m>0?m-1:0]||0):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Ma\'lumot yo\'q</td></tr>'})()}</tbody></table></div></div></div>
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi mijozlar</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rows=[];for(let i=newNamesArr.length-1;i>=0;i--){const g=newNamesArr[i];const rch=new Set(g.rechurn||[]);(g.names||[]).forEach(n=>{const c=allClients.find(x=>x.name===n);const isRch=rch.has(n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+g.label+'</td><td style="font-weight:500">'+n+(isRch?' <span class="badge b-amber" style="font-size:9px;padding:1px 5px">qayta</span>':'')+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green)">+'+(c?fmt(c.mrr):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'})()}</tbody></table></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn mijozlar</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rows=[];for(let i=churnNamesArr.length-1;i>=0;i--){const g=churnNamesArr[i];(g.names||[]).forEach(n=>{const c=allClients.find(x=>x.name===n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+g.label+'</td><td style="font-weight:500">'+n+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red)">—</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'})()}</tbody></table></div></div></div>
+
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Status taqsimoti</span></div><div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="chS"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Eng katta qarzlar</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>Mijoz</th><th>Firma</th><th class="text-r">Summa $</th><th>Status</th></tr></thead><tbody>${tDebt.map(r=>`<tr><td style="font-weight:500">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td class="text-r mono">${fmt(r._sUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div></div>
 <div class="card" style="margin-top:14px"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--amber)"></span>Oxirgi shartnomalar</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>Mijoz</th><th>Menejer</th><th>Sana</th><th class="text-r">Oylik $</th><th>Status</th></tr></thead><tbody>${recent.map(r=>`<tr><td style="font-weight:500">${r.Client||'—'}</td><td style="color:var(--text2)">${r.Manager||'—'}</td><td class="mono" style="font-size:11px">${r.sanasi}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div>`}
 
 // CONTRACTS
@@ -550,17 +599,19 @@ const gc='rgba(0,0,0,.03)',tc='#918f88',bo={responsive:true,maintainAspectRatio:
 const co=['#1746a2','#117a52','#a36207','#6941b8','#c42b1c','#0e7c7b','#d4537e','#888','#854f0b','#993556'];
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 
-// Dashboard: MRR trend (up to today)
-const eTrend=document.getElementById('chTrend');if(eTrend){const d=mrrData(S.dashYear||2026);const _now=new Date();const _yr=S.dashYear||2026;const _mx=_yr<_now.getFullYear()?11:(_yr===_now.getFullYear()?_now.getMonth():_now.getMonth());const _mos=mos.slice(0,_mx+1);const _tots=d.totals.slice(0,_mx+1);new Chart(eTrend,{type:'line',data:{labels:_mos,datasets:[{label:'MRR',data:_tots,borderColor:'#1746a2',backgroundColor:'rgba(23,70,162,0.06)',fill:true,tension:0.35,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#1746a2'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}}}}})}
+// Dashboard: MRR trend
+const eTrend=document.getElementById('chTrend');if(eTrend){const dr=dashRange();new Chart(eTrend,{type:'line',data:{labels:dr.labels,datasets:[{label:'MRR',data:dr.totals,borderColor:'#1746a2',backgroundColor:'rgba(23,70,162,0.06)',fill:true,tension:0.35,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#1746a2'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}}}}})}
 
-// Dashboard: Clients new/churn (up to today)
-const eCl=document.getElementById('chClients');if(eCl){const d=mrrData(S.dashYear||2026);const _now=new Date();const _yr=S.dashYear||2026;const _mx=_yr<_now.getFullYear()?11:(_yr===_now.getFullYear()?_now.getMonth():_now.getMonth());const _mos=mos.slice(0,_mx+1);new Chart(eCl,{type:'bar',data:{labels:_mos,datasets:[
-{label:'Yangi',data:d.newPM.slice(0,_mx+1),backgroundColor:'#117a52',borderRadius:3},
-{label:'Churn',data:d.churnPM.slice(0,_mx+1).map(v=>-v),backgroundColor:'#c42b1c',borderRadius:3},
-{label:'Jami',data:d.cpm.slice(0,_mx+1),type:'line',borderColor:'#1746a2',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1746a2',tension:0.3,yAxisID:'y1'}
+// Dashboard: Clients new/churn
+const eCl=document.getElementById('chClients');if(eCl){const dr=dashRange();new Chart(eCl,{type:'bar',data:{labels:dr.labels,datasets:[
+{label:'Yangi',data:dr.newArr,backgroundColor:'#117a52',borderRadius:3},
+{label:'Churn',data:dr.churnArr.map(v=>-v),backgroundColor:'#c42b1c',borderRadius:3},
+{label:'Jami',data:dr.cpmArr,type:'line',borderColor:'#1746a2',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1746a2',tension:0.3,yAxisID:'y1'}
 ]},options:{...bo,plugins:{legend:{display:true,labels:{boxWidth:10,padding:12,font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y1:{position:'right',grid:{display:false},ticks:{color:'#1746a2',font:{size:11}}}}}})}
 
 // Status chart removed — replaced with new/churn tables
+
+const eS=document.getElementById('chS');if(eS){const sc2={A:0,D:0,Q:0,P:0,O:0,X:0};S.rows.forEach(r=>{const c=sc(r.status);if(sc2[c]!==undefined)sc2[c]++});new Chart(eS,{type:'doughnut',data:{labels:['Aktiv','Bajarildi','Eski qarz','Muammo','Ortiqcha','Bekor'],datasets:[{data:[sc2.A,sc2.D,sc2.Q,sc2.P,sc2.O,sc2.X],backgroundColor:['#117a52','#1746a2','#a36207','#c42b1c','#6941b8','#999'],borderWidth:0}]},options:{...bo,cutout:'55%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}
 
 const e4=document.getElementById('chMM');if(e4){const m={};S.rows.forEach(r=>{const n=r.Manager||'?';m[n]=(m[n]||0)+r._mUSD});const e=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);new Chart(e4,{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:co,borderRadius:4}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}}})}
 
@@ -590,18 +641,46 @@ function pd(s){if(!s)return null;let p=s.split('.');if(p.length===3)return new D
 // NAV
 document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');S.sec=el.dataset.sec;render()}));
 
-// CONFIG — JSON file based
-function showConfig(){const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};o.innerHTML=`<div class="modal"><h2>Ma'lumot yuklash</h2><div class="sub">JSON config file yoki CSV fayllar yuklang</div>
-<div style="display:flex;flex-direction:column;gap:12px">
-<label class="btn btn-primary" style="cursor:pointer;justify-content:center;padding:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash (uysot_config.json)<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label>
-<div style="text-align:center;color:var(--text3);font-size:12px">— yoki alohida CSV fayllar —</div>
+// CONFIG — improved
+function showConfig(){
+const hasSaved=!!localStorage.getItem('uysot_config');
+const sheets=[
+  {k:'shartnomalar',l:'Shartnomalar',d:'Asosiy shartnomalar jadvali',n:S.rows.length,ft:'main'},
+  {k:'qoshimcha',l:'Qo\'shimcha',d:'Qo\'shimcha kelishuvlar',n:S.qRows.length,ft:'extra'},
+  {k:'payments',l:'Payments',d:'2025+ to\'lovlar reestri',n:S.payRows.length,ft:'pay'},
+  {k:'2024',l:'2024',d:'2025 gacha jami to\'lovlar',n:S.y2024Rows.length,ft:'y24'},
+  {k:'perevod',l:'Perevod',d:'O\'zaro hisob-kitob, kurs farqi',n:S.perevodRows.length,ft:'per'}
+];
+const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+o.innerHTML=`<div class="modal" style="max-width:520px">
+<h2 style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</h2>
+
+<div style="margin-bottom:16px">
+<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">Ma'lumot manbalari holati</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+${sheets.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:6px;font-size:12px">
+<div><span style="font-weight:600">${s.l}</span><span style="color:var(--text3);margin-left:6px;font-size:10.5px">${s.d}</span></div>
+<div style="display:flex;align-items:center;gap:8px">
+${s.n?`<span style="color:var(--green);font-weight:600;font-size:11px">${s.n} qator</span>`:'<span style="color:var(--text3);font-size:11px">yuklanmagan</span>'}
+<label style="cursor:pointer;display:flex;align-items:center;padding:3px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--text2);white-space:nowrap">CSV<input type="file" accept=".csv" onchange="loadFile(this,'${s.ft}')" style="display:none"></label>
+</div></div>`).join('')}
+</div>
+</div>
+
+<div style="margin-bottom:16px">
+<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">JSON config bilan yuklash</div>
 <div style="display:flex;gap:8px">
-<label class="btn" style="cursor:pointer;flex:1;justify-content:center">Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" style="display:none"></label>
-<label class="btn" style="cursor:pointer;flex:1;justify-content:center">Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" style="display:none"></label>
+<label class="btn btn-primary" style="cursor:pointer;flex:1;justify-content:center;padding:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label>
+${hasSaved?`<button class="btn" style="padding:10px" onclick="if(S.config)loadFromConfig(S.config)">Qayta yuklash</button>`:''}
 </div>
+<div style="font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.5">5 ta sheet havolalari yozilgan <b>uysot_config.json</b> file yuklang.<br>
+Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b>.</div>
 </div>
-<div class="help" style="margin-top:14px"><b>JSON config formati:</b><br><code style="font-size:10.5px;display:block;background:var(--bg3);padding:8px;border-radius:4px;margin-top:4px;line-height:1.6">{<br>&nbsp;&nbsp;"shartnomalar": "https://...pub?gid=...&output=csv",<br>&nbsp;&nbsp;"qoshimcha": "https://...pub?gid=...&output=csv"<br>}</code><br>Linklar Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b> formatida olinadi.</div>
-<div class="modal-btns"><button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button></div>
+
+${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+<button class="btn" style="color:var(--red);border-color:var(--red);font-size:11px" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];this.closest('.overlay').remove();showWelcome()}">Keshni tozalash</button>
+<button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
+</div>`:`<div class="modal-btns"><button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button></div>`}
 </div>`;document.body.appendChild(o)}
 
 // DATA — JSON config + CSV fetch
@@ -658,9 +737,15 @@ function errPage(title,detail){return`<div class="loading" style="gap:12px">
 <button class="btn" onclick="showConfig()">Sozlamalar</button>
 </div>`}
 function loadFile(i,type){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{
-if(type==='extra'){S.qRows=parse(e.target.result);alert('Qo\'shimcha kelishuvlar yuklandi: '+S.qRows.length+' ta')}
-else{S.rows=parse(e.target.result)}
-document.querySelector('.overlay')?.remove();document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');render()}catch(e){alert('Xatolik: '+e.message)}};r.readAsText(f)}
+const t=e.target.result;
+const map={main:['rows','parse'],extra:['qRows','parse'],pay:['payRows','parseRaw'],y24:['y2024Rows','parseRaw'],per:['perevodRows','parseRaw']};
+const [key,fn]=map[type]||['rows','parse'];
+S[key]=(fn==='parse'?parse:parseRaw)(t);
+console.log('[CSV] '+type+': '+S[key].length+' ta qator');
+document.querySelector('.overlay')?.remove();
+document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');
+showConfig();render()
+}catch(e){alert('Xatolik: '+e.message)}};r.readAsText(f)}
 function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark" style="width:52px;height:52px;font-size:20px;border-radius:12px">U</div><h2 style="font-size:20px;font-weight:700;margin-top:4px">UYSOT Shartnomalar</h2><p style="color:var(--text2);text-align:center;max-width:400px;font-size:13px;line-height:1.7">Google Sheets ma'lumotlarini <b>uysot_config.json</b> file orqali ulang.<br>JSON ichida shartnomalar va qo'shimcha CSV havolalari bo'ladi.</p><div style="display:flex;gap:10px;margin-top:16px"><label class="btn btn-primary" style="padding:10px 22px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label><button class="btn" onclick="showConfig()" style="padding:10px 22px">Boshqa usullar</button></div></div>`}
 
 // INIT — check saved config
