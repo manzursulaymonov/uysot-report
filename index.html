@@ -237,6 +237,23 @@ const snapshots=points.map(pt=>{
   return mrrOnDate(snapDate,all,qAll);
 });
 snapshots.forEach(s=>{totals.push(s.total);cpmArr.push(s.active.size)});
+// Per-point new/churn by comparing consecutive active sets
+const newPerPt=[],churnPerPt=[],addedMRR=[],lostMRR=[];
+// Get "before period" snapshot
+const beforeDate=new Date(from);beforeDate.setDate(beforeDate.getDate()-1);
+const before=mrrOnDate(beforeDate,all,qAll);
+for(let i=0;i<snapshots.length;i++){
+  const prev=i===0?before:snapshots[i-1];
+  const cur=snapshots[i];
+  const newOnes=[...cur.active].filter(n=>!prev.active.has(n));
+  const gone=[...prev.active].filter(n=>!cur.active.has(n));
+  newPerPt.push(newOnes.length);churnPerPt.push(gone.length);
+  // MRR added from new clients
+  let added=0;newOnes.forEach(n=>{const ct=all.find(c=>c.client===n&&c.musd>0);if(ct)added+=ct.musd});
+  // MRR lost from churned
+  let lost=0;gone.forEach(n=>{const ct=all.filter(c=>c.client===n&&c.musd>0).pop();if(ct)lost+=ct.musd});
+  addedMRR.push(added);lostMRR.push(lost);
+}
 // New / Churn — based on actual contract dates within period
 const newClients=[],churnClients=[];
 // Group contracts by client
@@ -270,11 +287,11 @@ Object.entries(byClient).forEach(([name,cts])=>{
 });
 newClients.sort((a,b)=>b.date-a.date);
 churnClients.sort((a,b)=>b.date-a.date);
-return{labels,totals,cpmArr,newClients,churnClients,gran,points};
+return{labels,totals,cpmArr,newPerPt,churnPerPt,addedMRR,lostMRR,newClients,churnClients,gran,points};
 }
 function rD(){
 const dr=dashRange();
-const {labels,totals,cpmArr,newClients,churnClients}=dr;
+const {labels,totals,cpmArr,newPerPt,churnPerPt,addedMRR,lostMRR,newClients,churnClients}=dr;
 const tot=S.rows.length,clients=[...new Set(S.rows.map(r=>r.Client).filter(Boolean))];
 const recent=[...S.rows].filter(r=>r.sanasi).sort((a,b)=>(pd(b.sanasi)||0)-(pd(a.sanasi)||0)).slice(0,8);
 const tDebt=S.rows.filter(r=>sc(r.status)==='Q').sort((a,b)=>b._sUSD-a._sUSD).slice(0,6);
@@ -286,6 +303,10 @@ const totalNew=newClients.length;
 const totalRechurn=newClients.filter(c=>c.isRechurn).length;
 const totalChurn=churnClients.length;
 const curClients=cpmArr[cpmArr.length-1]||0;
+// MRR split: from new clients vs expansion
+const mrrFromNew=addedMRR.reduce((s,v)=>s+v,0);
+const mrrFromChurn=lostMRR.reduce((s,v)=>s+v,0);
+const mrrExpansion=mrrDelta-mrrFromNew+mrrFromChurn;// expansion = total delta - net new + losses
 const periodLabel=labels.length>1?labels[0]+'–'+labels[labels.length-1]:labels[0]||'';
 const lastLabel=labels[labels.length-1]||'';
 const pre=S.dashPre||'y';
@@ -307,7 +328,7 @@ ${isCust?`<div style="display:flex;gap:4px;align-items:center;margin-left:4px">
 <div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}${totalRechurn?' · <span style="color:var(--amber)">qayta: '+totalRechurn+'</span>':''}</div></div>
 <div class="metric c4"><div class="metric-lbl">Chiqib ketgan</div><div class="metric-val">${totalChurn}</div><div class="metric-foot"><span class="dn">${totalChurn>0?'-':''}${totalChurn}</span> ${periodLabel}</div></div>
 <div class="metric c3"><div class="metric-lbl">MRR</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">${lastLabel} · USD</div></div>
-<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${mrrPct>0?'+':''}${mrrPct}%</span> ${periodLabel}</div></div></div>
+<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="up">yangi: +${fmt(mrrFromNew)}</span> · <span style="color:${mrrExpansion>=0?'var(--teal)':'var(--red)'}">kengayish: ${mrrExpansion>0?'+':''}${fmt(mrrExpansion)}</span></div></div></div>
 
 <div class="grid-2">
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>MRR trend — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chTrend"></canvas></div></div></div>
@@ -682,12 +703,19 @@ const gc='rgba(0,0,0,.03)',tc='#918f88',bo={responsive:true,maintainAspectRatio:
 const co=['#1746a2','#117a52','#a36207','#6941b8','#c42b1c','#0e7c7b','#d4537e','#888','#854f0b','#993556'];
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 
-// Dashboard: MRR trend
-const eTrend=document.getElementById('chTrend');if(eTrend){const dr=dashRange();const prs=dr.totals.length>20?0:4;new Chart(eTrend,{type:'line',data:{labels:dr.labels,datasets:[{label:'MRR',data:dr.totals,borderColor:'#1746a2',backgroundColor:'rgba(23,70,162,0.06)',fill:true,tension:0.3,borderWidth:2.5,pointRadius:prs,pointBackgroundColor:'#1746a2'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10},maxTicksLimit:15}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}}}}})}
+// Dashboard: MRR trend — 3 indicators: added, lost, total
+const eTrend=document.getElementById('chTrend');if(eTrend){const dr=dashRange();const prs=dr.totals.length>20?0:3;new Chart(eTrend,{type:'bar',data:{labels:dr.labels,datasets:[
+{label:'Qo\'shilgan',data:dr.addedMRR,backgroundColor:'rgba(17,122,82,0.7)',borderRadius:3,order:2},
+{label:'Yo\'qotilgan',data:dr.lostMRR.map(v=>-v),backgroundColor:'rgba(196,43,28,0.7)',borderRadius:3,order:2},
+{label:'Jami MRR',data:dr.totals,type:'line',borderColor:'#1746a2',borderWidth:2.5,pointRadius:prs,pointBackgroundColor:'#1746a2',tension:0.3,yAxisID:'y1',order:1}
+]},options:{...bo,plugins:{legend:{display:true,labels:{boxWidth:10,padding:10,font:{size:10}}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10},maxTicksLimit:15}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},title:{display:true,text:'Δ MRR',color:tc,font:{size:10}}},y1:{position:'right',grid:{display:false},ticks:{color:'#1746a2',font:{size:10},callback:v=>fk(v)},title:{display:true,text:'Jami MRR',color:'#1746a2',font:{size:10}}}}}})}
 
-// Dashboard: Client count
-const eCl=document.getElementById('chClients');if(eCl){const dr=dashRange();const prs=dr.cpmArr.length>20?0:4;new Chart(eCl,{type:'line',data:{labels:dr.labels,datasets:[{label:'Aktiv mijozlar',data:dr.cpmArr,borderColor:'#117a52',backgroundColor:'rgba(17,122,82,0.06)',fill:true,tension:0.3,borderWidth:2.5,pointRadius:prs,pointBackgroundColor:'#117a52'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10},maxTicksLimit:15}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11}}}}}})}
-
+// Dashboard: Clients — 3 indicators: new, churn, total
+const eCl=document.getElementById('chClients');if(eCl){const dr=dashRange();const prs=dr.cpmArr.length>20?0:3;new Chart(eCl,{type:'bar',data:{labels:dr.labels,datasets:[
+{label:'Yangi',data:dr.newPerPt,backgroundColor:'rgba(17,122,82,0.7)',borderRadius:3,order:2},
+{label:'Churn',data:dr.churnPerPt.map(v=>-v),backgroundColor:'rgba(196,43,28,0.7)',borderRadius:3,order:2},
+{label:'Jami',data:dr.cpmArr,type:'line',borderColor:'#1746a2',borderWidth:2.5,pointRadius:prs,pointBackgroundColor:'#1746a2',tension:0.3,yAxisID:'y1',order:1}
+]},options:{...bo,plugins:{legend:{display:true,labels:{boxWidth:10,padding:10,font:{size:10}}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10},maxTicksLimit:15}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10}},title:{display:true,text:'Yangi / Churn',color:tc,font:{size:10}}},y1:{position:'right',grid:{display:false},ticks:{color:'#1746a2',font:{size:10}},title:{display:true,text:'Jami',color:'#1746a2',font:{size:10}}}}}})}
 // Status chart
 
 const eS=document.getElementById('chS');if(eS){const sc2={A:0,D:0,Q:0,P:0,O:0,X:0};S.rows.forEach(r=>{const c=sc(r.status);if(sc2[c]!==undefined)sc2[c]++});new Chart(eS,{type:'doughnut',data:{labels:['Aktiv','Bajarildi','Eski qarz','Muammo','Ortiqcha','Bekor'],datasets:[{data:[sc2.A,sc2.D,sc2.Q,sc2.P,sc2.O,sc2.X],backgroundColor:['#117a52','#1746a2','#a36207','#c42b1c','#6941b8','#999'],borderWidth:0}]},options:{...bo,cutout:'55%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}
