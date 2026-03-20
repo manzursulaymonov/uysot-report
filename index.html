@@ -96,7 +96,7 @@ select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radiu
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashYear:2026};
-function pn(s){return parseFloat((s||'').replace(/\s/g,'').replace(/,/g,''))||0}
+function pn(s){return parseFloat((s||'').replace(/[$\s]/g,'').replace(/,/g,''))||0}
 function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
 function fk(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'k':Math.round(n)}
 function parse(t){const r=Papa.parse(t,{skipEmptyLines:true});const h=r.data[0];console.log('[Parse] Headers:',h?.slice(0,8));console.log('[Parse] Rows:',r.data.length);return r.data.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k.trim()]=(row[i]||'').trim());o._mUSD=pn(o['Oylik USD']);o._mUZS=pn(o['oylik UZS']);o._sUSD=pn(o['sum USD']);o._sUZS=pn(o['sum UZS']);o._tUSD=pn(o['Tadbiq USD']);o._dur=parseFloat(o['muddati (oy)'])||0;return o}).filter(r=>r.Client||r['Firma nomi'])}
