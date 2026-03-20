@@ -97,7 +97,7 @@ select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radiu
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashPre:'y',dashFrom:{y:2026,m:0},dashTo:{y:2026,m:new Date().getMonth()},mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false};
 function pn(s){return parseFloat((s||'').replace(/[$\s]/g,'').replace(/,/g,''))||0}
 function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
 function fk(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'k':Math.round(n)}
@@ -147,92 +147,175 @@ const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:
 document.getElementById('root').innerHTML=(f[S.sec]||rD)();iC();
 if(sel&&sel.sec===S.sec){const inp=document.querySelector('input[placeholder="'+sel.ph+'"]');if(inp){inp.focus();inp.setSelectionRange(sel.s,sel.e)}}}
 
-// DASHBOARD — presets + custom period
+// DASHBOARD — presets + daily/weekly/monthly granularity
 function dashPreset(key){
-const now=new Date();const y=now.getFullYear(),m=now.getMonth();
-// week = Mon–Sun of current week
-const dow=now.getDay()||7;// Mon=1..Sun=7
-const wkStart=new Date(now);wkStart.setDate(now.getDate()-(dow-1));
-const wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);
+const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+const dow=now.getDay()||7;
+const wkS=new Date(y,m,d-(dow-1));const wkE=new Date(y,m,d+(7-dow));
 const presets={
-  'w':{from:{y:wkStart.getFullYear(),m:wkStart.getMonth()},to:{y:wkEnd.getFullYear(),m:wkEnd.getMonth()},label:'Bu hafta'},
-  'm':{from:{y,m},to:{y,m},label:'Bu oy'},
-  'q':{from:{y,m:Math.floor(m/3)*3},to:{y,m},label:'Bu chorak'},
-  'y':{from:{y,m:0},to:{y,m},label:y+''},
-  '30':{from:{y:new Date(now-30*864e5).getFullYear(),m:new Date(now-30*864e5).getMonth()},to:{y,m},label:'30 kun'},
-  '90':{from:{y:new Date(now-90*864e5).getFullYear(),m:new Date(now-90*864e5).getMonth()},to:{y,m},label:'90 kun'},
-  '25':{from:{y:2025,m:0},to:{y:2025,m:11},label:'2025'},
-  '24':{from:{y:2024,m:0},to:{y:2024,m:11},label:'2024'},
+  'w':{from:wkS,to:now,label:'Bu hafta'},
+  'm':{from:new Date(y,m,1),to:now,label:'Bu oy'},
+  'q':{from:new Date(y,Math.floor(m/3)*3,1),to:now,label:'Bu chorak'},
+  'y':{from:new Date(y,0,1),to:now,label:y+''},
+  '30':{from:new Date(y,m,d-30),to:now,label:'30 kun'},
+  '90':{from:new Date(y,m,d-90),to:now,label:'90 kun'},
+  '25':{from:new Date(2025,0,1),to:new Date(2025,11,31),label:'2025'},
+  '24':{from:new Date(2024,0,1),to:new Date(2024,11,31),label:'2024'},
 };
 return presets[key]||presets['y'];
 }
 function applyPreset(key){S.dashPre=key;const p=dashPreset(key);S.dashFrom=p.from;S.dashTo=p.to;render()}
-function dashRange(){
-const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-const now=new Date();
-const fy=S.dashFrom.y,fm=S.dashFrom.m,ty=S.dashTo.y,tm=S.dashTo.m;
-let labels=[],totals=[],cpmArr=[],newArr=[],churnArr=[],rechurnArr=[],newNamesArr=[],churnNamesArr=[],allClients=[];
-const cache={};
-for(let y=fy;y<=ty;y++){
-  if(!cache[y])cache[y]=mrrData(y);
-  const d=cache[y];
-  const m0=(y===fy?fm:0),m1=(y===ty?tm:11);
-  for(let m=m0;m<=m1;m++){
-    const span=(ty-fy)*12+(tm-fm);
-    const lbl=span<=11?mos[m]:mos[m]+' '+(y%100);
-    labels.push(lbl);totals.push(d.totals[m]);cpmArr.push(d.cpm[m]);
-    newArr.push(d.newPM[m]);churnArr.push(d.churnPM[m]);rechurnArr.push(d.rechurnPM[m]);
-    newNamesArr.push({label:lbl,names:d.newNames[m],rechurn:d.rechurnNames[m]});
-    churnNamesArr.push({label:lbl,names:d.churnNames[m]});
-  }
-  allClients=d.clients.length>allClients.length?d.clients:allClients;
+function fmtD(d){const dd=d.getDate(),mm=d.getMonth()+1,yy=d.getFullYear()%100;return(dd<10?'0':'')+dd+'.'+(mm<10?'0':'')+mm+'.'+yy}
+// Calculate MRR snapshot on a given date
+function mrrOnDate(dt,allCts,qCts){
+let total=0;const active=new Set();
+allCts.forEach(ct=>{if(ct.st<=dt&&ct.endD>=dt&&ct.musd>0){total+=ct.musd;active.add(ct.client)}});
+// qo'shimcha adjustments
+qCts.forEach(ct=>{if(ct.st<=dt&&ct.endD>=dt&&ct.musd){
+  total+=ct.musd;if(ct.musd>0)active.add(ct.client)}});
+return{total:Math.round(total),active};
 }
-return{labels,totals,cpmArr,newArr,churnArr,rechurnArr,newNamesArr,churnNamesArr,allClients};
+// Build all contracts flat list
+function buildContracts(){
+const all=[],qAll=[];
+S.rows.forEach(r=>{
+  if(!r.Client||!r.sanasi)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st)return;
+  const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+  all.push({client:r.Client,musd:r._mUSD||0,st,endD,mgr:r.Manager||''});
+});
+S.qRows.forEach(r=>{
+  if(!r.Client||!r.sanasi)return;
+  const musd=pn(r['Oylik USD']);if(!musd)return;
+  const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+  if(!st)return;
+  const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);
+  qAll.push({client:r.Client,musd,st,endD,mgr:r.Manager||''});
+});
+return{all,qAll};
+}
+function dashRange(){
+const from=S.dashFrom,to=S.dashTo;
+const days=Math.round((to-from)/864e5);
+// Granularity
+let gran='month';
+if(days<=45)gran='day';
+else if(days<=180)gran='week';
+// Generate date points
+const points=[];
+if(gran==='day'){
+  for(let d=new Date(from);d<=to;d.setDate(d.getDate()+1))
+    points.push(new Date(d));
+}else if(gran==='week'){
+  const d=new Date(from);
+  // Align to Monday
+  const dow=d.getDay()||7;d.setDate(d.getDate()-(dow-1));
+  while(d<=to){points.push(new Date(d));d.setDate(d.getDate()+7)}
+}else{
+  // Monthly
+  for(let d=new Date(from.getFullYear(),from.getMonth(),1);d<=to;d.setMonth(d.getMonth()+1))
+    points.push(new Date(d));
+}
+if(!points.length)points.push(new Date(from));
+// Labels
+const labels=points.map(d=>{
+  if(gran==='day')return fmtD(d);
+  if(gran==='week')return fmtD(d);
+  const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+  const span=(to.getFullYear()-from.getFullYear())*12+(to.getMonth()-from.getMonth());
+  return span>11?mos[d.getMonth()]+' '+(d.getFullYear()%100):mos[d.getMonth()];
+});
+// Calculate MRR at each point
+const {all,qAll}=buildContracts();
+const totals=[],cpmArr=[];
+const snapshots=points.map(pt=>{
+  // For week/month, use last day of period
+  let snapDate=pt;
+  if(gran==='week'){snapDate=new Date(pt);snapDate.setDate(snapDate.getDate()+6);if(snapDate>to)snapDate=new Date(to)}
+  if(gran==='month'){snapDate=new Date(pt.getFullYear(),pt.getMonth()+1,0);if(snapDate>to)snapDate=new Date(to)}
+  return mrrOnDate(snapDate,all,qAll);
+});
+snapshots.forEach(s=>{totals.push(s.total);cpmArr.push(s.active.size)});
+// New / Churn — based on actual contract dates within period
+const newClients=[],churnClients=[];
+// Group contracts by client
+const byClient={};
+all.forEach(ct=>{if(!byClient[ct.client])byClient[ct.client]=[];byClient[ct.client].push(ct)});
+Object.entries(byClient).forEach(([name,cts])=>{
+  const paid=cts.filter(c=>c.musd>0);
+  if(!paid.length)return;
+  // Find earliest paid contract start
+  const firstPaid=paid.reduce((a,c)=>c.st<a.st?c:a,paid[0]);
+  // Client is "new" if their first paid contract starts within period
+  if(firstPaid.st>=from&&firstPaid.st<=to){
+    newClients.push({name,date:firstPaid.st,mgr:firstPaid.mgr,mrr:firstPaid.musd,isNew:true});
+  }else{
+    // Check if any contract starts within period (rechurn/upsell)
+    paid.forEach(ct=>{
+      if(ct.st>=from&&ct.st<=to&&ct.st!==firstPaid.st){
+        // Check if client was inactive before this contract
+        const wasActive=paid.some(c=>c!==ct&&c.endD>=new Date(ct.st.getTime()-30*864e5)&&c.st<ct.st);
+        if(!wasActive)newClients.push({name,date:ct.st,mgr:ct.mgr,mrr:ct.musd,isRechurn:true});
+      }
+    });
+  }
+  // Churn: last contract ends within period and no renewal after
+  const lastEnd=paid.reduce((a,c)=>c.endD>a.endD?c:a,paid[0]);
+  if(lastEnd.endD>=from&&lastEnd.endD<=to){
+    const hasRenewal=paid.some(c=>c.st>lastEnd.endD||
+      (c.st>=new Date(lastEnd.endD.getFullYear(),lastEnd.endD.getMonth(),1)&&c!==lastEnd));
+    if(!hasRenewal)churnClients.push({name,date:lastEnd.endD,mgr:lastEnd.mgr,mrr:lastEnd.musd});
+  }
+});
+newClients.sort((a,b)=>b.date-a.date);
+churnClients.sort((a,b)=>b.date-a.date);
+return{labels,totals,cpmArr,newClients,churnClients,gran,points};
 }
 function rD(){
 const dr=dashRange();
-const {labels,totals,cpmArr,newArr,churnArr,rechurnArr,newNamesArr,churnNamesArr,allClients}=dr;
+const {labels,totals,cpmArr,newClients,churnClients}=dr;
 const tot=S.rows.length,clients=[...new Set(S.rows.map(r=>r.Client).filter(Boolean))];
 const recent=[...S.rows].filter(r=>r.sanasi).sort((a,b)=>(pd(b.sanasi)||0)-(pd(a.sanasi)||0)).slice(0,8);
 const tDebt=S.rows.filter(r=>sc(r.status)==='Q').sort((a,b)=>b._sUSD-a._sUSD).slice(0,6);
-const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 const curMRR=totals[totals.length-1]||0;
 const startMRR=totals[0]||0;
 const mrrDelta=curMRR-startMRR;
-const totalNew=newArr.reduce((s,v)=>s+v,0);
-const totalRechurn=rechurnArr.reduce((s,v)=>s+v,0);
-const totalChurn=churnArr.reduce((s,v)=>s+v,0);
+const mrrPct=startMRR?Math.round(mrrDelta/startMRR*100):0;
+const totalNew=newClients.length;
+const totalRechurn=newClients.filter(c=>c.isRechurn).length;
+const totalChurn=churnClients.length;
 const curClients=cpmArr[cpmArr.length-1]||0;
 const periodLabel=labels.length>1?labels[0]+'–'+labels[labels.length-1]:labels[0]||'';
 const lastLabel=labels[labels.length-1]||'';
 const pre=S.dashPre||'y';
 const isCust=pre==='c';
+const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 const presets=[{k:'w',l:'Hafta'},{k:'m',l:'Oy'},{k:'q',l:'Chorak'},{k:'y',l:'Yil'},{k:'30',l:'30k'},{k:'90',l:'90k'},{k:'25',l:'2025'},{k:'24',l:'2024'},{k:'c',l:'Oraliq'}];
 return`<div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">${tot} ta shartnoma, ${clients.length} ta mijoz</div></div>
 <div style="display:flex;align-items:center;gap:6px"><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button></div></div>
 <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
 ${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''}" style="padding:5px 12px;font-size:11.5px" onclick="${p.k==='c'?"S.dashPre='c';render()":"applyPreset('"+p.k+"')"}">${p.l}</button>`).join('')}
 ${isCust?`<div style="display:flex;gap:4px;align-items:center;margin-left:4px">
-<select class="flt" style="width:56px;font-size:11px;padding:5px" onchange="S.dashFrom.m=+this.value;render()">${mos.map((m,i)=>`<option value="${i}"${S.dashFrom.m===i?' selected':''}>${m}</option>`).join('')}</select>
-<select class="flt" style="width:58px;font-size:11px;padding:5px" onchange="S.dashFrom.y=+this.value;render()">${[2023,2024,2025,2026,2027].map(y=>`<option value="${y}"${S.dashFrom.y===y?' selected':''}>${y}</option>`).join('')}</select>
+<input type="date" class="flt" style="font-size:11px;padding:5px" value="${S.dashFrom.toISOString().slice(0,10)}" onchange="S.dashFrom=new Date(this.value);render()">
 <span style="color:var(--text3)">→</span>
-<select class="flt" style="width:56px;font-size:11px;padding:5px" onchange="S.dashTo.m=+this.value;render()">${mos.map((m,i)=>`<option value="${i}"${S.dashTo.m===i?' selected':''}>${m}</option>`).join('')}</select>
-<select class="flt" style="width:58px;font-size:11px;padding:5px" onchange="S.dashTo.y=+this.value;render()">${[2023,2024,2025,2026,2027].map(y=>`<option value="${y}"${S.dashTo.y===y?' selected':''}>${y}</option>`).join('')}</select>
+<input type="date" class="flt" style="font-size:11px;padding:5px" value="${S.dashTo.toISOString().slice(0,10)}" onchange="S.dashTo=new Date(this.value);render()">
 </div>`:''}
+<span style="font-size:10.5px;color:var(--text3);margin-left:4px">${dr.gran==='day'?'kunlik':dr.gran==='week'?'haftalik':'oylik'}</span>
 </div>
-<div class="metrics"><div class="metric c1"><div class="metric-lbl">Aktiv mijozlar (${lastLabel})</div><div class="metric-val">${curClients}</div><div class="metric-foot">oxirgi oy</div></div>
+<div class="metrics"><div class="metric c1"><div class="metric-lbl">Aktiv mijozlar</div><div class="metric-val">${curClients}</div><div class="metric-foot">${lastLabel}</div></div>
 <div class="metric c2"><div class="metric-lbl">Yangi qo'shilgan</div><div class="metric-val">${totalNew}</div><div class="metric-foot"><span class="up">+${totalNew}</span> ${periodLabel}${totalRechurn?' · <span style="color:var(--amber)">qayta: '+totalRechurn+'</span>':''}</div></div>
 <div class="metric c4"><div class="metric-lbl">Chiqib ketgan</div><div class="metric-val">${totalChurn}</div><div class="metric-foot"><span class="dn">${totalChurn>0?'-':''}${totalChurn}</span> ${periodLabel}</div></div>
-<div class="metric c3"><div class="metric-lbl">MRR (${lastLabel})</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">USD oylik</div></div>
-<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${startMRR?Math.round(mrrDelta/startMRR*100):0}%</span> ${periodLabel}</div></div></div>
+<div class="metric c3"><div class="metric-lbl">MRR</div><div class="metric-val">${fmt(curMRR)}</div><div class="metric-foot">${lastLabel} · USD</div></div>
+<div class="metric c5"><div class="metric-lbl">MRR o'zgarish</div><div class="metric-val">${mrrDelta>0?'+':''}${fmt(mrrDelta)}</div><div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${mrrPct>0?'+':''}${mrrPct}%</span> ${periodLabel}</div></div></div>
 
 <div class="grid-2">
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--accent)"></span>MRR trend — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chTrend"></canvas></div></div></div>
-<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Yangi / Churn — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--teal)"></span>Mijozlar soni — ${periodLabel}</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chClients"></canvas></div></div></div>
 </div>
 
-<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi mijozlar</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rows=[];for(let i=newNamesArr.length-1;i>=0;i--){const g=newNamesArr[i];const rch=new Set(g.rechurn||[]);(g.names||[]).forEach(n=>{const c=allClients.find(x=>x.name===n);const isRch=rch.has(n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+g.label+'</td><td style="font-weight:500">'+n+(isRch?' <span class="badge b-amber" style="font-size:9px;padding:1px 5px">qayta</span>':'')+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green)">+'+(c?fmt(c.mrr):'—')+'</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'})()}</tbody></table></div></div>
-<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn mijozlar</span></div><div class="card-body" style="padding:0;max-height:280px;overflow-y:auto"><table><thead><tr><th>Oy</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${(()=>{const rows=[];for(let i=churnNamesArr.length-1;i>=0;i--){const g=churnNamesArr[i];(g.names||[]).forEach(n=>{const c=allClients.find(x=>x.name===n);rows.push('<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+g.label+'</td><td style="font-weight:500">'+n+'</td><td style="font-size:11px;color:var(--text2)">'+(c?.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red)">—</td></tr>')})}return rows.length?rows.join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'})()}</tbody></table></div></div></div>
+<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Yangi mijozlar (${totalNew})</span></div><div class="card-body" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${newClients.length?newClients.map(c=>'<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+fmtD(c.date)+'</td><td style="font-weight:500">'+c.name+(c.isRechurn?' <span class="badge b-amber" style="font-size:9px;padding:1px 5px">qayta</span>':'')+'</td><td style="font-size:11px;color:var(--text2)">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green)">+'+fmt(c.mrr)+'</td></tr>').join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'}</tbody></table></div></div>
+<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn mijozlar (${totalChurn})</span></div><div class="card-body" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR $</th></tr></thead><tbody>${churnClients.length?churnClients.map(c=>'<tr><td class="mono" style="font-size:11px;color:var(--text3)">'+fmtD(c.date)+'</td><td style="font-weight:500">'+c.name+'</td><td style="font-size:11px;color:var(--text2)">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red)">-'+fmt(c.mrr)+'</td></tr>').join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">—</td></tr>'}</tbody></table></div></div></div>
 
 <div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Status taqsimoti</span></div><div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="chS"></canvas></div></div></div>
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Eng katta qarzlar</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>Mijoz</th><th>Firma</th><th class="text-r">Summa $</th><th>Status</th></tr></thead><tbody>${tDebt.map(r=>`<tr><td style="font-weight:500">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td class="text-r mono">${fmt(r._sUSD)}</td><td>${sb(r.status)}</td></tr>`).join('')}</tbody></table></div></div></div>
@@ -600,16 +683,12 @@ const co=['#1746a2','#117a52','#a36207','#6941b8','#c42b1c','#0e7c7b','#d4537e',
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 
 // Dashboard: MRR trend
-const eTrend=document.getElementById('chTrend');if(eTrend){const dr=dashRange();new Chart(eTrend,{type:'line',data:{labels:dr.labels,datasets:[{label:'MRR',data:dr.totals,borderColor:'#1746a2',backgroundColor:'rgba(23,70,162,0.06)',fill:true,tension:0.35,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#1746a2'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}}}}})}
+const eTrend=document.getElementById('chTrend');if(eTrend){const dr=dashRange();const prs=dr.totals.length>20?0:4;new Chart(eTrend,{type:'line',data:{labels:dr.labels,datasets:[{label:'MRR',data:dr.totals,borderColor:'#1746a2',backgroundColor:'rgba(23,70,162,0.06)',fill:true,tension:0.3,borderWidth:2.5,pointRadius:prs,pointBackgroundColor:'#1746a2'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10},maxTicksLimit:15}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}}}}})}
 
-// Dashboard: Clients new/churn
-const eCl=document.getElementById('chClients');if(eCl){const dr=dashRange();new Chart(eCl,{type:'bar',data:{labels:dr.labels,datasets:[
-{label:'Yangi',data:dr.newArr,backgroundColor:'#117a52',borderRadius:3},
-{label:'Churn',data:dr.churnArr.map(v=>-v),backgroundColor:'#c42b1c',borderRadius:3},
-{label:'Jami',data:dr.cpmArr,type:'line',borderColor:'#1746a2',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1746a2',tension:0.3,yAxisID:'y1'}
-]},options:{...bo,plugins:{legend:{display:true,labels:{boxWidth:10,padding:12,font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y1:{position:'right',grid:{display:false},ticks:{color:'#1746a2',font:{size:11}}}}}})}
+// Dashboard: Client count
+const eCl=document.getElementById('chClients');if(eCl){const dr=dashRange();const prs=dr.cpmArr.length>20?0:4;new Chart(eCl,{type:'line',data:{labels:dr.labels,datasets:[{label:'Aktiv mijozlar',data:dr.cpmArr,borderColor:'#117a52',backgroundColor:'rgba(17,122,82,0.06)',fill:true,tension:0.3,borderWidth:2.5,pointRadius:prs,pointBackgroundColor:'#117a52'}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10},maxTicksLimit:15}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11}}}}}})}
 
-// Status chart removed — replaced with new/churn tables
+// Status chart
 
 const eS=document.getElementById('chS');if(eS){const sc2={A:0,D:0,Q:0,P:0,O:0,X:0};S.rows.forEach(r=>{const c=sc(r.status);if(sc2[c]!==undefined)sc2[c]++});new Chart(eS,{type:'doughnut',data:{labels:['Aktiv','Bajarildi','Eski qarz','Muammo','Ortiqcha','Bekor'],datasets:[{data:[sc2.A,sc2.D,sc2.Q,sc2.P,sc2.O,sc2.X],backgroundColor:['#117a52','#1746a2','#a36207','#c42b1c','#6941b8','#999'],borderWidth:0}]},options:{...bo,cutout:'55%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}
 
