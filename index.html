@@ -56,22 +56,24 @@ select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radiu
 .modal label{display:block;font-size:12.5px;font-weight:500;margin-bottom:5px;color:var(--text2)}.modal input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:12.5px;font-family:var(--font);margin-bottom:14px}.modal input[type=text]:focus{outline:none;border-color:var(--accent2)}
 .modal .help{font-size:11.5px;color:var(--text3);margin:-8px 0 14px;line-height:1.6}.modal-btns{display:flex;gap:7px;justify-content:flex-end;margin-top:6px}
 @media(max-width:1200px){.metrics{grid-template-columns:repeat(3,1fr)}}@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}@media(max-width:768px){.sidebar{width:0;overflow:hidden}.main{margin-left:0;padding:16px}.metrics{grid-template-columns:1fr 1fr}}
-.mrr-tbl{font-size:11.5px;border-collapse:separate;border-spacing:0}
-.mrr-tbl th,.mrr-tbl td{padding:5px 8px;border-bottom:1px solid #eee;border-right:1px solid #f0efeb}
-.mrr-tbl thead th{background:var(--bg3);position:sticky;top:0;z-index:3;font-size:10.5px;text-align:center;white-space:nowrap;border-bottom:2px solid var(--border)}
+.mrr-tbl{font-size:11.5px;border-collapse:separate;border-spacing:0;width:100%}
+.mrr-tbl th,.mrr-tbl td{padding:5px 7px;border-bottom:1px solid #edece8;border-right:1px solid #f2f1ed}
+.mrr-tbl thead th{background:#f5f4f0;position:sticky;top:0;z-index:3;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;text-align:center;white-space:nowrap;border-bottom:2px solid var(--border);color:var(--text3);font-weight:600}
 .mrr-tbl .sticky-col{position:sticky;z-index:4;background:var(--bg2)}
-.mrr-tbl thead .sticky-col{z-index:5;background:var(--bg3)}
-.mrr-tbl .col-client{left:0;min-width:160px;max-width:160px;text-align:left;border-right:2px solid var(--border)}
-.mrr-tbl .col-mgr{left:160px;min-width:90px;max-width:90px;text-align:left;font-size:10.5px;color:var(--text2)}
-.mrr-tbl .col-mrr{left:250px;min-width:65px;max-width:65px;text-align:right;font-weight:600;border-right:2px solid var(--border)}
-.mrr-tbl .mcell{text-align:right;font-family:var(--mono);font-size:10.5px;min-width:68px;white-space:nowrap}
-.mrr-tbl .summary-row td,.mrr-tbl .summary-row th{border-bottom:2px solid var(--border);font-weight:600}
-.mrr-tbl .row-mom td{color:var(--text2);font-size:10.5px;font-style:italic}
-.mrr-tbl .row-target td{color:var(--accent);background:var(--accent-bg)}
-.mrr-tbl .row-total td{color:var(--text);background:var(--bg4);font-weight:700;font-size:12px}
-.mrr-tbl tbody tr:hover td:not(.sticky-col){background:var(--bg4)}
-.mrr-tbl tbody tr:hover .sticky-col{background:#f5f4f0}
-.mrr-val-0{color:var(--text3)}
+.mrr-tbl thead .sticky-col{z-index:5;background:#f5f4f0}
+.mrr-tbl .col-name{left:0;min-width:150px;max-width:150px;text-align:left;border-right:2px solid var(--border);font-weight:500}
+.mrr-tbl .mcell{text-align:right;font-family:var(--mono);font-size:10.5px;min-width:62px;white-space:nowrap;transition:background .12s}
+.mrr-tbl .mcell-g{background:rgba(17,122,82,0.11)}.mrr-tbl .mcell-y{background:rgba(220,170,40,0.15);cursor:help}.mrr-tbl .mcell-0{color:#d8d7d0}
+.mrr-tbl .summary-row td{border-bottom:2px solid var(--border)}
+.mrr-tbl .row-mom td{color:var(--text3);font-size:9.5px;font-style:italic;font-weight:500}
+.mrr-tbl .row-total td{color:var(--text);background:#efeee8;font-weight:700;font-size:11.5px}
+.mrr-tbl tbody tr:hover td{background:rgba(23,70,162,0.04) !important}
+.mrr-tbl tbody tr:hover .sticky-col{background:#f5f4ef !important}
+.mrr-tip{position:fixed;z-index:999;background:#1a1917;color:#f0efeb;padding:10px 14px;border-radius:8px;font-size:11.5px;line-height:1.6;pointer-events:none;max-width:240px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.mrr-tip b{color:#5ae4a7}.mrr-tip .tip-warn{color:#ffd866}
+.mrr-set{position:absolute;top:44px;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:0 8px 24px rgba(0,0,0,.08);z-index:20;min-width:190px}
+.mrr-set label{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;cursor:pointer;color:var(--text);user-select:none}
+.mrr-set input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
 </style>
 </head>
 <body>
@@ -95,7 +97,7 @@ select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radiu
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashYear:2026};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashYear:2026,mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false};
 function pn(s){return parseFloat((s||'').replace(/[$\s]/g,'').replace(/,/g,''))||0}
 function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
 function fk(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'k':Math.round(n)}
@@ -228,7 +230,7 @@ S.rows.forEach(r=>{
   const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
   const c=r.Client;
   if(!allC[c])allC[c]=[];
-  allC[c].push({musd:r._mUSD||0,st,endD,mgr:r.Manager||'',sanasi:r.sanasi||'',amal:r['amal qilishi']||''});
+  allC[c].push({musd:r._mUSD||0,st,endD,mgr:r.Manager||'',hudud:r.Hudud||'',sanasi:r.sanasi||'',amal:r['amal qilishi']||''});
 });
 const cmap={};
 Object.entries(allC).forEach(([name,contracts])=>{
@@ -257,7 +259,7 @@ Object.entries(allC).forEach(([name,contracts])=>{
     }
   }
   if(Math.max(...monthly)>0){
-    cmap[name]={name,mgr:firstMgr,mrr:0,
+    cmap[name]={name,mgr:firstMgr,hudud:contracts[0].hudud,mrr:0,
       dealStart:firstDeal,dealEnd:latest.amal,
       startDate:firstSt,monthly};
   }
@@ -434,59 +436,74 @@ return cp;
 function rMRR(){
 const yr=S.mrrYear||2026;
 const d=mrrData(yr);
-// Payment cell coloring
 const cumExp=calcCumExpected(yr);
 const clPay=calcClientPayments();
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 const activeClients=d.clients;
 const totalMRR=Math.max(...d.totals);
+const cc=S.mrrCols;
 
 let filtered=[...d.clients];
-if(S.mrrQ){const q=S.mrrQ.toLowerCase();filtered=filtered.filter(c=>c.name.toLowerCase().includes(q)||c.mgr.toLowerCase().includes(q))}
+if(S.mrrQ){const q=S.mrrQ.toLowerCase();filtered=filtered.filter(c=>c.name.toLowerCase().includes(q)||c.mgr.toLowerCase().includes(q)||(c.hudud||'').toLowerCase().includes(q))}
 
-return`<div class="page-header"><div><div class="page-title">MRR jadval</div><div class="page-sub">${yr} — ${activeClients.length} ta mijoz${S.qRows.length?' — '+S.qRows.length+' ta qo\'shimcha kelishuv':''}</div></div>
+// Column settings panel
+const colDefs=[{k:'mgr',l:'Manager'},{k:'hudud',l:'Hudud'},{k:'mrr',l:'MRR'},{k:'deal',l:'Deal boshi'},{k:'end',l:'Deal tugashi'}];
+const setPanel=S.mrrSet?`<div class="mrr-set">${colDefs.map(c=>`<label><input type="checkbox" ${cc[c.k]?'checked':''} onchange="S.mrrCols.${c.k}=this.checked;render()">${c.l}</label>`).join('')}</div>`:'';
+
+// Extra columns count for summary row colspans
+const exCols=(cc.mgr?1:0)+(cc.hudud?1:0)+(cc.mrr?1:0)+(cc.deal?1:0)+(cc.end?1:0);
+
+return`<div class="page-header"><div><div class="page-title">MRR jadval</div><div class="page-sub">${yr} — ${activeClients.length} ta mijoz${S.qRows.length?' · '+S.qRows.length+' qo\'shimcha':''}</div></div>
 <div style="display:flex;gap:6px;align-items:center">
 <select class="flt" onchange="S.mrrYear=+this.value;render()" style="font-weight:600;font-size:13px">
-<option value="2024"${yr===2024?' selected':''}>2024</option>
-<option value="2025"${yr===2025?' selected':''}>2025</option>
-<option value="2026"${yr===2026?' selected':''}>2026</option>
-<option value="2027"${yr===2027?' selected':''}>2027</option>
+${[2024,2025,2026,2027].map(y=>`<option value="${y}"${yr===y?' selected':''}>${y}</option>`).join('')}
 </select>
+<div style="position:relative"><button class="btn" onclick="S.mrrSet=!S.mrrSet;render()" title="Ustunlar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/><circle cx="12" cy="12" r="3"/></svg></button>${setPanel}</div>
 </div></div>
-<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz yoki menejer..." value="${S.mrrQ||''}" oninput="S.mrrQ=this.value;render()"></div></div>
-<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - 200px)">
+<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, menejer, hudud..." value="${S.mrrQ||''}" oninput="S.mrrQ=this.value;render()"></div>
+<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);align-items:center"><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(17,122,82,0.15);vertical-align:middle"></span> to'langan <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(220,170,40,0.2);vertical-align:middle;margin-left:8px"></span> qisman</div></div>
+<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - 210px)">
 <table class="mrr-tbl">
 <thead><tr>
-<th class="sticky-col col-client">Client</th>
-<th class="sticky-col col-mgr">Manager</th>
-<th class="sticky-col col-mrr">MRR</th>
-<th style="text-align:center;font-size:10px;min-width:78px">Date of deal</th>
-<th style="text-align:center;font-size:10px;min-width:78px;border-right:2px solid var(--border)">End of deal</th>
+<th class="sticky-col col-name">Client</th>
+${cc.mgr?`<th style="text-align:left;min-width:80px${!cc.hudud&&!cc.mrr&&!cc.deal&&!cc.end?';border-right:2px solid var(--border)':''}">Manager</th>`:''}
+${cc.hudud?`<th style="text-align:left;min-width:70px${!cc.mrr&&!cc.deal&&!cc.end?';border-right:2px solid var(--border)':''}">Hudud</th>`:''}
+${cc.mrr?`<th style="text-align:right;min-width:60px${!cc.deal&&!cc.end?';border-right:2px solid var(--border)':''}">MRR</th>`:''}
+${cc.deal?`<th style="text-align:center;min-width:74px${!cc.end?';border-right:2px solid var(--border)':''}">Boshi</th>`:''}
+${cc.end?'<th style="text-align:center;min-width:74px;border-right:2px solid var(--border)">Tugash</th>':''}
+${!cc.end&&exCols?'':''}
 ${mos.map(m=>`<th class="mcell">${m}</th>`).join('')}
 </tr></thead>
 <tbody>
-<tr class="summary-row row-mom"><td class="sticky-col col-client" style="font-weight:600;font-style:italic;color:var(--text2)">MoM Growth</td><td class="sticky-col col-mgr"></td><td class="sticky-col col-mrr"></td><td></td><td style="border-right:2px solid var(--border)"></td>${d.mom.map(v=>{const c=v>0?'var(--green)':v<0?'var(--red)':'var(--text3)';return`<td class="mcell" style="color:${c};font-style:italic;font-weight:600">${v?(v>0?'+':'')+v.toFixed(2)+' %':'—'}</td>`}).join('')}</tr>
-<tr class="summary-row row-total"><td class="sticky-col col-client" style="font-weight:700;background:var(--bg4)">Total</td><td class="sticky-col col-mgr" style="background:var(--bg4)"></td><td class="sticky-col col-mrr" style="background:var(--bg4);font-weight:700">${fmt(totalMRR)}</td><td style="background:var(--bg4)"></td><td style="background:var(--bg4);border-right:2px solid var(--border)"></td>${d.totals.map(v=>`<td class="mcell" style="background:var(--bg4);font-weight:700">${v?fmt(v):'—'}</td>`).join('')}</tr>
-${filtered.map(c=>`<tr>
-<td class="sticky-col col-client" style="font-weight:500">${c.name}</td>
-<td class="sticky-col col-mgr">${c.mgr}</td>
-<td class="sticky-col col-mrr mono">${c.mrr?fmt(c.mrr):'—'}</td>
-<td class="mono" style="text-align:center;font-size:10px;color:var(--text2)">${c.dealStart||'—'}</td>
-<td class="mono" style="text-align:center;font-size:10px;color:var(--text2);border-right:2px solid var(--border)">${c.dealEnd||'—'}</td>
-${c.monthly.map((v,m)=>{
+<tr class="summary-row row-mom"><td class="sticky-col col-name" style="font-style:italic;color:var(--text3);font-size:10px">MoM %</td>${Array(exCols).fill('<td style="border-bottom:2px solid var(--border)"></td>').join('')}${d.mom.map(v=>{const c=v>0?'var(--green)':v<0?'var(--red)':'var(--text3)';return`<td class="mcell" style="color:${c};font-style:italic;font-size:10px">${v?(v>0?'+':'')+v.toFixed(1)+'%':'—'}</td>`}).join('')}</tr>
+<tr class="summary-row row-total"><td class="sticky-col col-name" style="font-weight:700;background:#efeee8">JAMI</td>${Array(exCols).fill('<td style="background:#efeee8;border-bottom:2px solid var(--border)"></td>').join('')}${d.totals.map(v=>`<td class="mcell" style="background:#efeee8;font-weight:700">${v?fmt(v):'—'}</td>`).join('')}</tr>
+${filtered.map(c=>{
 const ce=cumExp[c.name];const paid=clPay[c.name]||0;
-let bg='';
-if(v&&ce){
+return`<tr>
+<td class="sticky-col col-name">${c.name}</td>
+${cc.mgr?`<td style="font-size:10.5px;color:var(--text2)${!cc.hudud&&!cc.mrr&&!cc.deal&&!cc.end?';border-right:2px solid var(--border)':''}">${c.mgr||'—'}</td>`:''}
+${cc.hudud?`<td style="font-size:10.5px;color:var(--text2)${!cc.mrr&&!cc.deal&&!cc.end?';border-right:2px solid var(--border)':''}">${c.hudud||'—'}</td>`:''}
+${cc.mrr?`<td class="mono" style="text-align:right;font-weight:600;font-size:11px${!cc.deal&&!cc.end?';border-right:2px solid var(--border)':''}">${c.mrr?fmt(c.mrr):'—'}</td>`:''}
+${cc.deal?`<td class="mono" style="text-align:center;font-size:10px;color:var(--text3)${!cc.end?';border-right:2px solid var(--border)':''}">${c.dealStart||'—'}</td>`:''}
+${cc.end?`<td class="mono" style="text-align:center;font-size:10px;color:var(--text3);border-right:2px solid var(--border)">${c.dealEnd||'—'}</td>`:''}
+${c.monthly.map((v,m)=>{
+if(!v)return'<td class="mcell mcell-0">—</td>';
+let cls='mcell',tip='';
+if(ce){
   const cur=ce[m]||0;const prev=m>0?(ce[m-1]||0):0;
   if(cur>0){
-    if(paid>=cur)bg='background:rgba(17,122,82,0.13)';
-    else if(paid>prev)bg='background:rgba(163,98,7,0.13)';
+    if(paid>=cur){cls='mcell mcell-g'}
+    else if(paid>prev){
+      cls='mcell mcell-y';
+      const owed=cur-paid;
+      const pct=Math.round(paid/cur*100);
+      tip=` data-tip="<b>${c.name}</b> · ${mos[m]} ${yr}&#10;Kutilgan: <b>${fmt(cur)}</b> $&#10;To'langan: <b class='tip-warn'>${fmt(paid)}</b> $ (${pct}%)&#10;Qoldi: <b>${fmt(owed)}</b> $"`
+    }
   }
 }
-return`<td class="mcell${v?'':' mrr-val-0'}" style="${bg}">${v?fmt(v):'<span style="color:#ccc">—</span>'}</td>`}).join('')}
-</tr>`).join('')}
-</tbody></table></div></div>
-`}
+return`<td class="${cls}"${tip}>${fmt(v)}</td>`}).join('')}
+</tr>`}).join('')}
+</tbody></table></div></div>`}
 
 // MANAGERS
 function rM(){
@@ -546,8 +563,20 @@ const e5=document.getElementById('chMC');if(e5){const m={};S.rows.forEach(r=>{co
 
 const e6=document.getElementById('chT');if(e6){const a=activeR().sort((a,b)=>b._mUSD-a._mUSD).slice(0,10);new Chart(e6,{type:'bar',data:{labels:a.map(r=>r.Client||'?'),datasets:[{data:a.map(r=>r._mUSD),backgroundColor:'#1746a2',borderRadius:4}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>fk(v)}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}}})}
 
-const e7=document.getElementById('chK');if(e7){const a=activeR().sort((x,y)=>y._mUSD-x._mUSD);const t=a.reduce((s,r)=>s+r._mUSD,0);const s=[a.slice(0,5),a.slice(5,10),a.slice(10,20),a.slice(20)].map(g=>g.reduce((s,r)=>s+r._mUSD,0));new Chart(e7,{type:'doughnut',data:{labels:['Top 5','Top 6-10','Top 11-20','Qolgan'],datasets:[{data:s,backgroundColor:['#c42b1c','#a36207','#1746a2','#cccbc5'],borderWidth:0}]},options:{...bo,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}}
+const e7=document.getElementById('chK');if(e7){const a=activeR().sort((x,y)=>y._mUSD-x._mUSD);const t=a.reduce((s,r)=>s+r._mUSD,0);const s=[a.slice(0,5),a.slice(5,10),a.slice(10,20),a.slice(20)].map(g=>g.reduce((s,r)=>s+r._mUSD,0));new Chart(e7,{type:'doughnut',data:{labels:['Top 5','Top 6-10','Top 11-20','Qolgan'],datasets:[{data:s,backgroundColor:['#c42b1c','#a36207','#1746a2','#cccbc5'],borderWidth:0}]},options:{...bo,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11}}}}}})}
 
+// MRR tooltip for yellow cells
+document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
+el.addEventListener('mouseenter',e=>{
+  let t=document.getElementById('mrrTip');
+  if(!t){t=document.createElement('div');t.id='mrrTip';t.className='mrr-tip';document.body.appendChild(t)}
+  t.innerHTML=el.dataset.tip.replace(/&#10;/g,'<br>');t.style.display='block';
+  const r=el.getBoundingClientRect();
+  t.style.left=Math.min(r.left,window.innerWidth-230)+'px';
+  t.style.top=(r.top-t.offsetHeight-6)+'px';
+});
+el.addEventListener('mouseleave',()=>{const t=document.getElementById('mrrTip');if(t)t.style.display='none'});
+})}
 // PAGINATION
 function pag(p,t,c,n,k){if(t<=1)return'';return`<div class="pager"><span>${p*n+1}–${Math.min((p+1)*n,c)} / ${c}</span><div class="pager-btns"><button class="pg" onclick="S.${k}=${p-1};render()"${p===0?' disabled':''}>←</button>${Array.from({length:Math.min(t,7)},(_,i)=>{let x=i;if(t>7){if(p<4)x=i;else if(p>t-5)x=t-7+i;else x=p-3+i}return`<button class="pg${x===p?' on':''}" onclick="S.${k}=${x};render()">${x+1}</button>`}).join('')}<button class="pg" onclick="S.${k}=${p+1};render()"${p>=t-1?' disabled':''}>→</button></div></div>`}
 
