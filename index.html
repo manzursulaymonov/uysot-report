@@ -100,7 +100,7 @@ select.flt{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radiu
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false,debtDate:new Date()};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:true,mrr:true,deal:true,end:true},mrrSet:false,debtDate:new Date(),apiKey:localStorage.getItem('uysot_apikey')||''};
 function pn(s){return parseFloat((s||'').replace(/[$\s]/g,'').replace(/,/g,''))||0}
 function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
 function fk(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'k':Math.round(n)}
@@ -403,9 +403,9 @@ const snapshots=points.map(pt=>{
 snapshots.forEach(s=>{totals.push(s.total);cpmArr.push(s.active.size)});
 // Per-point new/churn by comparing consecutive active sets
 const newPerPt=[],churnPerPt=[],addedMRR=[],lostMRR=[];
-// Get "before period" snapshot
 const beforeDate=new Date(from);beforeDate.setDate(beforeDate.getDate()-1);
 const before=mrrOnDate(beforeDate,all,qAll);
+const fromSnap=mrrOnDate(from,all,qAll);// metrics baseline (from date itself)
 for(let i=0;i<snapshots.length;i++){
   const prev=i===0?before:snapshots[i-1];
   const cur=snapshots[i];
@@ -431,7 +431,6 @@ const allNames=new Set([...startSnap.active,...endSnap.active]);
 const byClient={};
 all.forEach(ct=>{if(!byClient[ct.client])byClient[ct.client]=[];byClient[ct.client].push(ct)});
 allNames.forEach(name=>{
-  // Calculate MRR at period start and end
   let mrrS=0,mrrE=0;
   all.forEach(ct=>{if(ct.client!==name||ct.musd<=0)return;
     if(ct.st<=beforeDate&&ct.endD>=beforeDate)mrrS+=ct.musd;
@@ -445,36 +444,36 @@ allNames.forEach(name=>{
   const cts=(byClient[name]||[]).filter(c=>c.musd>0);
   const mgr=(cts[cts.length-1]||{}).mgr||'';
   if(mrrS===0&&mrrE>0){
-    const firstEver=cts.length?cts.reduce((a,c)=>c.st<a.st?c:a,cts[0]):null;
+    // NEW — verify at least one contract started within [from, to]
     const startedInPeriod=cts.filter(c=>c.st>=from&&c.st<=to).sort((a,b)=>b.st-a.st);
-    const ct=startedInPeriod[0]||cts[cts.length-1]||{};
-    const dt=ct.st||snapDt;
-    // Rechurn: had contracts before period BUT was NOT active right before period (gap exists)
-    const hadBefore=firstEver&&firstEver.st<from;
+    if(!startedInPeriod.length)return;// contract started before period, not a new event
+    const ct=startedInPeriod[0];
+    const firstEver=cts.reduce((a,c)=>c.st<a.st?c:a,cts[0]);
+    const hadBefore=firstEver.st<from;
     const wasActiveBeforePeriod=cts.some(c=>c.endD>=new Date(from.getTime()-2*864e5)&&c.st<from);
     const isRechurn=hadBefore&&!wasActiveBeforePeriod;
-    newClients.push({name,date:dt,mgr:ct.mgr||mgr,mrr:mrrE,isRechurn,hudud:ct.hudud||'',dur:ct.dur||0,tUSD:ct.tUSD||0,sUSD:ct.sUSD||0,izoh:ct.izoh||'',raqami:ct.raqami||''});
+    newClients.push({name,date:ct.st,mgr:ct.mgr||mgr,mrr:mrrE,isRechurn,hudud:ct.hudud||'',dur:ct.dur||0,tUSD:ct.tUSD||0,sUSD:ct.sUSD||0,izoh:ct.izoh||'',raqami:ct.raqami||''});
   }else if(mrrS>0&&mrrE===0){
+    // CHURN — verify at least one contract ended within [from, to]
     const endedInPeriod=cts.filter(c=>c.endD>=from&&c.endD<=to).sort((a,b)=>b.endD-a.endD);
-    const ct=endedInPeriod[0]||cts[cts.length-1]||{};
-    const dt=ct.endD||snapDt;
-    churnClients.push({name,date:dt,mgr:ct.mgr||mgr,mrr:mrrS,izoh:ct.izoh||''});
+    if(!endedInPeriod.length)return;// contract ended before period, not a churn event
+    const ct=endedInPeriod[0];
+    churnClients.push({name,date:ct.endD,mgr:ct.mgr||mgr,mrr:mrrS,izoh:ct.izoh||''});
   }else if(mrrS>0&&mrrE>0&&Math.abs(mrrE-mrrS)>1){
-    // EXPANSION — MRR changed
     expClients.push({name,mrrStart:mrrS,mrrEnd:mrrE,delta:mrrE-mrrS,mgr});
   }
 });
 newClients.sort((a,b)=>b.date-a.date);
 churnClients.sort((a,b)=>b.date-a.date);
 expClients.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
-return{labels,totals,cpmArr,newPerPt,churnPerPt,addedMRR,lostMRR,newClients,churnClients,expClients,gran,points,beforeMRR:before.total,beforeClients:before.active.size};
+return{labels,totals,cpmArr,newPerPt,churnPerPt,addedMRR,lostMRR,newClients,churnClients,expClients,gran,points,beforeMRR:before.total,beforeClients:before.active.size,fromMRR:fromSnap.total,fromClients:fromSnap.active.size};
 }
 function rD(){
 const dr=dashRange();
-const {labels,totals,cpmArr,newPerPt,churnPerPt,addedMRR,lostMRR,newClients,churnClients,expClients,beforeMRR,beforeClients}=dr;
+const {labels,totals,cpmArr,newPerPt,churnPerPt,addedMRR,lostMRR,newClients,churnClients,expClients,beforeMRR,beforeClients,fromMRR,fromClients}=dr;
 const tot=S.rows.length,clients=[...new Set(S.rows.map(r=>r.Client).filter(Boolean))];
 const curMRR=totals[totals.length-1]||0;
-const startMRR=beforeMRR||0;
+const startMRR=fromMRR||0;
 const mrrDelta=curMRR-startMRR;
 const mrrPct=startMRR?Math.round(mrrDelta/startMRR*100):0;
 const totalNew=newClients.length;
@@ -484,7 +483,7 @@ const curClients=cpmArr[cpmArr.length-1]||0;
 const mrrFromNew=newClients.reduce((s,c)=>s+c.mrr,0);
 const mrrFromChurn=churnClients.reduce((s,c)=>s+c.mrr,0);
 const mrrExpansion=expClients.reduce((s,c)=>s+c.delta,0);
-const startClients=beforeClients||0;
+const startClients=fromClients||0;
 const clientDelta=curClients-startClients;
 const mrrFromRechurn=newClients.filter(c=>c.isRechurn).reduce((s,c)=>s+c.mrr,0);
 const mrrFromPureNew=mrrFromNew-mrrFromRechurn;
@@ -880,119 +879,102 @@ return`<div class="page-header"><div><div class="page-title">Top MRR</div><div c
 <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--purple)"></span>Konsentratsiya</span></div><div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="chK"></canvas></div></div></div></div>
 <div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td style="font-weight:600">${r.Client||'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td style="font-size:12px">${r.Manager||'—'}</td><td style="font-size:11px">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono" style="font-size:11px;color:var(--text2)">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`}
 
-// PDF REPORT
-function generateReport(){
+// PDF REPORT — Claude AI powered
+async function generateReport(){
+if(!S.apiKey){showConfig();return alert('Anthropic API kalitini sozlamalarga kiriting')}
 const dr=dashRange();
-const {labels,totals,cpmArr,newClients,churnClients,expClients,beforeMRR,beforeClients}=dr;
-const curMRR=totals[totals.length-1]||0;
-const startMRR=beforeMRR||0;
-const mrrDelta=curMRR-startMRR;
-const mrrPct=startMRR?Math.round(mrrDelta/startMRR*100):0;
-const curClients=cpmArr[cpmArr.length-1]||0;
-const startClients=beforeClients||0;
+const {labels,totals,cpmArr,newClients,churnClients,expClients,beforeMRR,beforeClients,fromMRR,fromClients}=dr;
+const curMRR=totals[totals.length-1]||0;const startMRR=fromMRR||0;
+const mrrDelta=curMRR-startMRR;const mrrPct=startMRR?Math.round(mrrDelta/startMRR*100):0;
+const curClients=cpmArr[cpmArr.length-1]||0;const startClients=fromClients||0;
 const clientDelta=curClients-startClients;
-const totalNew=newClients.length;
-const totalRechurn=newClients.filter(c=>c.isRechurn).length;
+const totalNew=newClients.length;const totalRechurn=newClients.filter(c=>c.isRechurn).length;
 const totalChurn=churnClients.length;
 const mrrFromNew=newClients.reduce((s,c)=>s+c.mrr,0);
 const mrrFromRechurn=newClients.filter(c=>c.isRechurn).reduce((s,c)=>s+c.mrr,0);
 const mrrFromChurn=churnClients.reduce((s,c)=>s+c.mrr,0);
 const mrrExp=expClients.reduce((s,c)=>s+c.delta,0);
-const expUp=expClients.filter(c=>c.delta>0);
-const expDn=expClients.filter(c=>c.delta<0);
-const mrrUp=expUp.reduce((s,c)=>s+c.delta,0);
-const mrrDn=expDn.reduce((s,c)=>s+Math.abs(c.delta),0);
-const periodLabel=labels.length>1?labels[0]+' – '+labels[labels.length-1]:labels[0]||'';
+const expUp=expClients.filter(c=>c.delta>0);const expDn=expClients.filter(c=>c.delta<0);
+const mrrUp=expUp.reduce((s,c)=>s+c.delta,0);const mrrDn=expDn.reduce((s,c)=>s+Math.abs(c.delta),0);
+const periodLabel=labels.length>1?labels[0]+' \u2013 '+labels[labels.length-1]:labels[0]||'';
 const lastLabel=labels[labels.length-1]||'';
 const repDate=S.dashTo||new Date();
-const debt=calcDebtTable(repDate);
-const debtors=debt.filter(d=>d.kelQarz>0||d.oyQarz>0);
+const debt=calcDebtTable(repDate);const debtors=debt.filter(d=>d.kelQarz>0||d.oyQarz>0);
 const totalKel=debtors.reduce((s,r)=>s+(r.kelQarz>0?r.kelQarz:0),0);
 const totalOy=debtors.reduce((s,r)=>s+(r.oyQarz>0?r.oyQarz:0),0);
 const totalSh=debtors.reduce((s,r)=>s+(r.qoldiq>0?r.qoldiq:0),0);
 const now=new Date();const fmtNow=now.toLocaleDateString('uz',{day:'2-digit',month:'2-digit',year:'numeric'});
-const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>UYSOT Hisobot — ${periodLabel}</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;color:#1a1917;font-size:11pt;line-height:1.6;padding:30px 40px}
-@media print{body{padding:20px 25px}@page{size:A4;margin:15mm 12mm}}
-h1{font-size:20pt;font-weight:700;margin-bottom:2px}
-h2{font-size:13pt;font-weight:600;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid #e8e7e3}
-h3{font-size:11pt;font-weight:600;margin:16px 0 6px;color:#555}
-.sub{color:#666;font-size:10pt;margin-bottom:20px}
-.cards{display:flex;gap:12px;margin:16px 0}
-.card{flex:1;border:1px solid #e0dfd9;border-radius:8px;padding:12px 16px}
-.card-lbl{font-size:8.5pt;color:#888;text-transform:uppercase;letter-spacing:.3px}
-.card-val{font-size:18pt;font-weight:700;margin:2px 0}
-.card-foot{font-size:9pt;color:#666}
-.up{color:#117a52}.dn{color:#c42b1c}.amb{color:#a36207}.teal{color:#0e7c7b}
-p{margin:8px 0;text-align:justify}
-table{width:100%;border-collapse:collapse;font-size:9.5pt;margin:8px 0 16px}
-th{background:#f5f4f0;font-size:8.5pt;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:6px 8px;border-bottom:2px solid #ddd;color:#666}
-td{padding:5px 8px;border-bottom:1px solid #eee}
-.r{text-align:right}.b{font-weight:600}.mono{font-family:'SF Mono',Consolas,monospace}
-.badge{display:inline-block;font-size:8pt;padding:1px 6px;border-radius:3px;font-weight:500}
-.bg{background:#e8f5e9;color:#117a52}.br{background:#fce4e4;color:#c42b1c}.ba{background:#fff3e0;color:#a36207}.bt{background:#e0f2f1;color:#0e7c7b}
-.footer{margin-top:30px;padding-top:10px;border-top:1px solid #ddd;font-size:8.5pt;color:#999;display:flex;justify-content:space-between}
-.np{page-break-before:always}
-</style></head><body>
-<h1>UYSOT — MRR hisoboti</h1>
-<div class="sub">Hisobot davri: <b>${periodLabel}</b> · Shakllantirilgan: ${fmtNow}</div>
+// Loading
+const ov=document.createElement('div');ov.className='overlay';
+ov.innerHTML='<div class="modal" style="text-align:center;padding:40px"><div class="spin" style="margin:0 auto 16px"></div><div style="font-size:14px;font-weight:600">Claude AI hisobot yozmoqda...</div><div style="color:var(--text3);font-size:12px;margin-top:6px">30\u201360 soniya</div></div>';
+document.body.appendChild(ov);
+const topNew=newClients.slice(0,8).map(c=>c.name+' (+$'+c.mrr+(c.isRechurn?', qayta':'')+', '+c.mgr+')').join('; ');
+const topChurn=churnClients.slice(0,5).map(c=>c.name+' (-$'+c.mrr+', '+c.mgr+')').join('; ');
+const topExp=expClients.slice(0,5).map(c=>c.name+' ('+c.mrrStart+'\u2192'+c.mrrEnd+')').join('; ');
+const topDebt=debtors.slice(0,5).map(d=>d.name+' (kel:$'+d.kelQarz+')').join('; ');
+const trendSum=labels.map((l,i)=>l+':$'+fmt(totals[i])).join(', ');
+const prompt=`Sen UYSOT kompaniyasining moliyaviy tahlilchisisan. Quyidagi ma'lumotlar asosida professional MRR hisobotini o'zbek tilida yoz.
 
-<div class="cards">
-<div class="card"><div class="card-lbl">Aktiv mijozlar</div><div class="card-val">${curClients}</div><div class="card-foot"><span class="${clientDelta>=0?'up':'dn'}">${clientDelta>0?'+':''}${clientDelta}</span> davr boshiga (${startClients}) nisbatan</div></div>
-<div class="card"><div class="card-lbl">Joriy MRR</div><div class="card-val">$${fmt(curMRR)}</div><div class="card-foot"><span class="${mrrDelta>=0?'up':'dn'}">${mrrDelta>0?'+':''}$${fmt(mrrDelta)} (${mrrPct>0?'+':''}${mrrPct}%)</span></div></div>
-<div class="card"><div class="card-lbl">Yangi / Churn</div><div class="card-val"><span class="up">+${totalNew}</span> / <span class="dn">-${totalChurn}</span></div><div class="card-foot">Sof o'sish: ${clientDelta>0?'+':''}${clientDelta}</div></div>
-</div>
+DAVR: ${periodLabel}
+Boshi: MRR $${fmt(startMRR)}, aktiv ${startClients} ta
+Oxiri: MRR $${fmt(curMRR)}, aktiv ${curClients} ta
+O'zgarish: ${mrrDelta>0?'+':''}$${fmt(mrrDelta)} (${mrrPct>0?'+':''}${mrrPct}%)
+Aktiv delta: ${clientDelta>0?'+':''}${clientDelta}
+MRR trend: ${trendSum}
 
-<h2>1. Umumiy ko'rsatgichlar</h2>
-<p>Hisobot davri (${periodLabel}) yakuniga <b>aktiv mijozlar soni ${curClients} ta</b>ni tashkil qilib, davr boshiga (${startClients} ta) nisbatan <b>${clientDelta>0?'+':''}${clientDelta} ta</b>ga ${clientDelta>=0?'oshgan':'kamaygan'}. Joriy MRR <b>$${fmt(curMRR)}</b> bo'lib, davr boshiga ($${fmt(startMRR)}) nisbatan <b>${mrrDelta>0?'+':''}$${fmt(mrrDelta)}</b> (${mrrPct>0?'+':''}${mrrPct}%) ${mrrDelta>=0?"o'sishni":"kamayishni"} ko'rsatdi.</p>
+YANGI: ${totalNew} ta, MRR +$${fmt(mrrFromNew)}. Rechurn: ${totalRechurn} ($${fmt(mrrFromRechurn)}). Ro'yxat: ${topNew||'yo\'q'}
+CHURN: ${totalChurn} ta, MRR -$${fmt(mrrFromChurn)}. Ro'yxat: ${topChurn||'yo\'q'}
+KENGAYISH: ${expClients.length} ta, MRR ${mrrExp>0?'+':''}$${fmt(mrrExp)}. Upsale ${expUp.length} (+$${fmt(mrrUp)}), Downsale ${expDn.length} (-$${fmt(mrrDn)}). Ro'yxat: ${topExp||'yo\'q'}
+QARZDORLIK (${lastLabel} oy oxiriga): ${debtors.length} ta, Sh.qoldiq $${fmt(totalSh)}, OyOxiri $${fmt(totalOy)}, Kelishuv $${fmt(totalKel)}. Top: ${topDebt||'yo\'q'}
 
-<p>Ushbu davrda jami <b>${totalNew} ta yangi mijoz</b>${totalRechurn?' (shulardan '+totalRechurn+' tasi qayta qo\'shilgan)':''} qo'shilishi natijasida MRR <b class="up">+$${fmt(mrrFromNew)}</b>${totalRechurn?' (qayta: $'+fmt(mrrFromRechurn)+')':''} ga oshdi. <b>${totalChurn} ta mijoz</b> chiqib ketishi natijasida <b class="dn">-$${fmt(mrrFromChurn)}</b> MRR yo'qotildi.</p>
+6 ta bo'lim uchun tahliliy matn yoz. Har birini <section id="s1">...</section> ... <section id="s6">...</section> ichida. HTML taglar: <p>, <b>, <span class="up">, <span class="dn">, <span class="amb">, <span class="teal">. Raqamlarni $ bilan yoz. Rasmiy, professional. Har bo'lim 2-3 paragraf.
 
-${expClients.length?`<p>Shuningdek, mavjud mijozlar bo'yicha o'zgarishlar (upsale/downsale) natijasida umumiy <b>${mrrExp>0?'+':''}$${fmt(mrrExp)}</b> MRR ${mrrExp>=0?"o'sish":"kamayish"} qayd etildi. ${expUp.length?expUp.length+' ta mijozda upsale (<span class="up">+$'+fmt(mrrUp)+'</span>)':''}${expUp.length&&expDn.length?', ':''}${expDn.length?expDn.length+' ta mijozda downsale (<span class="dn">-$'+fmt(mrrDn)+'</span>)':''}.</p>`:''}
-
-<h2>2. Yangi mijozlar (${totalNew} ta, +$${fmt(mrrFromNew)})</h2>
-<table><thead><tr><th>Sana</th><th>Mijoz</th><th>Menejer</th><th>Hudud</th><th class="r">MRR ($)</th></tr></thead><tbody>
-${newClients.map(c=>'<tr><td class="mono">'+fmtD(c.date)+'</td><td class="b">'+c.name+(c.isRechurn?' <span class="badge ba">qayta</span>':'')+'</td><td>'+(c.mgr||'—')+'</td><td>'+(c.hudud||'—')+'</td><td class="r mono up b">+'+fmt(c.mrr)+'</td></tr>').join('')}
-<tr style="border-top:2px solid #ddd"><td colspan="4" class="b">Jami</td><td class="r mono up b">+${fmt(mrrFromNew)}</td></tr>
-</tbody></table>
-
-<h2>3. Churn mijozlar (${totalChurn} ta, -$${fmt(mrrFromChurn)})</h2>
-${churnClients.length?`<table><thead><tr><th>Sana</th><th>Mijoz</th><th>Menejer</th><th class="r">MRR ($)</th></tr></thead><tbody>
-${churnClients.map(c=>'<tr><td class="mono">'+fmtD(c.date)+'</td><td class="b">'+c.name+'</td><td>'+(c.mgr||'—')+'</td><td class="r mono dn b">-'+fmt(c.mrr)+'</td></tr>').join('')}
-<tr style="border-top:2px solid #ddd"><td colspan="3" class="b">Jami</td><td class="r mono dn b">-${fmt(mrrFromChurn)}</td></tr>
-</tbody></table>`:'<p>Churn mijozlar mavjud emas.</p>'}
-
-${expClients.length?`<h2>4. Kengayish — upsale/downsale (${expClients.length} ta, ${mrrExp>0?'+':''}$${fmt(mrrExp)})</h2>
-<table><thead><tr><th>Mijoz</th><th class="r">Oldin ($)</th><th class="r">Hozir ($)</th><th class="r">Farq ($)</th></tr></thead><tbody>
-${expClients.map(c=>'<tr><td class="b">'+c.name+'</td><td class="r mono">'+fmt(c.mrrStart)+'</td><td class="r mono">'+fmt(c.mrrEnd)+'</td><td class="r mono b '+(c.delta>0?'up':'dn')+'">'+(c.delta>0?'+':'')+fmt(c.delta)+'</td></tr>').join('')}
-<tr style="border-top:2px solid #ddd"><td colspan="3" class="b">Jami</td><td class="r mono b ${mrrExp>=0?'up':'dn'}">${mrrExp>0?'+':''}${fmt(mrrExp)}</td></tr>
-</tbody></table>`:''}
-
-<h2 class="np">5. MRR tarkibi</h2>
-<p>MRR o'zgarishi tarkibiy taqsimoti:</p>
-<div class="cards">
-<div class="card"><div class="card-lbl">Yangi mijozlar</div><div class="card-val up">+$${fmt(mrrFromNew)}</div></div>
-<div class="card"><div class="card-lbl">Churn</div><div class="card-val dn">-$${fmt(mrrFromChurn)}</div></div>
-<div class="card"><div class="card-lbl">Kengayish</div><div class="card-val ${mrrExp>=0?'teal':'amb'}">${mrrExp>0?'+':''}$${fmt(mrrExp)}</div></div>
-<div class="card"><div class="card-lbl">Jami o'zgarish</div><div class="card-val">${mrrDelta>0?'+':''}$${fmt(mrrDelta)}</div></div>
-</div>
-<p>Formula: Yangi (+$${fmt(mrrFromNew)}) − Churn ($${fmt(mrrFromChurn)}) + Kengayish (${mrrExp>0?'+':''}$${fmt(mrrExp)}) = <b>${mrrDelta>0?'+':''}$${fmt(mrrDelta)}</b></p>
-
-<h2>6. Qarzdorlik (${lastLabel} oy oxiriga)</h2>
-<p>Hisobot davri oxiriga jami <b>${debtors.length} ta</b> mijozda qarzdorlik mavjud. Shartnoma bo'yicha umumiy qoldiq <b>$${fmt(totalSh)}</b>, oy oxiri qarzdorlik <b>$${fmt(totalOy)}</b>, kelishuv bo'yicha qarzdorlik <b>$${fmt(totalKel)}</b>.</p>
-${debtors.length?`<table><thead><tr><th>Mijoz</th><th class="r">Sh. qoldiq</th><th class="r">Oy oxiri</th><th class="r">Kelishuv</th></tr></thead><tbody>
-${debtors.slice(0,30).map(r=>'<tr><td class="b">'+r.name+'</td><td class="r mono">'+(r.qoldiq>0?fmt(r.qoldiq):'—')+'</td><td class="r mono amb">'+(r.oyQarz>0?fmt(r.oyQarz):'—')+'</td><td class="r mono dn b">'+(r.kelQarz>0?fmt(r.kelQarz):'—')+'</td></tr>').join('')}
-<tr style="border-top:2px solid #ddd"><td class="b">Jami (${debtors.length} ta)</td><td class="r mono b">${fmt(totalSh)}</td><td class="r mono amb b">${fmt(totalOy)}</td><td class="r mono dn b">${fmt(totalKel)}</td></tr>
-</tbody></table>`:'<p>Qarzdorlik mavjud emas.</p>'}
-
-<div class="footer"><span>UYSOT Shartnomalar Dashboard</span><span>${fmtNow}</span></div>
-</body></html>`;
-const w=window.open('','_blank');
-w.document.write(html);
-w.document.close();
-setTimeout(()=>w.print(),500);
+s1: Umumiy tahlil (MRR trend, mijozlar dinamikasi, davr boshiga nisbatan)
+s2: Yangi mijozlar (eng yiriklari, menejerlar, rechurn tahlili)
+s3: Churn (sabablar taxmini, menejerlar, tavsiyalar)
+s4: Kengayish (upsale/downsale balans, yirik o'zgarishlar)
+s5: MRR tarkibi xulosa (formula, nima ustunlik qildi)
+s6: Qarzdorlik (risk darajasi, eng yirik qarzdorlar, tavsiyalar)`;
+try{
+const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+if(!resp.ok){const e=await resp.text();ov.remove();return alert('API xato: '+resp.status+'\n'+e)}
+const data=await resp.json();
+const aiText=data.content.map(b=>b.text||'').join('');
+const getS=id=>{const m=aiText.match(new RegExp('<section id="'+id+'">([\\s\\S]*?)</section>'));return m?m[1]:''};
+const s1=getS('s1'),s2=getS('s2'),s3=getS('s3'),s4=getS('s4'),s5=getS('s5'),s6=getS('s6');
+// Tables
+const newTbl='<table><thead><tr><th>\u2116</th><th>Sana</th><th>Mijoz</th><th>Menejer</th><th>Hudud</th><th class="r">MRR ($)</th></tr></thead><tbody>'+
+newClients.map((c,i)=>'<tr><td>'+(i+1)+'</td><td class="mono">'+fmtD(c.date)+'</td><td class="b">'+c.name+(c.isRechurn?' <span class="badge ba">Q</span>':'')+'</td><td>'+(c.mgr||'\u2014')+'</td><td>'+(c.hudud||'\u2014')+'</td><td class="r mono up b">+'+fmt(c.mrr)+'</td></tr>').join('')+
+'<tr style="border-top:2px solid #ddd"><td colspan="5" class="b">Jami</td><td class="r mono up b">+'+fmt(mrrFromNew)+'</td></tr></tbody></table>';
+const churnTbl=churnClients.length?'<table><thead><tr><th>\u2116</th><th>Sana</th><th>Mijoz</th><th>Menejer</th><th class="r">MRR ($)</th></tr></thead><tbody>'+
+churnClients.map((c,i)=>'<tr><td>'+(i+1)+'</td><td class="mono">'+fmtD(c.date)+'</td><td class="b">'+c.name+'</td><td>'+(c.mgr||'\u2014')+'</td><td class="r mono dn b">-'+fmt(c.mrr)+'</td></tr>').join('')+
+'<tr style="border-top:2px solid #ddd"><td colspan="4" class="b">Jami</td><td class="r mono dn b">-'+fmt(mrrFromChurn)+'</td></tr></tbody></table>':'';
+const expTbl=expClients.length?'<table><thead><tr><th>\u2116</th><th>Mijoz</th><th class="r">Oldin</th><th class="r">Hozir</th><th class="r">Farq</th></tr></thead><tbody>'+
+expClients.map((c,i)=>'<tr><td>'+(i+1)+'</td><td class="b">'+c.name+'</td><td class="r mono">'+fmt(c.mrrStart)+'</td><td class="r mono">'+fmt(c.mrrEnd)+'</td><td class="r mono b '+(c.delta>0?'up':'dn')+'">'+(c.delta>0?'+':'')+fmt(c.delta)+'</td></tr>').join('')+
+'<tr style="border-top:2px solid #ddd"><td colspan="4" class="b">Jami</td><td class="r mono b '+(mrrExp>=0?'up':'dn')+'">'+(mrrExp>0?'+':'')+fmt(mrrExp)+'</td></tr></tbody></table>':'';
+const debtTbl=debtors.length?'<table><thead><tr><th>\u2116</th><th>Mijoz</th><th class="r">Sh.qoldiq</th><th class="r">Oy oxiri</th><th class="r">Kelishuv</th></tr></thead><tbody>'+
+debtors.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="b">'+r.name+'</td><td class="r mono">'+(r.qoldiq>0?fmt(r.qoldiq):'\u2014')+'</td><td class="r mono amb">'+(r.oyQarz>0?fmt(r.oyQarz):'\u2014')+'</td><td class="r mono dn b">'+(r.kelQarz>0?fmt(r.kelQarz):'\u2014')+'</td></tr>').join('')+
+'<tr style="border-top:2px solid #ddd"><td colspan="2" class="b">Jami ('+debtors.length+')</td><td class="r mono b">'+fmt(totalSh)+'</td><td class="r mono amb b">'+fmt(totalOy)+'</td><td class="r mono dn b">'+fmt(totalKel)+'</td></tr></tbody></table>':'';
+const ec=mrrExp>=0?'teal':'amb';
+const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>UYSOT Hisobot</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",system-ui,sans-serif;color:#1a1917;font-size:11pt;line-height:1.7;padding:30px 40px}@media print{body{padding:20px 25px}@page{size:A4;margin:15mm 12mm}}h1{font-size:20pt;font-weight:700;margin-bottom:2px}h2{font-size:13pt;font-weight:600;margin:28px 0 10px;padding-bottom:5px;border-bottom:2px solid #e8e7e3}.sub{color:#666;font-size:10pt;margin-bottom:24px}.cards{display:flex;gap:12px;margin:18px 0}.cd{flex:1;border:1px solid #e0dfd9;border-radius:8px;padding:14px 18px}.cd-l{font-size:8.5pt;color:#888;text-transform:uppercase;letter-spacing:.3px}.cd-v{font-size:18pt;font-weight:700;margin:2px 0}.cd-f{font-size:9pt;color:#666}.up{color:#117a52}.dn{color:#c42b1c}.amb{color:#a36207}.teal{color:#0e7c7b}p{margin:10px 0;text-align:justify}table{width:100%;border-collapse:collapse;font-size:9.5pt;margin:10px 0 18px}th{background:#f5f4f0;font-size:8.5pt;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:6px 8px;border-bottom:2px solid #ddd;color:#666}td{padding:5px 8px;border-bottom:1px solid #eee}.r{text-align:right}.b{font-weight:600}.mono{font-family:"SF Mono",Consolas,monospace}.badge{display:inline-block;font-size:7.5pt;padding:1px 5px;border-radius:3px}.ba{background:#fff3e0;color:#a36207}.footer{margin-top:30px;padding-top:10px;border-top:1px solid #ddd;font-size:8.5pt;color:#999;display:flex;justify-content:space-between}.np{page-break-before:always}</style></head><body>'+
+'<h1>UYSOT \u2014 MRR hisoboti</h1><div class="sub">Davr: <b>'+periodLabel+'</b> \xb7 '+fmtNow+' \xb7 <i>Claude AI tahlili</i></div>'+
+'<div class="cards"><div class="cd"><div class="cd-l">Aktiv mijozlar</div><div class="cd-v">'+curClients+'</div><div class="cd-f"><span class="'+(clientDelta>=0?'up':'dn')+'">'+(clientDelta>0?'+':'')+clientDelta+'</span> davr boshiga ('+startClients+') nisbatan</div></div>'+
+'<div class="cd"><div class="cd-l">Joriy MRR</div><div class="cd-v">$'+fmt(curMRR)+'</div><div class="cd-f"><span class="'+(mrrDelta>=0?'up':'dn')+'">'+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+' ('+(mrrPct>0?'+':'')+mrrPct+'%)</span></div></div>'+
+'<div class="cd"><div class="cd-l">Yangi / Churn</div><div class="cd-v"><span class="up">+'+totalNew+'</span> / <span class="dn">-'+totalChurn+'</span></div><div class="cd-f">Sof: '+(clientDelta>0?'+':'')+clientDelta+'</div></div>'+
+'<div class="cd"><div class="cd-l">MRR tarkibi</div><div class="cd-v">'+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+'</div><div class="cd-f"><span class="up">+'+fmt(mrrFromNew)+'</span> <span class="dn">-'+fmt(mrrFromChurn)+'</span> <span class="'+ec+'">'+(mrrExp>0?'+':'')+fmt(mrrExp)+'</span></div></div></div>'+
+'<h2>1. Umumiy ko\u2018rsatgichlar</h2>'+s1+
+'<h2>2. Yangi mijozlar ('+totalNew+' ta, +$'+fmt(mrrFromNew)+')</h2>'+s2+newTbl+
+'<h2>3. Churn ('+totalChurn+' ta, -$'+fmt(mrrFromChurn)+')</h2>'+s3+(churnTbl||'<p><i>Churn mavjud emas.</i></p>')+
+(expClients.length?'<h2 class="np">4. Kengayish ('+expClients.length+' ta, '+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+')</h2>'+s4+expTbl:'')+
+'<h2'+(expClients.length?' class="np"':'')+'>5. MRR tarkibi</h2>'+s5+
+'<div class="cards"><div class="cd"><div class="cd-l">Yangi</div><div class="cd-v up">+$'+fmt(mrrFromNew)+'</div></div><div class="cd"><div class="cd-l">Churn</div><div class="cd-v dn">-$'+fmt(mrrFromChurn)+'</div></div><div class="cd"><div class="cd-l">Kengayish</div><div class="cd-v '+ec+'">'+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+'</div></div><div class="cd"><div class="cd-l">Jami</div><div class="cd-v">'+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+'</div></div></div>'+
+'<h2 class="np">6. Qarzdorlik ('+lastLabel+' oy oxiriga)</h2>'+s6+(debtTbl||'<p><i>Qarzdorlik mavjud emas.</i></p>')+
+'<div class="footer"><span>UYSOT \xb7 Claude AI</span><span>'+fmtNow+'</span></div></body></html>';
+ov.remove();
+const w=window.open('','_blank');w.document.write(html);w.document.close();
+setTimeout(()=>w.print(),600);
+}catch(e){ov.remove();alert('Xatolik: '+e.message)}
 }
 
 // DEBTS page
@@ -1129,6 +1111,14 @@ ${hasSaved?`<button class="btn" style="padding:10px" onclick="if(S.config)loadFr
 </div>
 <div style="font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.5">5 ta sheet havolalari yozilgan <b>uysot_config.json</b> file yuklang.<br>
 Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b>.</div>
+</div>
+
+<div style="margin-bottom:16px">
+<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">Claude AI (hisobot uchun)</div>
+<div style="display:flex;gap:8px">
+<input type="password" class="flt" style="flex:1;font-size:12px;padding:8px 12px;font-family:var(--mono)" placeholder="sk-ant-api..." value="${S.apiKey||''}" onchange="S.apiKey=this.value;localStorage.setItem('uysot_apikey',this.value)">
+</div>
+<div style="font-size:10.5px;color:var(--text3);margin-top:4px">PDF hisobot generatsiya qilish uchun <b>Anthropic API key</b> kiriting. <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent2)">console.anthropic.com</a></div>
 </div>
 
 ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center">
