@@ -874,9 +874,10 @@ const sections=[
   {k:'churn',l:'Churn mijozlar',d:'Ro\'yxat va tahlil',def:true},
   {k:'exp',l:'Kengayish (upsale/downsale)',d:'Ro\'yxat va tahlil',def:true},
   {k:'mrr',l:'MRR tarkibi',d:'Formula va xulosa',def:true},
-  {k:'debt',l:'Qarzdorlik',d:'To\'liq ro\'yxat',def:true}
+  {k:'debt',l:'Qarzdorlik',d:'To\'liq ro\'yxat',def:true},
+  {k:'mgrs',l:'Menejerlar',d:'Samaradorlik tahlili',def:true}
 ];
-if(!S.repSec)S.repSec={summary:true,newc:true,churn:true,exp:true,mrr:true,debt:true};
+if(!S.repSec)S.repSec={summary:true,newc:true,churn:true,exp:true,mrr:true,debt:true,mgrs:true};
 const ai=S.aiProvider||'none';
 const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
 o.innerHTML=`<div class="modal" style="max-width:480px">
@@ -941,18 +942,25 @@ debtors.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="b">'+r.name+'</td><td class
 '<tr style="border-top:2px solid #ddd"><td colspan="2" class="b">Jami ('+debtors.length+')</td><td class="r mono b">'+fmt(totalSh)+'</td><td class="r mono amb b">'+fmt(totalOy)+'</td><td class="r mono dn b">'+fmt(totalKel)+'</td></tr></tbody></table>':'<p><i>Qarzdorlik mavjud emas.</i></p>';
 const ec=mrrExp>=0?'teal':'amb';
 // AI text
-let s1='',s2='',s3='',s4='',s5='',s6='';
+let s1='',s2='',s3='',s4='',s5='',s6='',s7='';
 let aiLabel='';
 if(ai!=='none'){
   const ov=document.createElement('div');ov.className='overlay';
   ov.innerHTML='<div class="modal" style="text-align:center;padding:40px"><div class="spin" style="margin:0 auto 16px"></div><div style="font-size:14px;font-weight:600">'+(ai==='claude'?'Claude':'Gemini')+' AI hisobot yozmoqda...</div><div style="color:var(--text3);font-size:12px;margin-top:6px">30\u201360 soniya</div></div>';
   document.body.appendChild(ov);
-  const topNew=newClients.slice(0,8).map(c=>c.name+' (+$'+c.mrr+(c.isRechurn?',Q':'')+', '+c.mgr+')').join('; ');
+  const topNew=newClients.slice(0,8).map(c=>c.name+' (+$'+c.mrr+(c.isRechurn?',qayta':'')+', '+c.mgr+')').join('; ');
+  const rechurnList=newClients.filter(c=>c.isRechurn).map(c=>c.name+' (+$'+c.mrr+')').join('; ');
   const topChurn=churnClients.slice(0,5).map(c=>c.name+' (-$'+c.mrr+', '+c.mgr+')').join('; ');
   const topExp=expClients.slice(0,5).map(c=>c.name+' ('+c.mrrStart+'\u2192'+c.mrrEnd+')').join('; ');
   const topDebt=debtors.slice(0,5).map(d=>d.name+' (kel:$'+d.kelQarz+')').join('; ');
   const trendSum=labels.map((l,i)=>l+':$'+fmt(totals[i])).join(', ');
-  const prompt='Sen UYSOT kompaniyasining moliyaviy tahlilchisisan. Professional MRR hisobotini o\'zbek tilida yoz.\n\nDAVR: '+periodLabel+'\nBoshi: MRR $'+fmt(startMRR)+', aktiv '+startClients+' ta\nOxiri: MRR $'+fmt(curMRR)+', aktiv '+curClients+' ta\nDelta: '+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+' ('+(mrrPct>0?'+':'')+mrrPct+'%)\nTrend: '+trendSum+'\n\nYANGI: '+totalNew+' ta, +$'+fmt(mrrFromNew)+'. Rechurn:'+totalRechurn+' ($'+fmt(mrrFromRechurn)+'). '+topNew+'\nCHURN: '+totalChurn+' ta, -$'+fmt(mrrFromChurn)+'. '+topChurn+'\nKENGAYISH: '+expClients.length+' ta, '+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+'. Up:'+expUp.length+' (+$'+fmt(mrrUp)+'), Dn:'+expDn.length+' (-$'+fmt(mrrDn)+'). '+topExp+'\nQARZ ('+lastLabel+'): '+debtors.length+' ta, Sh:$'+fmt(totalSh)+', Oy:$'+fmt(totalOy)+', Kel:$'+fmt(totalKel)+'. '+topDebt+'\n\n6 bo\'lim yoz. <section id="s1">...</section> dan <section id="s6">...</section>. HTML: <p>,<b>,<span class="up">,<span class="dn">,<span class="amb">,<span class="teal">. Raqamlar $ bilan. Professional rasmiy.\ns1: Umumiy tahlil (2-3 p)\ns2: Yangi mijozlar (1-2 p)\ns3: Churn tahlili (1-2 p)\ns4: Kengayish (1 p)\ns5: MRR tarkibi xulosa (1 p)\ns6: Qarzdorlik (1-2 p)';
+  // Manager stats
+  const mgrMap={};
+  newClients.forEach(c=>{const m=c.mgr||'Noma\'lum';if(!mgrMap[m])mgrMap[m]={cnt:0,mrr:0};mgrMap[m].cnt++;mgrMap[m].mrr+=c.mrr});
+  const mgrRank=Object.entries(mgrMap).sort((a,b)=>b[1].mrr-a[1].mrr).map(([m,v])=>m+': '+v.cnt+' ta, +$'+fmt(v.mrr)).join('; ');
+  const bestMgr=Object.entries(mgrMap).sort((a,b)=>b[1].mrr-a[1].mrr)[0];
+  const curYear=S.dashTo.getFullYear();
+  const prompt='Sen UYSOT CRM kompaniyasining moliyaviy tahlilchisisan. '+curYear+'-yil uchun professional MRR (Monthly Recurring Revenue — oylik takroriy daromad) hisobotini o\'zbek tilida yoz.\n\nMUHIM QOIDALAR:\n- MRR bu oylik takroriy daromad MANBAI, bir martalik to\'lov emas\n- "qo\'shimcha daromad keltirdi" emas, "qo\'shimcha oylik daromad manbai yaratildi" deb yoz\n- Yilni to\'g\'ri yoz: '+curYear+'\n- Rechurn mijozlarni alohida qayd et\n- Eng yaxshi menejerni alohida ta\'kidla\n\nDAVR: '+periodLabel+' ('+curYear+'-yil)\nBoshi: MRR $'+fmt(startMRR)+', aktiv '+startClients+' ta\nOxiri: MRR $'+fmt(curMRR)+', aktiv '+curClients+' ta\nDelta: '+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+' ('+(mrrPct>0?'+':'')+mrrPct+'%)\nTrend: '+trendSum+'\n\nYANGI: '+totalNew+' ta, MRR +$'+fmt(mrrFromNew)+'\nRechurn (qayta qo\'shilgan): '+totalRechurn+' ta, $'+fmt(mrrFromRechurn)+'. Ro\'yxat: '+(rechurnList||'yo\'q')+'\nTop yangi: '+topNew+'\nMENEJERLAR: '+mgrRank+'\nEng yaxshi: '+(bestMgr?bestMgr[0]+' ('+bestMgr[1].cnt+' ta, +$'+fmt(bestMgr[1].mrr)+')':'—')+'\n\nCHURN: '+totalChurn+' ta, MRR -$'+fmt(mrrFromChurn)+'. '+topChurn+'\nKENGAYISH: '+expClients.length+' ta, '+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+'. Up:'+expUp.length+' (+$'+fmt(mrrUp)+'), Dn:'+expDn.length+' (-$'+fmt(mrrDn)+'). '+topExp+'\nQARZ ('+lastLabel+'): '+debtors.length+' ta, Sh:$'+fmt(totalSh)+', Oy:$'+fmt(totalOy)+', Kel:$'+fmt(totalKel)+'. '+topDebt+'\n\n7 bo\'lim yoz. <section id="s1">...</section> dan <section id="s7">...</section>. HTML: <p>,<b>,<span class="up">,<span class="dn">,<span class="amb">,<span class="teal">. Raqamlar $ bilan. Professional rasmiy.\ns1: Umumiy tahlil (2-3 p, trend, yilni to\'g\'ri yoz)\ns2: Yangi mijozlar (1-2 p, rechurn alohida, eng yaxshi menejer)\ns3: Churn tahlili (1-2 p)\ns4: Kengayish (1 p)\ns5: MRR tarkibi xulosa (1 p, formula)\ns6: Qarzdorlik (1-2 p)\ns7: Menejerlar samaradorligi (1-2 p, kim qancha yangi mijoz jalb qildi, MRR ulushi)';
   try{
     let aiText='';
     if(ai==='claude'){
@@ -971,7 +979,7 @@ if(ai!=='none'){
       aiLabel='Gemini AI (Google)';
     }
     const getS=id=>{const m=aiText.match(new RegExp('<section id="'+id+'">([\\s\\S]*?)</section>'));return m?m[1]:''};
-    s1=getS('s1');s2=getS('s2');s3=getS('s3');s4=getS('s4');s5=getS('s5');s6=getS('s6');
+    s1=getS('s1');s2=getS('s2');s3=getS('s3');s4=getS('s4');s5=getS('s5');s6=getS('s6');s7=getS('s7');
     ov.remove();
   }catch(e){ov.remove();alert('AI xatolik: '+e.message+'\nOddiy hisobot shakllantiriladi');aiLabel=''}
 }
@@ -982,10 +990,18 @@ if(!s3)s3='<p>'+totalChurn+' ta mijoz chiqib ketdi. Yo\'qotilgan MRR: <span clas
 if(!s4)s4='<p>Mavjud mijozlar bo\'yicha '+(expUp.length?expUp.length+' ta upsale (<span class="up">+$'+fmt(mrrUp)+'</span>)':'')+' '+(expDn.length?expDn.length+' ta downsale (<span class="dn">-$'+fmt(mrrDn)+'</span>)':'')+'.</p>';
 if(!s5)s5='<p>MRR o\'zgarishi: Yangi (+$'+fmt(mrrFromNew)+') \u2212 Churn ($'+fmt(mrrFromChurn)+') + Kengayish ('+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+') = <b>'+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+'</b></p>';
 if(!s6)s6='<p>Hisobot davri oxiriga <b>'+debtors.length+' ta</b> mijozda qarzdorlik. Shartnoma qoldiq: $'+fmt(totalSh)+', oy oxiri: $'+fmt(totalOy)+', kelishuv: $'+fmt(totalKel)+'.</p>';
+// Manager stats (outside AI block for table)
+const mgrMapR={};
+newClients.forEach(c=>{const m=c.mgr||'Noma\'lum';if(!mgrMapR[m])mgrMapR[m]={cnt:0,mrr:0,clients:[]};mgrMapR[m].cnt++;mgrMapR[m].mrr+=c.mrr;mgrMapR[m].clients.push(c.name)});
+const mgrArr=Object.entries(mgrMapR).sort((a,b)=>b[1].mrr-a[1].mrr);
+const mgrTbl=mgrArr.length?'<table><thead><tr><th>\u2116</th><th>Menejer</th><th class="r">Mijozlar</th><th class="r">MRR ($)</th><th class="r">Ulush</th></tr></thead><tbody>'+
+mgrArr.map(([m,v],i)=>{const pct=mrrFromNew?Math.round(v.mrr/mrrFromNew*100):0;return'<tr><td>'+(i+1)+'</td><td class="b">'+m+'</td><td class="r">'+v.cnt+'</td><td class="r mono up">+'+fmt(v.mrr)+'</td><td class="r mono">'+pct+'%</td></tr>'}).join('')+
+'<tr style="border-top:2px solid #ddd"><td colspan="2" class="b">Jami</td><td class="r b">'+totalNew+'</td><td class="r mono up b">+'+fmt(mrrFromNew)+'</td><td class="r">100%</td></tr></tbody></table>':'';
+if(!s7){const best=mgrArr[0];s7='<p>Hisobot davrida '+(best?'<b>'+best[0]+'</b> eng samarali menejer bo\'lib, '+best[1].cnt+' ta yangi mijoz jalb qilib <span class="up">+$'+fmt(best[1].mrr)+'</span> MRR yaratdi':'menejerlar statistikasi mavjud emas')+'.</p>'}
 // Build HTML
 let n=1;
 const fmtK=v=>{const a=Math.abs(v);if(a>=1000){const k=(v/1000).toFixed(1);return k.endsWith('.0')?Math.round(v/1000)+'k':k+'k'}return fmt(v)};
-let body='<h1>UYSOT \u2014 MRR hisoboti</h1><div class="sub">Davr: <b>'+periodLabel+'</b> \xb7 '+fmtNow+(aiLabel?' \xb7 <i>'+aiLabel+' tomonidan tahlil qilingan</i>':'')+'</div>';
+let body='<h1>UYSOT \u2014 MRR hisoboti</h1><div class="sub">Davr: <b>'+periodLabel+'</b> \xb7 '+fmtNow+' \xb7 <i>Manzur Sulaymonov tomonidan tahlil qilingan</i>'+(aiLabel?' ('+aiLabel+')':'')+'</div>';
 body+='<div class="hero"><div class="cd"><div class="cd-l">Aktiv mijozlar</div><div class="cd-v">'+curClients+'</div><div class="cd-f"><span class="'+(clientDelta>=0?'up':'dn')+'">'+(clientDelta>0?'+':'')+clientDelta+'</span> davr boshiga ('+startClients+')</div></div>';
 body+='<div class="cd"><div class="cd-l">Joriy MRR</div><div class="cd-v">$'+fmtK(curMRR)+'</div><div class="cd-f"><span class="'+(mrrDelta>=0?'up':'dn')+'">'+(mrrDelta>0?'+':'')+'$'+fmtK(mrrDelta)+' ('+(mrrPct>0?'+':'')+mrrPct+'%)</span></div></div>';
 body+='<div class="cd"><div class="cd-l">Yangi / Churn</div><div class="cd-v"><span class="up">+'+totalNew+'</span> / <span class="dn">-'+totalChurn+'</span></div><div class="cd-f">Sof o\'sish: '+(clientDelta>0?'+':'')+clientDelta+'</div></div>';
@@ -996,7 +1012,8 @@ if(sec.churn){body+='<h2>'+n+'. Churn ('+totalChurn+' ta, -$'+fmt(mrrFromChurn)+
 if(sec.exp&&expClients.length){body+='<h2 class="np">'+n+'. Kengayish ('+expClients.length+' ta, '+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+')</h2>'+s4+expTbl;n++}
 if(sec.mrr){body+='<h2>'+n+'. MRR tarkibi</h2>'+s5;
 body+='<div class="cards"><div class="cd"><div class="cd-l">Yangi</div><div class="cd-v up">+$'+fmt(mrrFromNew)+'</div></div><div class="cd"><div class="cd-l">Churn</div><div class="cd-v dn">-$'+fmt(mrrFromChurn)+'</div></div><div class="cd"><div class="cd-l">Kengayish</div><div class="cd-v '+ec+'">'+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+'</div></div><div class="cd"><div class="cd-l">Jami</div><div class="cd-v">'+(mrrDelta>0?'+':'')+'$'+fmt(mrrDelta)+'</div></div></div>';n++}
-if(sec.debt){body+='<h2 class="np">'+n+'. Qarzdorlik ('+lastLabel+' oy oxiriga)</h2>'+s6+debtTbl}
+if(sec.mgrs&&mgrArr.length){body+='<h2>'+n+'. Menejerlar samaradorligi</h2>'+s7+mgrTbl;n++}
+if(sec.debt){body+='<h2 class="np">'+n+'. Qarzdorlik ('+lastLabel+' oy oxiriga)</h2>'+s6+debtTbl;n++}
 body+='<div class="footer"><div>UYSOT'+(aiLabel?' \xb7 '+aiLabel:'')+'</div><div>Checked: <b>Manzur Sulaymonov</b> \xb7 '+fmtNow+'</div></div>';
 const css='*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",system-ui,sans-serif;color:#1a1917;font-size:10pt;line-height:1.6;padding:0}@media print{@page{size:A4;margin:20mm 18mm 18mm 18mm}}h1{font-size:22pt;font-weight:700;margin-bottom:4px}h2{font-size:11pt;font-weight:600;margin:18px 0 6px;padding-bottom:4px;border-bottom:2px solid #ddd;page-break-after:avoid}.sub{color:#555;font-size:9.5pt;margin-bottom:16px;border-bottom:1px solid #eee;padding-bottom:10px}.hero{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0 24px}.hero .cd{border:2px solid #d0cfc8;border-radius:10px;padding:20px 24px;text-align:center}.hero .cd-l{font-size:9pt;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}.hero .cd-v{font-size:28pt;font-weight:800;margin:6px 0}.hero .cd-f{font-size:10pt;color:#555;margin-top:4px}.cards{display:flex;gap:8px;margin:12px 0}.cd{flex:1;border:1px solid #ddd;border-radius:6px;padding:8px 12px}.cd-l{font-size:7pt;color:#999;text-transform:uppercase;letter-spacing:.4px}.cd-v{font-size:14pt;font-weight:700;margin:1px 0}.cd-f{font-size:8pt;color:#666}.up{color:#117a52}.dn{color:#c42b1c}.amb{color:#a36207}.teal{color:#0e7c7b}p{margin:6px 0;text-align:justify;font-size:10pt}table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:6px 0 12px;page-break-inside:auto}thead{display:table-header-group}tr{page-break-inside:avoid}th{background:#f5f4f0;font-size:7pt;text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:3px 5px;border-bottom:2px solid #ddd;color:#666}td{padding:3px 5px;border-bottom:1px solid #eee}.r{text-align:right}.b{font-weight:600}.mono{font-family:"SF Mono",Consolas,monospace;font-size:7.5pt}.badge{display:inline-block;font-size:6pt;padding:1px 3px;border-radius:3px}.ba{background:#fff3e0;color:#a36207}.footer{margin-top:20px;padding-top:8px;border-top:2px solid #ddd;font-size:8pt;color:#666;display:flex;justify-content:space-between}.np{page-break-before:always}table.debt-tbl td,table.debt-tbl th{font-size:7.5pt;padding:2px 4px}';
 const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>UYSOT Hisobot \u2014 '+periodLabel+'</title><style>'+css+'</style></head><body>'+body+'</body></html>';
