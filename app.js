@@ -647,6 +647,59 @@ function calcARaging(){
   });
 }
 
+// === GROWTH-BASED MRR FORECAST (6 oy) ===
+function calcGrowthForecast(){
+  return cached('growthForecast_v1',()=>{
+    const now=new Date();
+    const {all,qAll}=buildContracts();
+    const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+    // Analyze last 12 months: new clients, churn, MRR changes
+    const monthlyNew=[], monthlyChurn=[], monthlyMRR=[];
+    for(let i=12;i>=1;i--){
+      const absM=now.getMonth()-i;
+      const y=now.getFullYear()+Math.floor(absM/12);
+      const m=((absM%12)+12)%12;
+      const mStart=new Date(y,m,1);
+      const mEnd=new Date(y,m+1,0,23,59,59);
+      const prevEnd=new Date(y,m,0,23,59,59);
+      const snapCur=mrrOnDate(mEnd,all,qAll);
+      const snapPrev=mrrOnDate(prevEnd,all,qAll);
+      const newC=[...snapCur.active].filter(c=>!snapPrev.active.has(c));
+      const churnC=[...snapPrev.active].filter(c=>!snapCur.active.has(c));
+      monthlyNew.push(newC.length);
+      monthlyChurn.push(churnC.length);
+      monthlyMRR.push(snapCur.total);
+    }
+    // Average monthly rates
+    const avgNew=Math.round(monthlyNew.reduce((s,v)=>s+v,0)/monthlyNew.length);
+    const avgChurn=Math.round(monthlyChurn.reduce((s,v)=>s+v,0)/monthlyChurn.length);
+    // Average MRR growth rate
+    const mrrChanges=[];
+    for(let i=1;i<monthlyMRR.length;i++){
+      if(monthlyMRR[i-1]>0) mrrChanges.push(monthlyMRR[i]/monthlyMRR[i-1]);
+    }
+    const avgGrowthRate=mrrChanges.length?mrrChanges.reduce((s,v)=>s+v,0)/mrrChanges.length:1;
+    // Current snapshot
+    const curSnap=mrrOnDate(now,all,qAll);
+    let projMRR=curSnap.total;
+    let projClients=curSnap.active.size;
+    const result=[];
+    for(let i=0;i<=5;i++){
+      const absM=now.getMonth()+i;
+      const y=now.getFullYear()+Math.floor(absM/12);
+      const m=absM%12;
+      if(i===0){
+        result.push({label:mos[m]+' \''+(y%100),mrr:Math.round(projMRR),clients:projClients,newPerMonth:avgNew,churnPerMonth:avgChurn});
+      } else {
+        projMRR=Math.round(projMRR*avgGrowthRate);
+        projClients=Math.max(0,projClients+avgNew-avgChurn);
+        result.push({label:mos[m]+' \''+(y%100),mrr:projMRR,clients:projClients,newPerMonth:avgNew,churnPerMonth:avgChurn});
+      }
+    }
+    return result;
+  });
+}
+
 // === MRR FORECAST (6 oy) ===
 function calcMrrForecast(){
   return cached('mrrForecast_v1',()=>{
