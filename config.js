@@ -414,19 +414,18 @@ function showSmartLoader(){
     +'<div style="height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px">'
     +'<div id="sl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#20c997);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)"></div>'
     +'</div>'
-    +'<div id="sl-steps" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px"></div>'
+    +'<div style="margin-bottom:22px"></div>'
     +'</div>'
     +'<div id="sl-tip" style="width:min(460px,92vw);background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px 24px;min-height:100px;transition:opacity .3s ease"></div>'
     +'<div id="sl-dots" style="display:flex;gap:5px;margin-top:14px"></div>';
   document.body.appendChild(el);_ldEl=el;
   _renderLdTip(true);
-  // Rotate through the 3 tips: each shown for ~3.5s → 3 tips = ~10.5s total
+  // Rotate through the 3 tips: each shown for 15s
   _ldTimer=setInterval(()=>{
     _ldTip=(_ldTip+1)%_ldTips.length;
     _renderLdTip();
-    // After cycling all 3 tips once (≥10s), allow hide if data is ready
     if(_ldTip===0)_ldMinDone=true;
-  },3500);
+  },15000);
 }
 
 function _renderLdTip(instant){
@@ -447,19 +446,13 @@ function _renderLdTip(instant){
   if(de)de.innerHTML=_ldTips.map((_,i)=>'<div style="height:5px;width:'+(i===_ldTip?'22px':'5px')+';border-radius:3px;background:'+(i===_ldTip?'var(--accent)':'var(--border)')+';transition:all .35s ease"></div>').join('');
 }
 
-const _LD_STEPS=["Shartnomalar","Qo'shimcha","To'lovlar","2024 arxiv","Perevodlar"];
 function updateLoader(done,total,label){
   if(!_ldEl)return;
   const pct=Math.round(done/total*100);
-  const b=_ldEl.querySelector('#sl-bar'),p=_ldEl.querySelector('#sl-pct'),l=_ldEl.querySelector('#sl-lbl'),s=_ldEl.querySelector('#sl-steps');
+  const b=_ldEl.querySelector('#sl-bar'),p=_ldEl.querySelector('#sl-pct'),l=_ldEl.querySelector('#sl-lbl');
   if(b)b.style.width=pct+'%';
   if(p)p.textContent=pct+'%';
   if(l)l.textContent=label+(done<total?' yuklanmoqda…':' — tayyor!');
-  if(s)s.innerHTML=_LD_STEPS.slice(0,total).map((nm,i)=>'<div style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;'
-    +'background:'+(i<done?'rgba(16,185,129,.13)':i===done?'rgba(23,70,162,.1)':'var(--bg3)')+';'
-    +'color:'+(i<done?'var(--green)':i===done?'var(--accent)':'var(--text3)')+';'
-    +'border:1px solid '+(i<done?'rgba(16,185,129,.3)':i===done?'rgba(23,70,162,.2)':'var(--border)')+';">'
-    +(i<done?'✓ ':i===done?'⟳ ':'')+nm+'</div>').join('');
 }
 
 function _doHide(){
