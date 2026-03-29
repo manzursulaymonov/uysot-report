@@ -503,6 +503,7 @@ async function loadFromConfig(config){
     if(config.payments&&config.payments!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,"To'lovlar");try{const csv=await fetchCsv(config.payments,'Payments');S.payRows=parseRaw(csv)}catch(e){S.payRows=[]}_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
     if(config['2024']&&config['2024']!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,'2024 arxiv');try{const csv=await fetchCsv(config['2024'],'2024');S.y2024Rows=parseRaw(csv)}catch(e){S.y2024Rows=[]}_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
     if(config.perevod&&config.perevod!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,'Perevodlar');try{const csv=await fetchCsv(config.perevod,'Perevod');S.perevodRows=parseRaw(csv)}catch(e){S.perevodRows=[]}_done++;updateLoader(_done,_tot,'Tayyor!');}
+    if(config.mkt&&config.mkt!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(config.mkt,'Marketing');S.mktRows=parseMkt(csv)}catch(e){S.mktRows=[];}}
     saveCache();clearCache();
     document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');
     document.querySelector('.overlay')?.remove();
