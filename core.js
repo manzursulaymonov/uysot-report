@@ -6,7 +6,7 @@
 let _sc=localStorage.getItem('uysot_cards'); _sc=_sc?JSON.parse(_sc):{mrr:{s:1,arr:1,g:1},nrr:{s:1,n:1,c:1,e:1},cust:{s:1,g:1,c:1},arpa:{s:1,g:1},cac:{s:1,d:1},cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1}};
 // Migrate: backfill any missing card keys for existing users
 const _defs={cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1},tRenew:{s:1},tRegion:{s:1},tMgr:{s:1},tHealth:{s:1},cMrrGr:{s:1},cNetMov:{s:1}};Object.keys(_defs).forEach(k=>{if(!_sc[k])_sc[k]=_defs[k]});
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'prognoz',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,debtDate:new Date(),apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
 
 // === THEME ===
 function initTheme(){
@@ -270,7 +270,8 @@ function calcDebtTable(reportDate){
     }
     const kelQarz=Math.round(kelExp-paid);
     const lastP=calcLastPayments();const lp=lastP[cl.name]||null;
-    if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:Math.round(cl.totalSum),paid:Math.round(paid),lastPay:lp});
+    const payDay=anchor?anchor.st.getDate():null;
+    if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:Math.round(cl.totalSum),paid:Math.round(paid),lastPay:lp,payDay});
   });
   result.sort((a,b)=>b.kelQarz-a.kelQarz);return result;
 }
@@ -300,4 +301,61 @@ function downloadCSV(rows,filename){
   a.download=filename+'_'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);showToast(filename+' yuklandi','success')
+}
+
+// === DOWNLOAD MENU (XLSX / PDF) ===
+const _dlSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+
+function showDlMenu(btn,type){
+  const ex=document.getElementById('_dlMenu');
+  if(ex){ex.remove();if(ex._src===btn)return;}
+  const m=document.createElement('div');m.id='_dlMenu';m._src=btn;
+  m.style.cssText='position:fixed;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:600;overflow:hidden;min-width:150px;animation:modalIn .12s ease';
+  const r=btn.getBoundingClientRect();
+  m.style.top=(r.bottom+4)+'px';m.style.right=(window.innerWidth-r.right)+'px';
+  m.innerHTML=[{l:'📊 XLSX',f:`exportXLSX('${type}')`},{l:'🖨 PDF',f:`exportPDF('${type}')`}]
+    .map(o=>`<div onclick="${o.f};document.getElementById('_dlMenu')?.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;white-space:nowrap" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">${o.l}</div>`).join('');
+  document.body.appendChild(m);
+  setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)&&e.target!==btn){m.remove();document.removeEventListener('click',h)}}),0);
+}
+
+function _dlRows(type){
+  if(type==='contracts'){
+    if(!S.rows.length)return null;
+    const pm=calcPayments();
+    return S.rows.map(r=>{const p=pm[r.raqami]||{};return{'Raqami':r.raqami||'','Mijoz':r.Client||'','Firma':r['Firma nomi']||'','Hudud':r.Hudud||'','Menejer':r.Manager||'','Boshlanish':r.sanasi||'','Tugash':r['amal qilishi']||'','Oylik USD':Math.round(r._mUSD||0),'Jami USD':Math.round(r._sUSD||0),"To'langan":Math.round(p.total||0),'Qarz':Math.round((r._sUSD||0)-(p.total||0)),'Status':r.status||''}});
+  }
+  if(type==='debts'){
+    return calcDebtTable(S.debtDate||new Date()).map(r=>({'Mijoz':r.name,"Sh. qoldig'i":Math.round(r.qoldiq||0),'Oy oxiri qarzi':Math.round(r.oyQarz||0),'Kelishuv qarzi':Math.round(r.kelQarz||0)}));
+  }
+  if(type==='araging'){
+    return calcARaging().flatMap(b=>b.clients.map(c=>({'Mijoz':c.name,'Muddat':b.label,'Oy qarzi':Math.round(c.qarz),'Kelishuv':Math.round(c.kelQarz||0),'Kechikish (kun)':c.days<999?c.days:'',"Oxirgi to'lov":c.lastPayDate})));
+  }
+  if(type==='collection'){
+    return calcCollectionRate().map(c=>({'Mijoz':c.name,'Kutilgan':c.expected,"To'langan":c.paid,'Farq':c.delta,'Undiruv %':c.rate}));
+  }
+  return null;
+}
+
+function exportXLSX(type){
+  const rows=_dlRows(type);
+  if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return;}
+  if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Ma'lumot");
+  const fn={contracts:'Shartnomalar',debts:'Qarzdorlik',araging:'AR_Aging',collection:'Inkasso'}[type]||type;
+  XLSX.writeFile(wb,fn+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast(fn+' XLSX yuklandi','success');
+}
+
+function exportPDF(type){
+  const rows=_dlRows(type);
+  if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return;}
+  const title={contracts:'Shartnomalar',debts:'Qarzdorlik',araging:'AR Aging',collection:'Inkasso'}[type]||type;
+  const hs=Object.keys(rows[0]);
+  const tbl='<table><thead><tr>'+hs.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+hs.map(h=>`<td>${r[h]??''}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",sans-serif;padding:15mm 18mm;color:#1a1917;font-size:9pt}h1{font-size:14pt;font-weight:700;margin-bottom:3px}p{font-size:8.5pt;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:8.5pt}th{background:#f0efeb;font-weight:600;text-align:left;padding:6px 8px;border:1px solid #ccc}td{padding:5px 8px;border:1px solid #ddd}tr:nth-child(even){background:#fafaf8}@media print{@page{size:A4 landscape;margin:12mm}}</style></head><body><h1>${title}</h1><p>UYSOT · ${new Date().toLocaleDateString('uz-UZ')}</p>${tbl}</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){showToast("Popup bloklangan — brauzer sozlamalarini tekshiring",'error');return;}
+  w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),600);
 }

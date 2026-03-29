@@ -179,32 +179,51 @@ ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;disp
 
 // === REPORT MODAL ===
 function showReportModal(){
-const sections=[
-  {k:'summary',l:'Umumiy ko\'rsatgichlar',d:'Metrikalar, MRR trend',def:true},
-  {k:'newc',l:'Yangi mijozlar',d:'Ro\'yxat va tahlil',def:true},
-  {k:'churn',l:'Churn mijozlar',d:'Ro\'yxat va tahlil',def:true},
-  {k:'exp',l:'Kengayish (upsale/downsale)',d:'Ro\'yxat va tahlil',def:true},
-  {k:'mrr',l:'MRR tarkibi',d:'Formula va xulosa',def:true},
-  {k:'debt',l:'Qarzdorlik',d:'To\'liq ro\'yxat',def:true},
-  {k:'mgrs',l:'Menejerlar',d:'Samaradorlik tahlili',def:true}
-];
-if(!S.repSec)S.repSec={summary:true,newc:true,churn:true,exp:true,mrr:true,debt:true,mgrs:true};
-const ai=S.aiProvider||'none';
-const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
-o.innerHTML=`<div class="modal" style="max-width:480px">
-<h2 style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>PDF hisobot</h2>
-<div class="sub">Bo'limlarni tanlang va AI sozlamalarini belgilang</div>
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">Bo'limlar</div>
-<div style="display:flex;flex-direction:column;gap:2px;margin-bottom:16px">
-${sections.map(s=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;cursor:pointer;font-size:12px"><input type="checkbox" ${S.repSec[s.k]?'checked':''} onchange="S.repSec.${s.k}=this.checked" style="accent-color:var(--accent);width:15px;height:15px"><div><b>${s.l}</b><span style="color:var(--text3);margin-left:6px;font-size:10.5px">${s.d}</span></div></label>`).join('')}
+  if(!S.repSec)S.repSec={};
+  ['summary','mrr','newc','churn','cash','debt','mgrs','region','forecast','health'].forEach(k=>{if(S.repSec[k]===undefined)S.repSec[k]=true});
+  if(!S.repFmt)S.repFmt='pdf';
+  const ai=S.aiProvider||'none';
+  const secs=[
+    {k:'summary',l:'Ijroiya xulosasi',d:'KPI, tendensiyalar'},
+    {k:'mrr',l:'MRR tahlili',d:'Waterfall, o\'sish'},
+    {k:'newc',l:'Yangi mijozlar',d:'Kelishlar, menejer'},
+    {k:'churn',l:'Churn & Retention',d:'NRR, GRR'},
+    {k:'cash',l:'Kassa & Inkasso',d:'DSO, undiruv'},
+    {k:'debt',l:'Qarzdorlik (AR)',d:'Aging, qarzdorlar'},
+    {k:'mgrs',l:'Menejerlar',d:'Samaradorlik'},
+    {k:'region',l:'Hududlar',d:'Mintaqaviy MRR'},
+    {k:'forecast',l:'Prognoz',d:'6 oylik bashorat'},
+    {k:'health',l:'Portfolio salomatligi',d:'Health scores'},
+  ];
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+  const iDoc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+  const iSlide='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
+  o.innerHTML=`<div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto;padding:24px">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+  <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+  <h2 style="margin:0;font-size:17px">Hisobot tayyorlash</h2>
 </div>
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">AI tahlil</div>
-<div style="display:flex;flex-direction:column;gap:2px;margin-bottom:12px">
-<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ai" value="none" ${ai==='none'?'checked':''} onchange="S.aiProvider='none';localStorage.setItem('uysot_ai','none')" style="accent-color:var(--accent)">AI'siz (oddiy hisobot)</label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ai" value="claude" ${ai==='claude'?'checked':''} onchange="S.aiProvider='claude';localStorage.setItem('uysot_ai','claude')" style="accent-color:var(--accent)">Claude AI (Anthropic)</label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ai" value="gemini" ${ai==='gemini'?'checked':''} onchange="S.aiProvider='gemini';localStorage.setItem('uysot_ai','gemini')" style="accent-color:var(--accent)">Gemini AI (Google)</label>
+<p style="font-size:12px;color:var(--text3);margin-bottom:20px">CFO/CEO darajasi · investorlar uchun tayyor format</p>
+<div style="font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Format</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+${[{id:'_rfPDF',v:'pdf',ic:iDoc,t:'PDF Hisobot',s:"To'liq moliyaviy hujjat"},
+   {id:'_rfSlide',v:'slide',ic:iSlide,t:'Investor Slides',s:'16:9 taqdimot'}].map(x=>`<div id="${x.id}" onclick="S.repFmt='${x.v}';['_rfPDF','_rfSlide'].forEach(function(i){var el=document.getElementById(i);var act=el.id==this.id;el.style.borderColor=act?'var(--accent)':'var(--border)';el.style.background=act?'rgba(23,70,162,.08)':'var(--bg3)'},this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:${S.repFmt===x.v?'rgba(23,70,162,.08)':'var(--bg3)'};border-radius:10px;cursor:pointer;border:2px solid ${S.repFmt===x.v?'var(--accent)':'var(--border)'};transition:.15s">${x.ic}<div style="font-size:12px;font-weight:700">${x.t}</div><div style="font-size:10px;color:var(--text3)">${x.s}</div></div>`).join('')}
 </div>
-</div></div>`;document.body.appendChild(o)}
+<div style="font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Bo'limlar</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:20px">
+${secs.map(s=>`<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:7px;cursor:pointer"><input type="checkbox" ${S.repSec[s.k]!==false?'checked':''} onchange="S.repSec['${s.k}']=this.checked" style="accent-color:var(--accent);margin-top:1px;width:14px;height:14px;flex-shrink:0"><div><div style="font-size:11.5px;font-weight:600;line-height:1.3">${s.l}</div><div style="font-size:10px;color:var(--text3)">${s.d}</div></div></label>`).join('')}
+</div>
+<div style="font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">AI sharh <span style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text2)">ixtiyoriy</span></div>
+<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:20px">
+${[{v:'none',t:"AI'siz",s:'Tezkor, offlayn ishlaydi'},
+   {v:'gemini',t:'Gemini AI',s:S.geminiKey?'Kalit ulangan ✓':"Kalit yo'q — sozlamalar"},
+   {v:'claude',t:'Claude AI',s:S.apiKey?(S.geminiKey?'Kalit ulangan ✓ (Gemini zaxira)':'Kalit ulangan — tarmoq bloki xavfi'):"Kalit yo'q — sozlamalar"}]
+.map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border-radius:7px;cursor:pointer"><input type="radio" name="_airep" value="${x.v}" ${ai===x.v?'checked':''} onchange="S.aiProvider='${x.v}';localStorage.setItem('uysot_ai','${x.v}')" style="accent-color:var(--accent)"><div><div style="font-size:12px;font-weight:600">${x.t}</div><div style="font-size:10.5px;color:var(--text3)">${x.s}</div></div></label>`).join('')}
+</div>
+<div class="modal-btns" style="margin:0"><button class="btn" onclick="this.closest('.overlay').remove()">Bekor qilish</button><button class="btn btn-primary" onclick="var f=S.repFmt==='slide';this.closest('.overlay').remove();f?generateSlides():generateReport()">Yaratish</button></div>
+</div>`;
+  document.body.appendChild(o);
+}
 function showDashSettingsModal(){
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   const c=S.dashCards||{};
@@ -356,6 +375,106 @@ function renderSetCard(key, label, val, upFn) {
     <span style="font-weight:600">${label}</span>
   </label>`;
 }
+// === SMART LOADING SCREEN ===
+const LOAD_TIPS=[
+  {e:'📊',t:'MRR nima?',b:'Monthly Recurring Revenue — har oylik takrorlanuvchi daromad. Biznesingiz barqarorligini ko\'rsatuvchi asosiy metrika. MRR o\'sgani sari biznes qiymati ham oshib boradi.'},
+  {e:'📉',t:'Churn nima?',b:'Mijozning ketishi yoki to\'lovni to\'xtatishi. Churn rate qanchalik past bo\'lsa, biznes shunchalik barqaror. Yangi mijoz jalb qilishdan ko\'ra mavjudlarni saqlash 5x arzon.'},
+  {e:'💡',t:'NRR nima?',b:'Net Revenue Retention — mavjud mijozlardan daromad saqlanish darajasi. 100%+ bo\'lsa, yangi mijozlarsiz ham o\'sish mumkin. World-class SaaS kompaniyalarda NRR 120%+ bo\'ladi.'},
+  {e:'⏱',t:'DSO nima?',b:'Days Sales Outstanding — hisob-fakturadan to\'lovgacha o\'rtacha kun soni. DSO qanchalik kam bo\'lsa, cash flow shunchalik sog\'lom va biznes operatsiyalari samarali.'},
+  {e:'🔄',t:'Expansion MRR',b:'Mavjud mijozlardan yangi shartnoma yoki xizmat kengaytirish orqali kelgan qo\'shimcha daromad. Bu o\'sishning eng arzon yo\'li — marketing xarajatisiz daromad oshadi.'},
+  {e:'📅',t:'ARR nima?',b:'Annual Recurring Revenue = MRR × 12. Yillik daromadni rejalashtirish, investor bilan muloqot va biznes qiymatini baholashda asosiy ko\'rsatkich sifatida ishlatiladi.'},
+  {e:'🎯',t:'ARPA nima?',b:'Average Revenue Per Account — mijoz boshiga o\'rtacha daromad. ARPA oshishi pricing strategiyasi to\'g\'ri ishlayotganidan dalolat beradi. Segmentlar bo\'yicha tahlil qilib ko\'ring.'},
+  {e:'🏆',t:'LTV nima?',b:'Customer Lifetime Value — mijozning butun hamkorlik davridagi umumiy qiymati. Sog\'lom biznesda LTV/CAC nisbati 3:1 dan yuqori bo\'ladi. LTV kam bo\'lsa — churn muammo bor.'},
+  {e:'⚡',t:'Cash Flow vs MRR',b:'MRR yuqori bo\'lsa ham to\'lovlar kechiksa, cash flow muammo yaratadi. Shartnoma summasi bilan real tushumlar o\'rtasidagi farqni doim kuzatib boring — bu DSO ni yaxshilaydi.'},
+  {e:'🧮',t:'Gross Margin',b:'Daromaddan to\'g\'ridan-to\'g\'ri xarajatlar chegirilgandan qolgan ulush. SaaS va xizmat biznesida 70-80% gross margin norma hisoblanadi. Bundan past bo\'lsa xarajatlarni qayta ko\'ring.'},
+  {e:'📌',t:'Payback Period',b:'Yangi mijoz jalb qilish xarajatini (CAC) qoplash uchun ketadigan vaqt. 12 oydan kam bo\'lsa biznes modeli samarali. 24 oydan oshsa — pricing yoki CAC ni optimallashtirish kerak.'},
+  {e:'🔐',t:'Resurrection MRR',b:'Oldin to\'xtatgan, endi qaytgan mijozdan tushgan daromad. Resurrected mijozlar ko\'pincha yangilardan sadiqroq bo\'ladi — chunki ular muammoni bilib qaytdi va qadrini biladi.'},
+  {e:'📈',t:'Cohort tahlil',b:'Bir vaqtda boshlagan mijozlar guruhining vaqt o\'tishi bilan rivojlanishini kuzatish. Cohort tahlili qaysi oy/davr mijozlari eng uzoq turganini aniq ko\'rsatib beradi.'},
+  {e:'💼',t:'B2B xususiyatlari',b:'B2B biznesda mijoz soni kam, lekin har biri katta. Shu sababli bitta mijoz yo\'qotilishi MRR ga katta ta\'sir qiladi. Top 10 mijozga alohida e\'tibor va qayta-qayta muloqot muhim.'},
+];
+let _ldEl=null,_ldTimer=null,_ldTip=0,_ldTips=[],_ldReady=false,_ldMinDone=false;
+
+function showSmartLoader(){
+  if(_ldEl){_ldEl.remove();_ldEl=null;}
+  _ldReady=false;_ldMinDone=false;
+  // Pick 3 random non-repeating tips
+  const pool=[...LOAD_TIPS].sort(()=>Math.random()-.5).slice(0,3);
+  _ldTips=pool;_ldTip=0;
+  const el=document.createElement('div');el.id='smart-loader';
+  el.style.cssText='position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:0';
+  el.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">'
+    +'<div style="width:36px;height:36px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px">U</div>'
+    +'<div style="font-weight:700;font-size:17px;color:var(--text)">UYSOT <span style="color:var(--text3);font-weight:400;font-size:13px">CRM</span></div>'
+    +'</div>'
+    +'<div style="width:min(460px,92vw)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'
+    +'<div id="sl-lbl" style="font-size:12px;color:var(--text3)">Tayyorlanmoqda…</div>'
+    +'<div id="sl-pct" style="font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)">0%</div>'
+    +'</div>'
+    +'<div style="height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px">'
+    +'<div id="sl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#20c997);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)"></div>'
+    +'</div>'
+    +'<div id="sl-steps" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px"></div>'
+    +'</div>'
+    +'<div id="sl-tip" style="width:min(460px,92vw);background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px 24px;min-height:100px;transition:opacity .3s ease"></div>'
+    +'<div id="sl-dots" style="display:flex;gap:5px;margin-top:14px"></div>';
+  document.body.appendChild(el);_ldEl=el;
+  _renderLdTip(true);
+  // Rotate through the 3 tips: each shown for ~3.5s → 3 tips = ~10.5s total
+  _ldTimer=setInterval(()=>{
+    _ldTip=(_ldTip+1)%_ldTips.length;
+    _renderLdTip();
+    // After cycling all 3 tips once (≥10s), allow hide if data is ready
+    if(_ldTip===0)_ldMinDone=true;
+  },3500);
+}
+
+function _renderLdTip(instant){
+  if(!_ldEl||!_ldTips.length)return;
+  const tip=_ldTips[_ldTip];
+  const te=_ldEl.querySelector('#sl-tip'),de=_ldEl.querySelector('#sl-dots');
+  if(!te)return;
+  if(!instant)te.style.opacity='0';
+  setTimeout(()=>{
+    te.innerHTML='<div style="display:flex;align-items:flex-start;gap:16px">'
+      +'<div style="font-size:30px;line-height:1;flex-shrink:0;margin-top:2px">'+tip.e+'</div>'
+      +'<div><div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:7px">'+tip.t+'</div>'
+      +'<div style="font-size:13px;color:var(--text2);line-height:1.65">'+tip.b+'</div></div></div>';
+    te.style.opacity='1';
+    // If data finished loading while tip was showing, hide now
+    if(_ldReady&&_ldMinDone)_doHide();
+  },instant?0:200);
+  if(de)de.innerHTML=_ldTips.map((_,i)=>'<div style="height:5px;width:'+(i===_ldTip?'22px':'5px')+';border-radius:3px;background:'+(i===_ldTip?'var(--accent)':'var(--border)')+';transition:all .35s ease"></div>').join('');
+}
+
+const _LD_STEPS=["Shartnomalar","Qo'shimcha","To'lovlar","2024 arxiv","Perevodlar"];
+function updateLoader(done,total,label){
+  if(!_ldEl)return;
+  const pct=Math.round(done/total*100);
+  const b=_ldEl.querySelector('#sl-bar'),p=_ldEl.querySelector('#sl-pct'),l=_ldEl.querySelector('#sl-lbl'),s=_ldEl.querySelector('#sl-steps');
+  if(b)b.style.width=pct+'%';
+  if(p)p.textContent=pct+'%';
+  if(l)l.textContent=label+(done<total?' yuklanmoqda…':' — tayyor!');
+  if(s)s.innerHTML=_LD_STEPS.slice(0,total).map((nm,i)=>'<div style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;'
+    +'background:'+(i<done?'rgba(16,185,129,.13)':i===done?'rgba(23,70,162,.1)':'var(--bg3)')+';'
+    +'color:'+(i<done?'var(--green)':i===done?'var(--accent)':'var(--text3)')+';'
+    +'border:1px solid '+(i<done?'rgba(16,185,129,.3)':i===done?'rgba(23,70,162,.2)':'var(--border)')+';">'
+    +(i<done?'✓ ':i===done?'⟳ ':'')+nm+'</div>').join('');
+}
+
+function _doHide(){
+  if(_ldTimer){clearInterval(_ldTimer);_ldTimer=null;}
+  if(_ldEl){const el=_ldEl;el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>el.remove(),420);_ldEl=null;}
+}
+
+function hideSmartLoader(){
+  // Mark data as ready; actual hide waits for minimum 3 tip cycles (≥10s)
+  _ldReady=true;
+  if(_ldMinDone)_doHide();
+  // Safety: force hide after 30s regardless
+  setTimeout(()=>{if(_ldEl)_doHide();},30000);
+}
+
 // === DATA LOADING ===
 async function fetchCsv(url,label){
   console.log('['+label+'] Yuklanmoqda: '+url);
@@ -369,20 +488,30 @@ async function fetchCsv(url,label){
 }
 
 async function loadFromConfig(config){
-  document.getElementById('root').innerHTML='<div class="loading"><div class="spin"></div><div style="color:var(--text2);font-size:13px">Ma\'lumotlar yuklanmoqda...</div></div>';
+  // Count active sources for progress tracking
+  const _steps=[];
+  if(config.shartnomalar)_steps.push('Shartnomalar');
+  if(config.qoshimcha)_steps.push("Qo'shimcha");
+  if(config.payments&&config.payments!=='HAVOLA_KIRITING')_steps.push("To'lovlar");
+  if(config['2024']&&config['2024']!=='HAVOLA_KIRITING')_steps.push('2024 arxiv');
+  if(config.perevod&&config.perevod!=='HAVOLA_KIRITING')_steps.push('Perevodlar');
+  const _tot=_steps.length||1;let _done=0;
+  showSmartLoader();updateLoader(0,_tot,_steps[0]||'Ma\'lumotlar');
   try{
-    if(config.shartnomalar){const csv=await fetchCsv(config.shartnomalar,'Shartnomalar');S.rows=parse(csv)}
-    if(config.qoshimcha){try{const csv=await fetchCsv(config.qoshimcha,'Qo\'shimcha');S.qRows=parse(csv)}catch(e){S.qRows=[]}}
-    if(config.payments&&config.payments!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(config.payments,'Payments');S.payRows=parseRaw(csv)}catch(e){S.payRows=[]}}
-    if(config['2024']&&config['2024']!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(config['2024'],'2024');S.y2024Rows=parseRaw(csv)}catch(e){S.y2024Rows=[]}}
-    if(config.perevod&&config.perevod!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(config.perevod,'Perevod');S.perevodRows=parseRaw(csv)}catch(e){S.perevodRows=[]}}
+    if(config.shartnomalar){updateLoader(_done,_tot,'Shartnomalar');const csv=await fetchCsv(config.shartnomalar,'Shartnomalar');S.rows=parse(csv);_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
+    if(config.qoshimcha){updateLoader(_done,_tot,"Qo'shimcha");try{const csv=await fetchCsv(config.qoshimcha,"Qo'shimcha");S.qRows=parse(csv)}catch(e){S.qRows=[]}_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
+    if(config.payments&&config.payments!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,"To'lovlar");try{const csv=await fetchCsv(config.payments,'Payments');S.payRows=parseRaw(csv)}catch(e){S.payRows=[]}_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
+    if(config['2024']&&config['2024']!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,'2024 arxiv');try{const csv=await fetchCsv(config['2024'],'2024');S.y2024Rows=parseRaw(csv)}catch(e){S.y2024Rows=[]}_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
+    if(config.perevod&&config.perevod!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,'Perevodlar');try{const csv=await fetchCsv(config.perevod,'Perevod');S.perevodRows=parseRaw(csv)}catch(e){S.perevodRows=[]}_done++;updateLoader(_done,_tot,'Tayyor!');}
     saveCache();clearCache();
     document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');
     document.querySelector('.overlay')?.remove();
     showToast(S.rows.length+' ta shartnoma yuklandi','success');
-    render()
+    hideSmartLoader();
+    render();
   }catch(e){
     console.error('Xatolik:',e);
+    hideSmartLoader();
     showToast('Yuklanmadi: '+e.message,'error');
     document.getElementById('root').innerHTML=errPage('Yuklanmadi',e.message.replace(/\n/g,'<br>')+'<br><br>CSV fayllarni qo\'lda yuklang (Sozlamalar → CSV tugmalari)')
   }
@@ -419,33 +548,355 @@ showConfig();render()
 
 function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark" style="width:52px;height:52px;font-size:20px;border-radius:12px">U</div><h2 style="font-size:20px;font-weight:700;margin-top:4px">UYSOT Shartnomalar</h2><p style="color:var(--text2);text-align:center;max-width:400px;font-size:13px;line-height:1.7">Google Sheets ma'lumotlarini <b>uysot_config.json</b> file orqali ulang.<br>JSON ichida shartnomalar va qo'shimcha CSV havolalari bo'ladi.</p><div style="display:flex;gap:10px;margin-top:16px"><label class="btn btn-primary" style="padding:10px 22px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label><button class="btn" onclick="showConfig()" style="padding:10px 22px">Boshqa usullar</button></div></div>`}
 
-// === REPORT GENERATION (stub — preserved from original) ===
+// === REPORT & SLIDES ENGINE ===
+
+function _buildReportData(){
+  const dr=dashRange();
+  const to=S.dashTo||new Date();
+  const nm=dr.netMovement;
+  const curMRR=dr.totals[dr.totals.length-1]||0;
+  const startMRR=dr.baseMRR||0;
+  const arr=curMRR*12;
+  const mrrGrowthPct=startMRR?Math.round((curMRR-startMRR)/startMRR*100):0;
+  const nrr=startMRR>0?Math.round((startMRR-nm.churnMRR-nm.conMRR+nm.expMRR)/startMRR*100):0;
+  const curClients=dr.cpmArr[dr.cpmArr.length-1]||0;
+  const arpa=curClients>0?Math.round(curMRR/curClients):0;
+  const periodLabel=dr.labels.length>1?dr.labels[0]+' \u2013 '+dr.labels[dr.labels.length-1]:dr.labels[0]||'';
+  const dt=calcDebtTable(to);
+  const mb=calcManagerBoard();
+  const rp=calcRegionalPerf();
+  const ch=calcClientHealth();
+  const ar=calcARaging();
+  const fc=calcMrrForecast();
+  const cr=calcCollectionRate();
+  const totalDebt=dt.reduce((s,r)=>s+Math.max(0,r.oyQarz),0);
+  const healthy=ch.filter(c=>c.status==='healthy').length;
+  const warning=ch.filter(c=>c.status==='warning').length;
+  const critical=ch.filter(c=>c.status==='critical').length;
+  return{dr,dt,mb,rp,ch,ar,fc,cr,nm,periodLabel,to,curMRR,startMRR,arr,mrrGrowthPct,nrr,curClients,arpa,totalDebt,healthy,warning,critical};
+}
+
+async function _callGemini(prompt){
+  if(!S.geminiKey)throw new Error("Gemini kaliti yo'q");
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='+S.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.6,maxOutputTokens:2000}})});
+  const d=await r.json();
+  if(d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts[0].text)return d.candidates[0].content.parts[0].text;
+  throw new Error(d.error&&d.error.message||'Gemini xatosi');
+}
+
+async function _callAI(prompt){
+  if(S.aiProvider==='gemini'){
+    return _callGemini(prompt);
+  }
+  if(S.aiProvider==='claude'&&S.apiKey){
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+      clearTimeout(tid);
+      const d=await r.json();
+      if(d.content&&d.content[0]&&d.content[0].text)return d.content[0].text;
+      throw new Error(d.error&&d.error.message||'Claude xatosi');
+    }catch(e){
+      // Claude API brauzerdan bloklanishi mumkin — Gemini'ga o'tish
+      if(S.geminiKey){
+        showToast('Claude API blok — Gemini\'ga o\'tildi','info');
+        return _callGemini(prompt);
+      }
+      if(e.name==='AbortError')throw new Error('Claude API vaqt tugadi (tarmoq bloki). Gemini ishlatish tavsiya etiladi.');
+      throw new Error('Claude API ulanmadi: '+e.message+'. Gemini ishlatish tavsiya etiladi.');
+    }
+  }
+  throw new Error("AI kalit yo'q");
+}
+
 async function generateReport(){
   showToast('Hisobot shakllantirilmoqda...','info');
-  // Full report generation logic is preserved — calling from original implementation
-  // This is a simplified version that generates the HTML report
-  const dr=dashRange();const {labels,totals,cpmArr,newClients,churnClients,expClients,baseMRR,baseClients}=dr;
-  const curMRR=totals[totals.length-1]||0,startMRR=baseMRR||0;
-  const mrrDelta=curMRR-startMRR,mrrPct=startMRR?Math.round(mrrDelta/startMRR*100):0;
-  const curClients=cpmArr[cpmArr.length-1]||0,startClients=baseClients||0,clientDelta=curClients-startClients;
-  const totalNew=newClients.length,totalChurn=churnClients.length;
-  const mrrFromNew=newClients.reduce((s,c)=>s+c.mrr,0),mrrFromChurn=churnClients.reduce((s,c)=>s+c.mrr,0);
-  const mrrExp=expClients.reduce((s,c)=>s+c.delta,0);
-  const periodLabel=labels.length>1?labels[0]+' \u2013 '+labels[labels.length-1]:labels[0]||'';
-  const fmtNow=fmtD(new Date());
-  const fmtK=v=>{const a=Math.abs(v);if(a>=1000){const k=(v/1000).toFixed(1);return k.endsWith('.0')?Math.round(v/1000)+'k':k+'k'}return fmt(v)};
-  let body='<h1>UYSOT \u2014 MRR hisoboti</h1><div class="sub">Davr: <b>'+periodLabel+'</b> \xb7 '+fmtNow+'</div>';
-  body+='<div class="hero"><div class="cd"><div class="cd-l">Aktiv mijozlar</div><div class="cd-v">'+curClients+'</div><div class="cd-f"><span class="'+(clientDelta>=0?'up':'dn')+'">'+(clientDelta>0?'+':'')+clientDelta+'</span></div></div>';
-  body+='<div class="cd"><div class="cd-l">Joriy MRR</div><div class="cd-v">$'+fmtK(curMRR)+'</div><div class="cd-f"><span class="'+(mrrDelta>=0?'up':'dn')+'">'+(mrrDelta>0?'+':'')+'$'+fmtK(mrrDelta)+'</span></div></div>';
-  body+='<div class="cd"><div class="cd-l">Yangi / Churn</div><div class="cd-v"><span class="up">+'+totalNew+'</span> / <span class="dn">-'+totalChurn+'</span></div></div>';
-  body+='<div class="cd"><div class="cd-l">MRR o\'zgarish</div><div class="cd-v">'+(mrrDelta>0?'+':'')+'$'+fmtK(mrrDelta)+'</div></div></div>';
-  body+='<h2>Ko\'rsatgichlar</h2><p>MRR $'+fmt(startMRR)+' dan $'+fmt(curMRR)+' ga '+(mrrDelta>=0?"o'sdi":"kamaydi")+' ('+(mrrPct>0?'+':'')+mrrPct+'%). Yangi: +$'+fmt(mrrFromNew)+', Churn: -$'+fmt(mrrFromChurn)+', Kengayish: '+(mrrExp>0?'+':'')+'$'+fmt(mrrExp)+'.</p>';
-  const css='*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",system-ui,sans-serif;color:#1a1917;font-size:10pt;line-height:1.6;padding:0}@media print{@page{size:A4;margin:20mm 18mm}}h1{font-size:22pt;font-weight:700;margin-bottom:4px}h2{font-size:11pt;font-weight:600;margin:18px 0 6px;padding-bottom:4px;border-bottom:2px solid #ddd}.sub{color:#555;font-size:9.5pt;margin-bottom:16px;border-bottom:1px solid #eee;padding-bottom:10px}.hero{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0 24px}.hero .cd{border:2px solid #d0cfc8;border-radius:10px;padding:20px 24px;text-align:center}.cd-l{font-size:9pt;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}.cd-v{font-size:28pt;font-weight:800;margin:6px 0}.cd-f{font-size:10pt;color:#555;margin-top:4px}.up{color:#117a52}.dn{color:#c42b1c}p{margin:6px 0;text-align:justify;font-size:10pt}';
-  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>UYSOT Hisobot \u2014 '+periodLabel+'</title><style>'+css+'</style></head><body>'+body+'</body></html>';
-  const blob=new Blob([html],{type:'text/html'});const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='UYSOT_Hisobot_'+periodLabel.replace(/[^a-zA-Z0-9]/g,'_')+'.html';
-  a.click();URL.revokeObjectURL(url);
-  showToast('Hisobot yuklandi!','success');
+  const sec=S.repSec||{};
+  const rd=_buildReportData();
+  const{dr,dt,mb,rp,ch,ar,fc,cr,nm,periodLabel,curMRR,startMRR,arr,mrrGrowthPct,nrr,curClients,arpa,totalDebt,healthy,warning,critical}=rd;
+
+  let aiText='';
+  if(S.aiProvider!=='none'&&(S.apiKey||S.geminiKey)){
+    try{
+      showToast('AI tahlil yozilmoqda...','info');
+      const p='Siz moliyaviy tahlilchisiz. Quyidagi ko\'rsatkichlar asosida O\'zbek tilida CFO/CEO uchun ijroiya xulosasi yozing (3-4 paragraf, 250-300 so\'z). Faqat oddiy matn, hech qanday belgi yo\'q:\n\nDAVR: '+periodLabel+'\nJoriy MRR: $'+fmt(curMRR)+' ('+( mrrGrowthPct>0?'+':'')+mrrGrowthPct+'%)\nARR: $'+fmt(arr)+'\nAktiv mijozlar: '+curClients+' (boshlang\'ich: '+dr.baseClients+')\nNRR: '+nrr+'%\nARPA: $'+arpa+'\nYangi MRR: +$'+fmt(nm.newMRR)+' ('+dr.newClients.length+' ta mijoz)\nChurn MRR: -$'+fmt(nm.churnMRR)+' ('+dr.churnClients.length+' ta)\nKengayish: +$'+fmt(nm.expMRR)+'\nQisqarish: -$'+fmt(nm.conMRR)+'\nNetto: '+(nm.net>=0?'+':'')+fmt(nm.net)+'\nQuick Ratio: '+dr.quickRatio.toFixed(2)+'x\nGRR: '+dr.grr+'%\nDSO: '+Math.round(dr.dso)+' kun\nLTV: $'+fmt(dr.ltv)+'\nTop-5 konsentratsiya: '+Math.round(dr.top5Conc)+'%\nJami oy qarzi: $'+fmt(totalDebt)+'\nKassa: $'+fmt(dr.cashIn)+'\nSog\'lom/Xavf/Kritik: '+healthy+'/'+warning+'/'+critical+'\n\nYutuqlar, xavflar va tavsiyalar bo\'lsin.';
+      aiText=await _callAI(p);
+    }catch(e){showToast('AI: '+e.message,'error')}
+  }
+
+  // CSS
+  const css='*{margin:0;padding:0;box-sizing:border-box}html,body{font-family:"Segoe UI",system-ui,Arial,sans-serif;color:#1a1917;background:#fff;font-size:9.5pt;line-height:1.5}@page{size:A4 portrait;margin:16mm 18mm 20mm}@media print{.pb{page-break-before:always}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.noprint{display:none!important}}.cover{min-height:100vh;background:linear-gradient(145deg,#0f2a6b 0%,#1746a2 55%,#0e5a7b 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px}.logo{width:54px;height:54px;background:rgba(255,255,255,.18);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24pt;font-weight:900;margin:0 auto 24px;border:2px solid rgba(255,255,255,.3)}.badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:5px 14px;font-size:9pt;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:22px;display:inline-block}.ct{font-size:26pt;font-weight:800;margin-bottom:8px;line-height:1.1}.cs{font-size:14pt;opacity:.85;margin-bottom:30px}.cm{font-size:10pt;opacity:.7;line-height:1.9}.section{margin-bottom:6mm}.sh{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:8px;border-bottom:2.5px solid #1746a2}.sn{width:26px;height:26px;background:#1746a2;color:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11pt;font-weight:800;flex-shrink:0}.st{font-size:13pt;font-weight:700}.kg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.kc{border:1px solid #e0dedd;border-radius:8px;padding:10px 12px;background:#fafaf8}.kl{font-size:7.5pt;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kv{font-size:15pt;font-weight:800;font-family:"Courier New",monospace;color:#1a1917;line-height:1.1}.kd{font-size:8pt;margin-top:3px}.up{color:#117a52}.dn{color:#c42b1c}.neu{color:#666}table{width:100%;border-collapse:collapse;font-size:8.5pt;margin-bottom:10px}thead th{background:#1746a2;color:#fff;font-weight:600;padding:6px 8px;text-align:left;font-size:8pt}tbody tr:nth-child(even){background:#f5f4f2}td{padding:5px 8px;border-bottom:1px solid #e8e6e3;vertical-align:middle}.tr{text-align:right}.mono{font-family:"Courier New",monospace}.fw{font-weight:700}h3{font-size:10.5pt;font-weight:700;color:#333;margin:12px 0 6px}p{font-size:9pt;color:#444;line-height:1.55;margin:6px 0}small{font-size:8pt;color:#888}.formula{background:#f0f7ff;border-left:3px solid #1746a2;padding:7px 10px;font-family:"Courier New",monospace;font-size:8pt;color:#1a4080;margin:8px 0;border-radius:0 4px 4px 0}.ai-block{background:#f0f7ff;border:1px solid #bbd4f5;border-radius:8px;padding:12px 14px;margin:10px 0}.ai-lbl{font-size:8pt;font-weight:700;color:#1746a2;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}.ai-text{font-size:9pt;color:#1a1917;line-height:1.6;white-space:pre-wrap}.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}.box{background:#fafaf8;border:1px solid #e0dedd;border-radius:7px;padding:10px 12px}.bl{font-size:8.5pt;font-weight:700;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}';
+
+  // Helpers
+  const xe=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+  const kpi=function(l,v,d,cls){return '<div class="kc"><div class="kl">'+xe(l)+'</div><div class="kv">'+xe(v)+'</div>'+(d?'<div class="kd '+(cls||'neu')+'">'+d+'</div>':'')+'</div>'};
+  const th=function(hs){return '<thead><tr>'+hs.map(function(h){return'<th>'+xe(h)+'</th>'}).join('')+'</tr></thead>'};
+  const tr=function(cells){return '<tr>'+cells.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>'};
+
+  let body='';
+
+  // Cover
+  body+='<div class="cover"><div class="logo">U</div><div class="badge">Maxfiy \xb7 Investorlar uchun</div><div class="ct">UYSOT Shartnomalar</div><div class="cs">Moliyaviy Faoliyat Hisoboti</div><div class="cm"><b>'+xe(periodLabel)+'</b><br>Tayyorlangan: '+fmtD(new Date())+'<br>'+S.rows.length+' ta shartnoma \xb7 '+curClients+' ta aktiv mijoz</div></div>';
+
+  // S1: Executive Summary
+  if(sec.summary!==false){
+    body+='<div class="section pb"><div class="sh"><div class="sn">1</div><div class="st">Ijroiya Xulosasi</div></div>';
+    body+='<div class="kg">'
+      +kpi('Joriy MRR','$'+fk(curMRR),(mrrGrowthPct>=0?'+':'')+mrrGrowthPct+'% o\'zgarish',mrrGrowthPct>=0?'up':'dn')
+      +kpi('ARR (yillik)','$'+fk(arr),'MRR \xd7 12','neu')
+      +kpi('Aktiv mijozlar',''+curClients,(curClients-dr.baseClients>=0?'+':'')+(curClients-dr.baseClients)+' netto',curClients>=dr.baseClients?'up':'dn')
+      +kpi('NRR',''+nrr+'%','Net Revenue Retention',nrr>=100?'up':nrr>=80?'neu':'dn')
+      +kpi('Quick Ratio',dr.quickRatio.toFixed(2)+'x',dr.quickRatio>=1?'Sog\'lom o\'sish':'Xavfli zona',dr.quickRatio>=1?'up':'dn')
+      +kpi('GRR',''+dr.grr+'%','Gross Retention',dr.grr>=85?'up':dr.grr>=70?'neu':'dn')
+      +kpi('ARPA','$'+fmt(arpa),'Har bir mijoz/oy MRR','neu')
+      +kpi('DSO',Math.round(dr.dso)+' kun','Debitorlik davri',dr.dso<=45?'up':dr.dso<=90?'neu':'dn')
+      +'</div>';
+    body+='<div class="row2">'
+      +'<div class="box"><div class="bl">MRR harakati (davr)</div><table>'+th(['Komponent','Summa'])+'<tbody>'
+      +tr(['Boshlang\'ich MRR','<span class="mono fw">$'+fmt(startMRR)+'</span>'])
+      +tr(['+ Yangi MRR','<span class="up mono">+$'+fmt(nm.newMRR)+'</span>'])
+      +tr(['+ Kengayish','<span class="up mono">+$'+fmt(nm.expMRR)+'</span>'])
+      +tr(['\u2212 Qisqarish','<span class="dn mono">\u2212$'+fmt(nm.conMRR)+'</span>'])
+      +tr(['\u2212 Churn MRR','<span class="dn mono">\u2212$'+fmt(nm.churnMRR)+'</span>'])
+      +tr(['<b>Yopilish MRR</b>','<span class="mono fw">$'+fmt(curMRR)+'</span>'])
+      +'</tbody></table></div>'
+      +'<div class="box"><div class="bl">Mijozlar harakati</div><table>'+th(['Holat','Soni','MRR'])+'<tbody>'
+      +tr(['Yangi','<span class="up">'+dr.newClients.length+'</span>','<span class="up mono">+$'+fmt(nm.newMRR)+'</span>'])
+      +tr(['Churn','<span class="dn">'+dr.churnClients.length+'</span>','<span class="dn mono">\u2212$'+fmt(nm.churnMRR)+'</span>'])
+      +tr(['Kengayish',''+dr.expClients.filter(function(x){return x.delta>0}).length,'<span class="up mono">+$'+fmt(nm.expMRR)+'</span>'])
+      +tr(['Qisqarish',''+dr.expClients.filter(function(x){return x.delta<0}).length,'<span class="dn mono">\u2212$'+fmt(nm.conMRR)+'</span>'])
+      +tr(['<b>Netto</b>','<b>'+(nm.net>=0?'+':'')+(curClients-dr.baseClients)+'</b>','<b class="'+(nm.net>=0?'up':'dn')+' mono">'+(nm.net>=0?'+':'\u2212')+'$'+fmt(Math.abs(nm.net))+'</b>'])
+      +'</tbody></table></div></div>';
+    if(aiText)body+='<div class="ai-block"><div class="ai-lbl">AI Ijroiya Tahlili</div><div class="ai-text">'+xe(aiText)+'</div></div>';
+    body+='</div>';
+  }
+
+  // S2: MRR Analysis
+  if(sec.mrr!==false){
+    body+='<div class="section pb"><div class="sh"><div class="sn">2</div><div class="st">MRR Tahlili \u2014 Daromad Tarkibi</div></div>';
+    body+='<h3>MRR Waterfall</h3>';
+    body+='<div class="formula">NRR = (Opening MRR \u2212 Churn \u2212 Qisqarish + Kengayish) / Opening MRR \xd7 100 = '+nrr+'%</div>';
+    body+='<div class="formula">GRR = (Opening MRR \u2212 Churn \u2212 Qisqarish) / Opening MRR \xd7 100 = '+dr.grr+'%</div>';
+    body+='<div class="formula">Quick Ratio = (Yangi MRR + Kengayish) / (Churn + Qisqarish) = '+dr.quickRatio.toFixed(2)+'x</div>';
+    var maxW=Math.max(startMRR,curMRR,nm.newMRR,nm.expMRR,nm.churnMRR,nm.conMRR)||1;
+    var wfb=function(v,c){return'<span style="display:inline-block;width:'+Math.max(4,Math.round(Math.abs(v)/maxW*160))+'px;height:11px;background:'+c+';border-radius:2px;vertical-align:middle"></span>'};
+    body+='<table>'+th(['Komponent','Vizual','Miqdor','Izoh'])+'<tbody>'
+      +tr(['<b>Boshlang\'ich MRR</b>',wfb(startMRR,'#1746a2'),'<span class="mono fw">$'+fmt(startMRR)+'</span>','Davr boshidagi MRR'])
+      +tr(['+ Yangi MRR',wfb(nm.newMRR,'#117a52'),'<span class="up mono">+$'+fmt(nm.newMRR)+'</span>',dr.newClients.length+' ta yangi mijoz'])
+      +tr(['+ Kengayish',wfb(nm.expMRR,'#10b981'),'<span class="up mono">+$'+fmt(nm.expMRR)+'</span>','Mavjud mijozlar upsell'])
+      +tr(['\u2212 Qisqarish',wfb(nm.conMRR,'#f59e0b'),'<span class="dn mono">\u2212$'+fmt(nm.conMRR)+'</span>','Mavjud mijozlar downsell'])
+      +tr(['\u2212 Churn MRR',wfb(nm.churnMRR,'#c42b1c'),'<span class="dn mono">\u2212$'+fmt(nm.churnMRR)+'</span>',dr.churnClients.length+' ta ketgan mijoz'])
+      +tr(['<b>Yopilish MRR</b>',wfb(curMRR,'#1746a2'),'<span class="mono fw">$'+fmt(curMRR)+'</span>','Davr oxiridagi MRR'])
+      +'</tbody></table>';
+    if(dr.labels.length>1){
+      body+='<h3>MRR Trendi</h3><table>'+th(['Oy','MRR','Mijozlar','O\'sish %'])+'<tbody>';
+      dr.labels.forEach(function(l,i){var gp=dr.mrrGrowthPcts[i];body+=tr([xe(l),'<span class="mono">$'+fmt(dr.totals[i]||0)+'</span>',''+( dr.cpmArr[i]||0),'<span class="'+(gp>=0?'up':'dn')+'">'+(gp>=0?'+':'')+gp+'%</span>'])});
+      body+='</tbody></table>';
+    }
+    body+='<p><small>ARR (yillik daromad mo\'ljali) = Joriy MRR \xd7 12 = <b>$'+fmt(arr)+'</b>. Investorlar va kreditchilar uchun asosiy o\'lchov.</small></p></div>';
+  }
+
+  // S3: New Clients
+  if(sec.newc!==false&&dr.newClients.length){
+    body+='<div class="section pb"><div class="sh"><div class="sn">3</div><div class="st">Yangi Mijozlar \u2014 Yangi Biznes</div></div>';
+    body+='<div class="kg">'
+      +kpi('Yangi mijozlar',''+dr.newClients.length,'Davr ichida','up')
+      +kpi('Yangi MRR','$'+fmt(nm.newMRR),'Qo\'shilgan daromad','up')
+      +kpi('O\'rtacha yangi ARPA','$'+fmt(dr.newClients.length?Math.round(nm.newMRR/dr.newClients.length):0),'Yangi ARPA','neu')
+      +kpi('CAC',dr.cac>0?'$'+fmt(Math.round(dr.cac)):'Ma\'lumot yo\'q',dr.ltvCac>0?'LTV:CAC '+dr.ltvCac.toFixed(1)+'x':'','neu')
+      +'</div>';
+    body+='<table>'+th(['Mijoz','Hudud','Menejer','MRR','Muddat','Sana'])+'<tbody>';
+    dr.newClients.slice().sort(function(a,b){return b.mrr-a.mrr}).forEach(function(c){body+=tr([xe(c.name),xe(c.hudud||'\u2014'),xe(c.mgr||'\u2014'),'<span class="mono up">$'+fmt(c.mrr)+'</span>',c.dur?c.dur+' oy':'\u2014',c.date?fmtD(c.date):'\u2014'])});
+    body+='</tbody></table></div>';
+  }
+
+  // S4: Churn & Retention
+  if(sec.churn!==false){
+    var lcPct=Math.round(dr.logoChurnRate*10)/10, rcPct=Math.round(dr.revenueChurnRate*10)/10;
+    body+='<div class="section pb"><div class="sh"><div class="sn">4</div><div class="st">Churn & Retention Tahlili</div></div>';
+    body+='<div class="kg">'
+      +kpi('Churn soni',''+dr.churnClients.length,'Ketgan mijozlar','dn')
+      +kpi('Churn MRR','$'+fmt(nm.churnMRR),'Yo\'qotilgan daromad','dn')
+      +kpi('Logo Churn',lcPct+'%','Mijoz soni bo\'yicha',lcPct<=5?'up':lcPct<=15?'neu':'dn')
+      +kpi('Revenue Churn',rcPct+'%','MRR bo\'yicha',rcPct<=5?'up':rcPct<=15?'neu':'dn')
+      +'</div>';
+    body+='<div class="row2"><div class="box"><div class="bl">Retention formulalari</div>'
+      +'<p><b>NRR</b> = '+nrr+'%<br><small>($'+fmt(startMRR)+' \u2212 $'+fmt(nm.churnMRR)+' \u2212 $'+fmt(nm.conMRR)+' + $'+fmt(nm.expMRR)+') / $'+fmt(startMRR)+' \xd7 100</small></p>'
+      +'<p style="margin-top:8px"><b>GRR</b> = '+dr.grr+'%<br><small>($'+fmt(startMRR)+' \u2212 $'+fmt(nm.churnMRR)+' \u2212 $'+fmt(nm.conMRR)+') / $'+fmt(startMRR)+' \xd7 100</small></p></div>'
+      +'<div class="box"><div class="bl">Jahon standarti mezonlari</div>'
+      +'<p>NRR \u2265 100% \u2014 <span class="up">Mukammal</span> (kengayish churni qoplaydi)</p>'
+      +'<p>GRR \u2265 85% \u2014 <span class="up">Sog\'lom</span> (B2B SaaS standarti)</p>'
+      +'<p>Logo Churn \u2264 5%/davr \u2014 <span class="up">Barqaror</span></p>'
+      +'<p>Quick Ratio \u2265 4x \u2014 <span class="up">Yuqori o\'sish</span></p></div></div>';
+    if(dr.churnClients.length){
+      body+='<h3>Churn bo\'lgan mijozlar</h3><table>'+th(['Mijoz','Sana','Menejer','MRR yo\'qotish'])+'<tbody>';
+      dr.churnClients.slice().sort(function(a,b){return b.mrr-a.mrr}).forEach(function(c){body+=tr([xe(c.name),c.date?fmtD(c.date):'\u2014',xe(c.mgr||'\u2014'),'<span class="dn mono">\u2212$'+fmt(c.mrr)+'</span>'])});
+      body+='</tbody></table>';
+    }
+    body+='</div>';
+  }
+
+  // S5: Cash & Collections
+  if(sec.cash!==false){
+    var cashIn=dr.cashIn,cb=dr.cashInBreak,dso=dr.dso;
+    body+='<div class="section pb"><div class="sh"><div class="sn">5</div><div class="st">Kassa va Inkasso Tahlili</div></div>';
+    body+='<div class="kg">'
+      +kpi('Jami kassa','$'+fmt(cashIn),'Davr tushumlari','up')
+      +kpi('Naqd','$'+fmt(cb.naqd),Math.round(cashIn?cb.naqd/cashIn*100:0)+'%','neu')
+      +kpi('Karta','$'+fmt(cb.karta),Math.round(cashIn?cb.karta/cashIn*100:0)+'%','neu')
+      +kpi('Bank','$'+fmt(cb.bank),Math.round(cashIn?cb.bank/cashIn*100:0)+'%','neu')
+      +'</div>';
+    body+='<div class="formula">DSO (Days Sales Outstanding) = (Umumiy qarz / Davr daromadi) \xd7 Kun soni = '+Math.round(dso)+' kun</div>';
+    body+='<p>DSO '+(dso<=30?"<span class='up'>A'lo (&lt;30 kun \u2014 industria standarti)</span>":dso<=60?"<span class='neu'>O'rta (30\u201360 kun \u2014 qabul qilinadi)</span>":"<span class='dn'>Yuqori (&gt;60 kun \u2014 inkasso kuchaytirilishi kerak)</span>")+'. Har bir qo\'shimcha DSO kuni ushlab turilgan kapital.</p>';
+    var worst=cr.filter(function(c){return c.rate<100}).slice(0,12);
+    if(worst.length){
+      body+='<h3>Inkasso darajasi (past undiruv)</h3><table>'+th(['Mijoz','Kutilgan','To\'langan','Undiruv %','Farq'])+'<tbody>';
+      worst.forEach(function(c){body+=tr([xe(c.name),'<span class="mono">$'+fmt(c.expected)+'</span>','<span class="mono">$'+fmt(c.paid)+'</span>','<span class="'+(c.rate>=90?'neu':'dn')+'">'+c.rate+'%</span>','<span class="dn mono">\u2212$'+fmt(Math.abs(c.delta))+'</span>'])});
+      body+='</tbody></table>';
+    }
+    body+='</div>';
+  }
+
+  // S6: AR Aging & Debts
+  if(sec.debt!==false){
+    body+='<div class="section pb"><div class="sh"><div class="sn">6</div><div class="st">Debitorlik Qarzi \u2014 AR Aging</div></div>';
+    body+='<div class="kg">';
+    ar.forEach(function(b,i){body+=kpi(b.label,'$'+fk(b.total),b.clients.length+' ta mijoz',i===0?'neu':'dn')});
+    body+='</div>';
+    body+='<p>AR Aging \u2014 debitorlik qarzi yoshi tasnifi. 90+ kun guruhi <b style="color:#c42b1c">yuqori xavf</b> \u2014 ular uchun alohida inkasso chora ko\'rilishi kerak.</p>';
+    body+='<table>'+th(['Muddat','Mijoz','Oy qarzi','Kelishuv qarzi','Kechikish','Oxirgi to\'lov'])+'<tbody>';
+    ar.forEach(function(b){b.clients.forEach(function(c){var dc=c.days>90?'dn':c.days>30?'neu':'';body+=tr(['<span class="'+(c.days>90?'dn':c.days>60?'dn':c.days>30?'neu':'')+'">'+xe(b.label)+'</span>',xe(c.name),'<span class="dn mono">$'+fmt(c.qarz)+'</span>','<span class="mono">$'+fmt(c.kelQarz||0)+'</span>','<span class="'+dc+'">'+(c.days<999?c.days+' kun':'\u2014')+'</span>',xe(c.lastPayDate||'\u2014')])})});
+    body+='</tbody></table></div>';
+  }
+
+  // S7: Managers
+  if(sec.mgrs!==false&&mb.length){
+    body+='<div class="section pb"><div class="sh"><div class="sn">7</div><div class="st">Menejerlar Samaradorligi</div></div>';
+    body+='<table>'+th(['Menejer','Yangi','Yangi MRR','Churn','Churn MRR','Kengayish','Netto MRR'])+'<tbody>';
+    mb.forEach(function(m){var n=m.netMRR||0;body+=tr(['<b>'+xe(m.name)+'</b>',''+( m.newCount||0),'<span class="up mono">+$'+fmt(Math.round(m.newMRR||0))+'</span>',''+( m.churnCount||0),'<span class="dn mono">\u2212$'+fmt(Math.round(m.churnMRR||0))+'</span>','<span class="up mono">+$'+fmt(Math.round(m.expMRR||0))+'</span>','<span class="'+(n>=0?'up':'dn')+' mono fw">'+(n>=0?'+':'\u2212')+'$'+fmt(Math.abs(Math.round(n)))+'</span>'])});
+    body+='</tbody></table>';
+    body+='<p><small>Netto MRR = Yangi MRR + Kengayish \u2212 Churn \u2212 Qisqarish. Menejerning umumiy biznesga qo\'shgan qiymati.</small></p></div>';
+  }
+
+  // S8: Regions
+  if(sec.region!==false&&rp.length){
+    var totMRR=rp.reduce(function(s,r){return s+r.mrr},0)||1;
+    body+='<div class="section pb"><div class="sh"><div class="sn">8</div><div class="st">Mintaqaviy Tahlil</div></div>';
+    body+='<table>'+th(['Hudud','MRR','Ulush %','Mijozlar','Yangi','Churn'])+'<tbody>';
+    rp.forEach(function(r){var p=Math.round(r.mrr/totMRR*100);body+=tr(['<b>'+xe(r.name)+'</b>','<span class="mono">$'+fmt(r.mrr)+'</span>','<span class="'+(p>=20?'up':'neu')+'">'+p+'%</span>',''+( r.count||0),r.newCount?'<span class="up">+'+r.newCount+'</span>':'\u2014',r.churnCount?'<span class="dn">\u2212'+r.churnCount+'</span>':'\u2014'])});
+    body+='</tbody></table><p><small>Bitta hudud MRR ning &gt;50% ni tashkil etsa, diversifikatsiya strategiyasi zarur.</small></p></div>';
+  }
+
+  // S9: Forecast
+  if(sec.forecast!==false){
+    body+='<div class="section pb"><div class="sh"><div class="sn">9</div><div class="st">MRR Prognoz \u2014 6 Oylik Ko\'rinish</div></div>';
+    body+='<p>Prognoz <b>mavjud shartnomalar</b> asosida hisoblanadi. Yangi savdo va churn hisobga olinmagan. At-Risk MRR \u2014 ushbu oyda tugaydigan shartnomalar qiymati.</p>';
+    body+='<table>'+th(['Oy','Prognoz MRR','Mijozlar','At-Risk MRR','Xavf %'])+'<tbody>';
+    fc.forEach(function(m){var rp2=m.mrr>0?Math.round(m.expiringMRR/m.mrr*100):0;body+=tr(['<b>'+xe(m.label)+'</b>','<span class="mono">$'+fmt(m.mrr)+'</span>',''+m.clients,'<span class="dn mono">$'+fmt(m.expiringMRR)+'</span>','<span class="'+(rp2>30?'dn':rp2>15?'neu':'up')+'">'+rp2+'%</span>'])});
+    body+='</tbody></table></div>';
+  }
+
+  // S10: Portfolio Health
+  if(sec.health!==false&&ch.length){
+    var total=ch.length;
+    body+='<div class="section pb"><div class="sh"><div class="sn">10</div><div class="st">Portfolio Salomatligi</div></div>';
+    body+='<div class="kg">'
+      +kpi('Sog\'lom',''+healthy,Math.round(healthy/total*100)+'%','up')
+      +kpi('Xavf',''+warning,Math.round(warning/total*100)+'%','neu')
+      +kpi('Kritik',''+critical,Math.round(critical/total*100)+'%','dn')
+      +kpi('Jami',''+total,'Baholangan mijozlar','neu')
+      +'</div>';
+    body+='<p>Health Score 0\u2013100: qarz yuklamasi (\u221240 ball), shartnoma tugash yaqinligi (\u221220 ball), yangi mijoz (\u221210 ball). Score &lt;50 kritik.</p>';
+    var crit=ch.filter(function(c){return c.status==='critical'}).slice(0,15);
+    if(crit.length){
+      body+='<h3>Kritik holat mijozlar</h3><table>'+th(['Mijoz','Score','MRR','Qarz (oy)','Shartnoma (kun)'])+'<tbody>';
+      crit.forEach(function(c){body+=tr(['<b>'+xe(c.name)+'</b>','<span class="dn">'+c.score+'</span>','<span class="mono">$'+fmt(c.mrr)+'</span>',c.debt>0?'<span class="dn mono">$'+fmt(c.debt)+'</span>':'\u2014',c.daysToEnd>-900?c.daysToEnd+' kun':'Faol emas'])});
+      body+='</tbody></table>';
+    }
+    body+='</div>';
+  }
+
+  var fullHtml='<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8"><title>UYSOT Hisobot \u2014 '+xe(periodLabel)+'<\/title><style>'+css+'<\/style><\/head><body>'+body+'<div class="noprint" style="position:fixed;bottom:16px;right:16px;display:flex;gap:8px;z-index:999"><button onclick="window.print()" style="background:#1746a2;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;cursor:pointer;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.15)">\uD83D\uDDB6 PDF saqlash<\/button><button onclick="window.close()" style="background:#f0efeb;color:#333;border:1px solid #ccc;border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer">Yopish<\/button><\/div><\/body><\/html>';
+  var w=window.open('','_blank');
+  if(!w){showToast('Popup bloklangan \u2014 brauzer ruxsat bering','error');return}
+  w.document.write(fullHtml);w.document.close();w.focus();
+  setTimeout(function(){w.print()},700);
+  showToast('Hisobot tayyor!','success');
+}
+
+async function generateSlides(){
+  showToast('Taqdimot yaratilmoqda...','info');
+  const rd=_buildReportData();
+  const{dr,dt,mb,rp,ch,ar,fc,nm,periodLabel,curMRR,startMRR,arr,mrrGrowthPct,nrr,curClients,arpa,totalDebt,healthy,warning,critical}=rd;
+
+  let an={};
+  if(S.aiProvider!=='none'&&(S.apiKey||S.geminiKey)){
+    try{
+      showToast('AI slide matnlari...','info');
+      var sp='Investor taqdimot uchun O\'zbek tilida har bir slide uchun 1-2 gap yozing. JSON: {"s1":"...","s2":"...","s3":"...","s4":"...","s5":"...","s6":"...","s7":"...","s8":"...","s9":"...","s10":"..."}\n\nDAVR:'+periodLabel+'\nMRR:$'+fmt(curMRR)+'('+mrrGrowthPct+'%)\nARR:$'+fmt(arr)+'\nMijoz:'+curClients+'\nNRR:'+nrr+'%\nQR:'+dr.quickRatio.toFixed(1)+'x\nYangi:'+dr.newClients.length+' Churn:'+dr.churnClients.length+'\nQarz:$'+fmt(totalDebt)+'\n\nS1=Ijroiya xulosasi, S2=MRR tendensiya, S3=Waterfall, S4=Mijozlar, S5=Unit Economics, S6=Kassa, S7=Hudud&Menejerlar, S8=Portfolio, S9=Prognoz, S10=Xulosa';
+      var txt=await _callAI(sp);
+      try{an=JSON.parse(txt.replace(/```json\n?|\n?```/g,'').trim())}catch(e2){an={}}
+    }catch(e){showToast('AI: '+e.message,'error')}
+  }
+
+  var xe=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+  var kc=function(l,v,d,c){return'<div class="skc"><div class="skl">'+xe(l)+'</div><div class="skv '+(c||'w')+'">'+xe(v)+'</div>'+(d?'<div class="skd '+(c||'w')+'">'+d+'</div>':'')+'</div>'};
+
+  var maxT=Math.max.apply(null,dr.totals)||1;
+  var bars=dr.labels.map(function(l,i){var h=Math.max(4,Math.round(dr.totals[i]/maxT*72));var c=i===dr.totals.length-1?'#3b82f6':'rgba(255,255,255,.3)';return'<div class="bar-item"><div class="bar-fill" style="height:'+h+'px;background:'+c+'"></div><div class="bar-lbl">'+xe(l)+'</div></div>'}).join('');
+
+  var maxW=Math.max(startMRR,curMRR,nm.newMRR,nm.expMRR,nm.churnMRR,nm.conMRR)||1;
+  var wfb=function(label,v,c){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:120px;font-size:12px;color:rgba(255,255,255,.7)">'+xe(label)+'</div><div style="flex:1;height:9px;background:rgba(255,255,255,.08);border-radius:3px"><div style="width:'+Math.max(2,Math.round(Math.abs(v)/maxW*100))+'%;height:100%;background:'+c+';border-radius:3px"></div></div><div style="width:70px;text-align:right;font-family:monospace;font-size:11px;color:rgba(255,255,255,.7)">'+(v>0?'+':'\u2212')+'$'+fk(Math.abs(v))+'</div></div>'};
+
+  var sls=[];
+
+  // Slide 1: Cover
+  sls.push('<div class="sl sl-cover on"><div style="flex:1;display:flex;flex-direction:column;justify-content:center"><div style="width:56px;height:56px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin-bottom:28px">U</div><div class="sl-label">UYSOT Shartnomalar \xb7 Maxfiy</div><div class="sl-title">Moliyaviy Faoliyat<br><span>Hisoboti</span></div><div class="sl-sub">'+xe(periodLabel)+' \xb7 '+fmtD(new Date())+'<br>'+curClients+' ta aktiv mijoz \xb7 $'+fk(arr)+' ARR</div></div></div>');
+
+  // Slide 2: KPIs
+  sls.push('<div class="sl"><div class="sl-label">Ijroiya Xulosasi</div><div class="sl-title">Asosiy Ko\'rsatkichlar</div>'+(an.s1?'<div class="sl-sub">'+xe(an.s1)+'</div>':'')+'<div class="skg">'+kc('Joriy MRR','$'+fk(curMRR),(mrrGrowthPct>=0?'+':'')+mrrGrowthPct+'%',mrrGrowthPct>=0?'g':'r')+kc('ARR','$'+fk(arr),'Yillik daromad','b')+kc('Aktiv mijozlar',''+curClients,(curClients-dr.baseClients>=0?'+':'')+(curClients-dr.baseClients)+' netto',curClients>=dr.baseClients?'g':'r')+kc('NRR',''+nrr+'%',nrr>=100?'Mukammal':nrr>=80?'Yaxshi':'Xavf',nrr>=100?'g':nrr>=80?'a':'r')+kc('Quick Ratio',dr.quickRatio.toFixed(2)+'x',dr.quickRatio>=2?'A\'lo':dr.quickRatio>=1?'Normada':'Xavf',dr.quickRatio>=2?'g':dr.quickRatio>=1?'a':'r')+kc('GRR',''+dr.grr+'%','Gross Retention',dr.grr>=85?'g':dr.grr>=70?'a':'r')+kc('ARPA','$'+fmt(arpa),'Har bir mijoz','w')+kc('DSO',Math.round(dr.dso)+' kun','Debitorlik',dr.dso<=45?'g':dr.dso<=90?'a':'r')+'</div></div>');
+
+  // Slide 3: MRR Trend
+  sls.push('<div class="sl"><div class="sl-label">MRR Tahlili</div><div class="sl-title">$'+fk(startMRR)+' \u2192 <span>$'+fk(curMRR)+'</span>'+(mrrGrowthPct!==0?' ('+(mrrGrowthPct>0?'+':'')+mrrGrowthPct+'%)':'')+'</div>'+(an.s2?'<div class="sl-sub">'+xe(an.s2)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">MRR Trendi</div><div class="bars">'+bars+'</div></div><div class="sbox"><div class="sbox-t">Daromad tuzilmasi</div><table class="stbl"><tbody><tr><td>Joriy MRR</td><td class="tr b" style="font-family:monospace;font-weight:700">$'+fmt(curMRR)+'</td></tr><tr><td>ARR</td><td class="tr b" style="font-family:monospace;font-weight:700">$'+fmt(arr)+'</td></tr><tr><td>ARPA</td><td class="tr" style="font-family:monospace">$'+fmt(arpa)+'</td></tr><tr><td>MRR o\'sishi</td><td class="tr '+(mrrGrowthPct>=0?'g':'r')+'">'+(mrrGrowthPct>=0?'+':'')+mrrGrowthPct+'%</td></tr><tr><td>Mijozlar</td><td class="tr">'+curClients+'</td></tr></tbody></table></div></div></div>');
+
+  // Slide 4: Waterfall
+  sls.push('<div class="sl"><div class="sl-label">MRR Waterfall</div><div class="sl-title">Netto Harakatlar: <span>'+(nm.net>=0?'+':'\u2212')+'$'+fk(Math.abs(nm.net))+'</span></div>'+(an.s3?'<div class="sl-sub">'+xe(an.s3)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Komponentlar</div>'+wfb('+ Yangi MRR',nm.newMRR,'#34d399')+wfb('+ Kengayish',nm.expMRR,'#10b981')+wfb('\u2212 Qisqarish',nm.conMRR,'#f59e0b')+wfb('\u2212 Churn MRR',nm.churnMRR,'#f87171')+'</div><div class="sbox"><div class="sbox-t">Retention metrikalari</div><table class="stbl"><tbody><tr><td>NRR</td><td class="tr '+(nrr>=100?'g':nrr>=80?'a':'r')+'" style="font-weight:700">'+nrr+'%</td></tr><tr><td>GRR</td><td class="tr '+(dr.grr>=85?'g':dr.grr>=70?'a':'r')+'" style="font-weight:700">'+dr.grr+'%</td></tr><tr><td>Quick Ratio</td><td class="tr '+(dr.quickRatio>=1?'g':'r')+'" style="font-weight:700">'+dr.quickRatio.toFixed(2)+'x</td></tr><tr><td>Logo Churn</td><td class="tr '+(dr.logoChurnRate<=5?'g':dr.logoChurnRate<=15?'a':'r')+'">'+Math.round(dr.logoChurnRate*10)/10+'%</td></tr></tbody></table></div></div></div>');
+
+  // Slide 5: Customer Movements
+  sls.push('<div class="sl"><div class="sl-label">Mijozlar Harakati</div><div class="sl-title"><span class="g">+'+dr.newClients.length+'</span> yangi \xb7 <span class="r">\u2212'+dr.churnClients.length+'</span> churn</div>'+(an.s4?'<div class="sl-sub">'+xe(an.s4)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Yangi mijozlar (top 8)</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">MRR</th><th>Menejer</th></tr></thead><tbody>'+dr.newClients.slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr g" style="font-family:monospace">+$'+fmt(c.mrr)+'</td><td style="color:rgba(255,255,255,.6)">'+xe(c.mgr||'\u2014')+'</td></tr>'}).join('')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Churn bo\'lganlar (top 8)</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">MRR</th><th>Sana</th></tr></thead><tbody>'+( dr.churnClients.length?dr.churnClients.slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr r" style="font-family:monospace">\u2212$'+fmt(c.mrr)+'</td><td style="color:rgba(255,255,255,.6)">'+(c.date?fmtD(c.date):'\u2014')+'</td></tr>'}).join(''):'<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Churn yo\'q \u2713</td></tr>')+'</tbody></table></div></div></div>');
+
+  // Slide 6: Unit Economics
+  sls.push('<div class="sl"><div class="sl-label">Unit Economics</div><div class="sl-title">Mijoz Qiymati <span>Tahlili</span></div>'+(an.s5?'<div class="sl-sub">'+xe(an.s5)+'</div>':'')+'<div class="skg">'+kc('ARPA','$'+fmt(arpa),'Har bir mijoz/oy','b')+kc('LTV','$'+fk(dr.ltv),'Mijoz umr bo\'yi','g')+kc('CAC',dr.cac>0?'$'+fmt(Math.round(dr.cac)):'N/A',dr.ltvCac>0?'LTV:CAC='+dr.ltvCac.toFixed(1)+'x':'Marketing ma\'lumot yo\'q','w')+kc('Logo Churn',Math.round(dr.logoChurnRate*10)/10+'%/davr','Ketish ulushi',dr.logoChurnRate<=5?'g':dr.logoChurnRate<=15?'a':'r')+'</div><div class="sc2" style="margin-top:16px"><div class="sbox"><div class="sbox-t">LTV hisob-kitobi</div><p style="color:rgba(255,255,255,.7);font-size:13px;margin-top:8px;line-height:1.8">LTV = ARPA / Oylik Churn Rate<br>= $'+fmt(arpa)+' / '+Math.round(dr.logoChurnRate*100)/100+'%<br>= <b style="color:#60a5fa;font-size:18px">$'+fk(dr.ltv)+'</b></p></div><div class="sbox"><div class="sbox-t">Sog\'liqli biznes mezonlari</div><p style="color:rgba(255,255,255,.7);font-size:12px;line-height:1.9">LTV:CAC \u2265 3x \u2014 Barqaror<br>LTV:CAC \u2265 5x \u2014 A\'lo<br>Quick Ratio \u2265 4x \u2014 Yuqori o\'sish<br>NRR \u2265 120% \u2014 Kengayish hududi</p></div></div></div>');
+
+  // Slide 7: Cash & Collections
+  var cb=dr.cashInBreak;
+  sls.push('<div class="sl"><div class="sl-label">Kassa & Inkasso</div><div class="sl-title"><span>$'+fk(dr.cashIn)+'</span> Kassa Tushumi</div>'+(an.s6?'<div class="sl-sub">'+xe(an.s6)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">To\'lov turlari</div><table class="stbl"><tbody><tr><td>Naqd</td><td class="tr" style="font-family:monospace">$'+fmt(cb.naqd)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.naqd/dr.cashIn*100:0)+'%</td></tr><tr><td>Karta</td><td class="tr" style="font-family:monospace">$'+fmt(cb.karta)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.karta/dr.cashIn*100:0)+'%</td></tr><tr><td>Bank</td><td class="tr" style="font-family:monospace">$'+fmt(cb.bank)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.bank/dr.cashIn*100:0)+'%</td></tr></tbody></table><div style="margin-top:14px"><div class="sbox-t">DSO</div><div style="font-size:40px;font-weight:800;font-family:monospace;color:'+(dr.dso<=45?'#34d399':dr.dso<=90?'#fbbf24':'#f87171')+'">'+Math.round(dr.dso)+' kun</div></div></div><div class="sbox"><div class="sbox-t">AR Aging (qarzdorlik yoshi)</div><table class="stbl"><tbody>'+ar.map(function(b){return'<tr><td>'+xe(b.label)+'</td><td class="tr r" style="font-family:monospace">$'+fmt(b.total)+'</td><td class="tr" style="color:rgba(255,255,255,.5)">'+b.clients.length+' ta</td></tr>'}).join('')+'<tr><td><b>Jami qarz</b></td><td class="tr r" style="font-family:monospace;font-weight:700"><b>$'+fmt(totalDebt)+'</b></td><td></td></tr></tbody></table></div></div></div>');
+
+  // Slide 8: Regions & Managers
+  var totRP=rp.reduce(function(s,r){return s+r.mrr},0)||1;
+  sls.push('<div class="sl"><div class="sl-label">Hudud & Menejerlar</div><div class="sl-title">Kuch <span>Manbalari</span></div>'+(an.s7?'<div class="sl-sub">'+xe(an.s7)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Hududlar (MRR)</div><table class="stbl"><thead><tr><th>Hudud</th><th class="tr">MRR</th><th class="tr">%</th></tr></thead><tbody>'+rp.slice(0,7).map(function(r){return'<tr><td>'+xe(r.name)+'</td><td class="tr b" style="font-family:monospace">$'+fmt(r.mrr)+'</td><td class="tr">'+Math.round(r.mrr/totRP*100)+'%</td></tr>'}).join('')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Menejerlar (Netto MRR)</div><table class="stbl"><thead><tr><th>Menejer</th><th class="tr">Yangi</th><th class="tr">Netto MRR</th></tr></thead><tbody>'+mb.slice(0,7).map(function(m){var n=m.netMRR||0;return'<tr><td>'+xe(m.name)+'</td><td class="tr g">'+( m.newCount||0)+'</td><td class="tr '+(n>=0?'g':'r')+'" style="font-family:monospace;font-weight:700">'+(n>=0?'+':'\u2212')+'$'+fmt(Math.abs(Math.round(n)))+'</td></tr>'}).join('')+'</tbody></table></div></div></div>');
+
+  // Slide 9: Health
+  var htot=ch.length||1;
+  sls.push('<div class="sl"><div class="sl-label">Portfolio Salomatligi</div><div class="sl-title"><span class="g">'+healthy+'</span> sog\'lom \xb7 <span class="a">'+warning+'</span> xavf \xb7 <span class="r">'+critical+'</span> kritik</div>'+(an.s8?'<div class="sl-sub">'+xe(an.s8)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Kritik mijozlar</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">Score</th><th class="tr">Qarz</th></tr></thead><tbody>'+( ch.filter(function(c){return c.status==='critical'}).length?ch.filter(function(c){return c.status==='critical'}).slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr r">'+c.score+'</td><td class="tr r" style="font-family:monospace">$'+fmt(c.debt)+'</td></tr>'}).join(''):'<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Kritik mijoz yo\'q \u2713</td></tr>')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Taqsimot</div><div style="display:flex;flex-direction:column;gap:14px;margin-top:10px">'+[{l:'Sog\'lom',n:healthy,c:'#34d399'},{l:'Xavf',n:warning,c:'#fbbf24'},{l:'Kritik',n:critical,c:'#f87171'}].map(function(x){return'<div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:'+x.c+'">'+x.l+'</span><span style="font-family:monospace">'+x.n+' ('+Math.round(x.n/htot*100)+'%)</span></div><div style="height:8px;background:rgba(255,255,255,.1);border-radius:4px"><div style="width:'+Math.round(x.n/htot*100)+'%;height:100%;background:'+x.c+';border-radius:4px"></div></div></div>'}).join('')+'</div></div></div></div>');
+
+  // Slide 10: Forecast
+  sls.push('<div class="sl"><div class="sl-label">MRR Prognoz</div><div class="sl-title">6 Oylik <span>Ko\'rinish</span></div>'+(an.s9?'<div class="sl-sub">'+xe(an.s9)+'</div>':'')+'<div class="sc2-full"><table class="stbl"><thead><tr><th>Oy</th><th class="tr">Prognoz MRR</th><th class="tr">Mijozlar</th><th class="tr">At-Risk MRR</th><th class="tr">Xavf %</th></tr></thead><tbody>'+fc.map(function(m){var rp2=m.mrr>0?Math.round(m.expiringMRR/m.mrr*100):0;return'<tr><td><b>'+xe(m.label)+'</b></td><td class="tr b" style="font-family:monospace;font-weight:700">$'+fmt(m.mrr)+'</td><td class="tr">'+m.clients+'</td><td class="tr r" style="font-family:monospace">$'+fmt(m.expiringMRR)+'</td><td class="tr '+(rp2>30?'r':rp2>15?'a':'g')+'">'+rp2+'%</td></tr>'}).join('')+'</tbody></table><p style="color:rgba(255,255,255,.5);font-size:12px;margin-top:12px">At-Risk = shu oyda tugaydigan shartnomalar MRR. Yangi savdo hisobga olinmagan.</p></div></div>');
+
+  // Slide 11: Closing
+  sls.push('<div class="sl sl-cover"><div style="flex:1;display:flex;flex-direction:column;justify-content:center"><div class="sl-label">Xulosa</div><div class="sl-title">Savollar va<br><span>Muhokama</span></div><div class="sl-sub" style="margin-top:20px">'+(an.s10?xe(an.s10):'Batafsil ma\'lumot va savollarga tayyormiz.')+'<br><br><span style="opacity:.6">UYSOT Shartnomalar CRM \xb7 '+fmtD(new Date())+' \xb7 Maxfiy</span></div></div></div>');
+
+  var scss='*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;font-family:"Segoe UI",system-ui,sans-serif;background:#060e1f}.deck{width:100vw;height:100vh;position:relative}.sl{position:absolute;inset:0;display:none;flex-direction:column;padding:52px 80px 88px;background:linear-gradient(145deg,#060e1f 0%,#0d1b35 100%)}.sl.on{display:flex}.sl-cover{background:linear-gradient(145deg,#0f2a6b 0%,#1746a2 55%,#0a3d55 100%)}.sl-label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.45);margin-bottom:12px}.sl-title{font-size:40px;font-weight:800;color:#fff;line-height:1.1;margin-bottom:14px}.sl-title span{color:#60a5fa}.sl-sub{font-size:15px;color:rgba(255,255,255,.65);line-height:1.5;max-width:750px}.skg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}.skc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px}.skl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:8px}.skv{font-size:28px;font-weight:800;font-family:monospace;color:#fff;line-height:1}.skd{font-size:12px;margin-top:5px}.sc2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;flex:1}.sc2-full{margin-top:16px;flex:1}.sbox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 18px}.sbox-t{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);margin-bottom:10px}.stbl{width:100%;border-collapse:collapse;font-size:13px}.stbl th{padding:7px 10px;text-align:left;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px}.stbl td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.85)}.tr{text-align:right}.g{color:#34d399}.r{color:#f87171}.a{color:#fbbf24}.b{color:#60a5fa}.w{color:rgba(255,255,255,.85)}.bars{display:flex;align-items:flex-end;gap:3px;height:72px;margin-top:8px}.bar-item{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}.bar-fill{width:100%;border-radius:2px 2px 0 0}.bar-lbl{font-size:7px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden}.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:100;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:40px;padding:7px 14px}.nav button{background:none;border:none;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;padding:4px 10px;border-radius:6px;transition:.15s}.nav button:hover{background:rgba(255,255,255,.1);color:#fff}.cnt{color:rgba(255,255,255,.4);font-size:12px;min-width:52px;text-align:center}.pbar{position:fixed;top:0;left:0;height:2px;background:#3b82f6;transition:width .3s;z-index:200}@media print{.nav,.pbar{display:none!important}.sl{display:flex!important;page-break-after:always;position:relative!important}}';
+
+  var navJs='var cur=0,sls=document.querySelectorAll(".sl"),tot=sls.length;function go(i){sls[cur].classList.remove("on");cur=Math.max(0,Math.min(i,tot-1));sls[cur].classList.add("on");document.getElementById("_ct").textContent=(cur+1)+" / "+tot;document.getElementById("_pb").style.width=((cur+1)/tot*100)+"%"}function nx(){go(cur+1)}function pv(){go(cur-1)}document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key==="ArrowDown"||e.key===" "){e.preventDefault();nx()}if(e.key==="ArrowLeft"||e.key==="ArrowUp"){e.preventDefault();pv()}if(e.key==="Escape")go(0)});document.getElementById("_pb").style.width=(1/tot*100)+"%";';
+
+  var slideHtml='<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8"><title>UYSOT Taqdimot \u2014 '+xe(periodLabel)+'<\/title><style>'+scss+'<\/style><\/head><body><div class="pbar" id="_pb"><\/div><div class="deck">'+sls.join('\n')+'<\/div><nav class="nav"><button onclick="pv()">&#8592;<\/button><span class="cnt" id="_ct">1 \/ '+sls.length+'<\/span><button onclick="nx()">&#8594;<\/button><button onclick="window.print()" title="Chop etish">\uD83D\uDDB6<\/button><\/nav><script>'+navJs+'<\/scr'+'ipt><\/body><\/html>';
+
+  var w=window.open('','_blank');
+  if(!w){showToast('Popup bloklangan \u2014 brauzer ruxsat bering','error');return}
+  w.document.write(slideHtml);w.document.close();w.focus();
+  showToast('Taqdimot tayyor! \u2190\u2192 navigatsiya',  'success');
 }
 
 // === EXPORTS ===
