@@ -515,16 +515,10 @@ function mrrData(year){
         
         if(!act.length) continue;
         
-        // Max Daily MRR in this month
-        let checkDt = mE;
-        if (checkDt > now) checkDt = now;
-        
+        // MRR for this month — include future contracts too
         let dayMrr = 0;
         for(let i=0; i<act.length; i++) {
-            const ct = act[i];
-            if(ct.st <= checkDt && ct.endD >= checkDt) {
-                dayMrr += ct.musd;
-            }
+            dayMrr += act[i].musd;
         }
         monthly[m] = dayMrr;
       }

@@ -54,13 +54,25 @@ function showClientCard(name){
   let totalPaid=0;Object.values(pm).forEach(v=>{if(v.client===n)totalPaid+=v.total});
   const totalSum=cRows.reduce((s,r)=>s+(r._sUSD||0),0)+qCRows.reduce((s,r)=>s+(r._sUSD||0),0);
   const {all,qAll}=buildContracts();const now=new Date();
-  const snap=mrrOnDate(now,all,qAll);
+  // For future contracts, also check future date
+  const allClientCts=all.concat(qAll).filter(c=>c.client===n);
+  const latestEnd=allClientCts.length?allClientCts.reduce((a,b)=>b.endD>a.endD?b:a).endD:now;
+  const snapDt=latestEnd>now?latestEnd:now;
+  const snap=mrrOnDate(snapDt,all,qAll);
   const curMrr=snap.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
+  // Also get MRR from current or nearest future active contract
+  const activeMrr=curMrr||allClientCts.filter(c=>c.musd>0).reduce((s,c)=>s+c.musd,0);
   const debtRow=calcDebtTable(now).find(r=>r.name===n);
   const oyQarz=debtRow?.oyQarz||0,kelQarz=debtRow?.kelQarz||0;
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
   const firstDate=allDates.length?allDates.reduce((a,b)=>a<b?a:b):null;
   const tenureM=firstDate?Math.round((now-firstDate)/(30.44*86400000)):0;
+  // Paid until calculation: (totalPaid - totalTadbiq) / MRR = months from contract start
+  const totalTadbiq=cRows.reduce((s,r)=>s+(r._tUSD||0),0)+qCRows.reduce((s,r)=>s+(pn(r['Tadbiq USD'])||0),0);
+  const netPaid=totalPaid-totalTadbiq;
+  const mrrForCalc=activeMrr||curMrr;
+  const paidMonths=mrrForCalc>0?netPaid/mrrForCalc:0;
+  const paidUntilDate=firstDate&&paidMonths>0?new Date(firstDate.getFullYear(),firstDate.getMonth()+Math.floor(paidMonths),firstDate.getDate()):null;
   const activeCount=cRows.filter(r=>sc(r.status)==='A').length;
   const mrow=cRows[0]||qCRows[0];
   const firma=mrow?.['Firma nomi']||'';
@@ -74,16 +86,18 @@ function showClientCard(name){
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
   // Status indicator: active until / qarzdor from
-  const endDatesActive=cRows.map(r=>pd(r['amal qilishi'])).filter(d=>d&&d>=now);
-  const activeUntil=endDatesActive.length?endDatesActive.reduce((a,b)=>a>b?a:b):null;
+  const endDatesAll=allClientCts.map(c=>c.endD).filter(Boolean);
+  const activeUntil=endDatesAll.length?endDatesAll.reduce((a,b)=>a>b?a:b):null;
   const lastPayDate=allPays.length>0?allPays[0].date:null;
   // qarzdorFrom = first day of month after last payment; only show if that date is already in the past
   const qarzdorFrom=kelQarz>0?(lastPayDate?new Date(lastPayDate.getFullYear(),lastPayDate.getMonth()+1,1):firstDate):null;
   const isDebt=qarzdorFrom&&qarzdorFrom<=now;
+  // Paid until info
+  const paidUntilHtml=paidUntilDate?'<br><span style="font-size:10px;opacity:.8">To\'langan: '+fmtD(paidUntilDate)+' gacha</span>':'';
   const statusHtml=isDebt
     ?'<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFrom)+' dan</span>'
     :activeUntil
-    ?'<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+fmtD(activeUntil)+' gacha</span>'
+    ?'<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+fmtD(activeUntil)+' gacha'+paidUntilHtml+'</span>'
     :'';
   // Colored delta helper
   const dlt=v=>v>0?'<span style="color:var(--green);font-size:9px;font-family:var(--mono);display:block">+'+fmt(v)+'</span>':v<0?'<span style="color:var(--red);font-size:9px;font-family:var(--mono);display:block">'+fmt(v)+'</span>':'';
@@ -161,7 +175,7 @@ function showClientCard(name){
     +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'
     +'<div style="background:var(--accent-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--accent)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Joriy MRR</div>'
-    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--accent)">'+(curMrr?fmt(curMrr)+' $':'—')+'</div>'
+    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--accent)">'+(activeMrr?fmt(activeMrr)+' $':'—')+'</div>'
     +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+activeCount+' aktiv shartnoma</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--green)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Jami shartnoma</div>'
