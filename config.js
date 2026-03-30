@@ -461,11 +461,7 @@ function _doHide(){
 }
 
 function hideSmartLoader(){
-  // Mark data as ready; actual hide waits for minimum 3 tip cycles (≥10s)
-  _ldReady=true;
-  if(_ldMinDone)_doHide();
-  // Safety: force hide after 30s regardless
-  setTimeout(()=>{if(_ldEl)_doHide();},30000);
+  _doHide();
 }
 
 // === DATA LOADING ===
