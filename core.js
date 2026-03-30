@@ -164,13 +164,14 @@ function calcLastPayments(){
 function calcDebtTable(reportDate){
   if(!reportDate)reportDate=new Date();
   const repMonthEnd=new Date(reportDate.getFullYear(),reportDate.getMonth()+1,0);
-  const rawPay={};const pm=calcPayments();
-  const tadbiqPerClient={};
-  S.rows.forEach(r=>{if(r.Client)tadbiqPerClient[r.Client]=(tadbiqPerClient[r.Client]||0)+r._tUSD});
-  S.qRows.forEach(r=>{if(r.Client){const t=pn(r['Tadbiq USD']);if(t)tadbiqPerClient[r.Client]=(tadbiqPerClient[r.Client]||0)+t}});
-  const clPay=calcClientPayments();
-  Object.keys(clPay).forEach(c=>{rawPay[c]=clPay[c]+(tadbiqPerClient[c]||0)});
-  Object.values(pm).forEach(v=>{if(!rawPay[v.client])rawPay[v.client]=v.total});
+  const repYear=reportDate.getFullYear();
+  const repMonth=reportDate.getMonth();
+  // Use same cumExp as MRR table
+  const cumExp=calcCumExpected(repYear);
+  // Use same payment totals as MRR table (just totalPayments by client)
+  const pm=calcPayments();
+  const clPay={};
+  Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
   const clients={};
   S.rows.forEach(r=>{
     if(!r.Client||!r.sanasi)return;
@@ -215,27 +216,10 @@ function calcDebtTable(reportDate){
   });
   const result=[];
   Object.values(clients).forEach(cl=>{
-    const paid=rawPay[cl.name]||0;const qoldiq=Math.round(cl.totalSum-paid);
-    let cumExp=0;
-    cl.contracts.forEach(ct=>{
-      if(ct.st>repMonthEnd)return;cumExp+=ct.tUSD;if(ct.musd<=0)return;
-      const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
-      const fmDays=Math.round((fmE-ct.st)/864e5)+1;const on1st=ct.st.getDate()===1;
-      const firstMP=on1st?ct.musd:Math.round(ct.musd*fmDays/fmE.getDate());
-      let lastMP;
-      if(ct.isMain){if(on1st){const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);lastMP=ct.endD.getDate()===lmE.getDate()?ct.musd:Math.round(ct.musd*ct.endD.getDate()/lmE.getDate())}else{lastMP=ct.musd-firstMP}}
-      else{const lmS=new Date(ct.endD.getFullYear(),ct.endD.getMonth(),1);const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);lastMP=Math.round(ct.musd*Math.round((ct.endD-lmS)/864e5+1)/lmE.getDate())}
-      const mEnd=ct.endD<repMonthEnd?ct.endD:repMonthEnd;
-      let d=new Date(ct.st.getFullYear(),ct.st.getMonth(),1);
-      while(d<=mEnd){
-        if(ct.st>new Date(d.getFullYear(),d.getMonth()+1,0)||ct.endD<d){d.setMonth(d.getMonth()+1);continue}
-        const isF=(ct.st.getFullYear()===d.getFullYear()&&ct.st.getMonth()===d.getMonth());
-        const isL=(ct.endD.getFullYear()===d.getFullYear()&&ct.endD.getMonth()===d.getMonth());
-        if(isF&&isL){cumExp+=Math.min(firstMP,lastMP)}else if(isF){cumExp+=firstMP}else if(isL){cumExp+=lastMP}else{cumExp+=ct.musd}
-        d.setMonth(d.getMonth()+1);
-      }
-    });
-    const oyQarz=Math.round(cumExp-paid);
+    const paid=clPay[cl.name]||0;const qoldiq=Math.round(cl.totalSum-paid);
+    // oyQarz: use calcCumExpected (same as MRR table)
+    const ce=cumExp[cl.name];
+    const oyQarz=ce?Math.round(ce.cum[repMonth]-paid):Math.round(cl.totalSum-paid);
     const mainCts=cl.contracts.filter(c=>c.isMain&&c.musd>0);
     const anchor=mainCts.length?mainCts.reduce((a,c)=>c.st<a.st?c:a,mainCts[0]):cl.contracts.find(c=>c.musd>0);
     let kelExp=0;cl.contracts.forEach(ct=>{kelExp+=ct.tUSD});
