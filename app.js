@@ -695,7 +695,7 @@ function calcDataAudit(){
       const expected=Math.round(r._mUSD*r._dur);
       const actual=Math.round(r._sUSD||0);
       const diff=Math.abs(expected-actual);
-      if(diff>r._mUSD*0.5&&actual>0){
+      if(diff>0&&actual>0){
         issues.push({
           client:r.Client,raqami:r.raqami||'',
           type:'Summa nomuvofiq',
@@ -718,8 +718,26 @@ function calcDataAudit(){
       }
     });
 
+    // 7. Takroriy shartnoma raqami
+    const raqamCount={};
+    S.rows.forEach(r=>{
+      if(!r.raqami)return;
+      const k=r.raqami.trim();
+      if(!raqamCount[k])raqamCount[k]=[];
+      raqamCount[k].push(r.Client||'?');
+    });
+    Object.entries(raqamCount).forEach(([raq,clients])=>{
+      if(clients.length>1){
+        issues.push({
+          client:clients.join(', '),raqami:raq,
+          type:'Takroriy raqam',
+          detail:`"${raq}" shartnoma raqami ${clients.length} marta ishlatilgan: ${clients.join(', ')}.`
+        });
+      }
+    });
+
     issues.sort((a,b)=>{
-      const order={'Sanalar ustma-ust':0,'Summa nomuvofiq':1,'MRR nol':2,'Tugash sanasi yo\'q':3,'Uzilish':4,'Bog\'lanmagan to\'lov':5};
+      const order={'Takroriy raqam':0,'Sanalar ustma-ust':1,'Summa nomuvofiq':2,'MRR nol':3,'Tugash sanasi yo\'q':4,'Uzilish':5,'Bog\'lanmagan to\'lov':6};
       return(order[a.type]||9)-(order[b.type]||9);
     });
     return issues;
