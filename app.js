@@ -617,12 +617,52 @@ function calcCumExpected(year){
   });
 }
 
+// === QARZDOR START DATE (cumExp based) ===
+function _findQarzdorDate(name,totalPaid){
+  const now=new Date();
+  const ceYear=now.getFullYear();
+  const ce=calcCumExpected(ceYear)[name];
+  const cePrev=calcCumExpected(ceYear-1)[name];
+  if(!ce&&!cePrev)return null;
+  const allCums=[];
+  if(cePrev){for(let m=0;m<12;m++)allCums.push({y:ceYear-1,m,cum:cePrev.cum[m]})}
+  if(ce){for(let m=0;m<12;m++)allCums.push({y:ceYear,m,cum:ce.cum[m]})}
+  let lastPaidIdx=-1;
+  for(let i=0;i<allCums.length;i++){
+    if(allCums[i].cum>0&&allCums[i].cum<=totalPaid)lastPaidIdx=i;
+  }
+  let debtIdx=-1;
+  for(let i=0;i<allCums.length;i++){
+    if(allCums[i].cum>totalPaid&&allCums[i].cum>0){debtIdx=i;break;}
+  }
+  if(lastPaidIdx>=0&&lastPaidIdx+1<allCums.length&&allCums[lastPaidIdx+1].cum>totalPaid){
+    const lp=allCums[lastPaidIdx],nx=allCums[lastPaidIdx+1];
+    const monthPortion=nx.cum-lp.cum;
+    const overpaid=totalPaid-lp.cum;
+    const dim=new Date(nx.y,nx.m+1,0).getDate();
+    const daysCovered=monthPortion>0?Math.floor(overpaid/monthPortion*dim):0;
+    return new Date(nx.y,nx.m,Math.min(daysCovered+1,dim));
+  } else if(debtIdx>=0){
+    const de=allCums[debtIdx];
+    const prevCum=debtIdx>0?allCums[debtIdx-1].cum:0;
+    const monthPortion=de.cum-(prevCum||0);
+    const overpaid=totalPaid-(prevCum||0);
+    const dim=new Date(de.y,de.m+1,0).getDate();
+    const daysCovered=monthPortion>0?Math.max(0,Math.floor(overpaid/monthPortion*dim)):0;
+    return new Date(de.y,de.m,Math.min(daysCovered+1,dim));
+  }
+  return null;
+}
+
 // === AR AGING ===
 function calcARaging(){
-  return cached('arAging_v1',()=>{
+  return cached('arAging_v2',()=>{
     const now=new Date();
     const dt=calcDebtTable(now);
     const lp=calcLastPayments();
+    const pm=calcPayments();
+    const clPay={};
+    Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
     const buckets=[
       {label:'0–30 kun',min:0,max:30,color:'var(--amber)',tag:'b-amber',clients:[],total:0},
       {label:'31–60 kun',min:31,max:60,color:'var(--red)',tag:'b-red',clients:[],total:0},
@@ -632,7 +672,9 @@ function calcARaging(){
     dt.forEach(d=>{
       if(d.oyQarz<=0)return;
       const lastP=lp[d.name];
-      const days=lastP?Math.round((now-lastP.date)/864e5):999;
+      const totalPaid=clPay[d.name]||0;
+      const qarzdorDate=_findQarzdorDate(d.name,totalPaid);
+      const days=qarzdorDate?Math.round((now-qarzdorDate)/864e5):(lastP?Math.round((now-lastP.date)/864e5):999);
       const b=days<=30?buckets[0]:days<=60?buckets[1]:days<=90?buckets[2]:buckets[3];
       b.clients.push({name:d.name,qarz:d.oyQarz,kelQarz:d.kelQarz,days,lastPayDate:lastP?lastP.dateStr:'Hech qachon'});
       b.total+=d.oyQarz;

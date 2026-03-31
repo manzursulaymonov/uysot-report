@@ -67,51 +67,10 @@ function showClientCard(name){
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
   const firstDate=allDates.length?allDates.reduce((a,b)=>a<b?a:b):null;
   const tenureM=firstDate?Math.round((now-firstDate)/(30.44*86400000)):0;
-  // Paid until / Qarzdor from: use calcCumExpected (same as MRR table)
-  // Scan both previous year and current year to find exact debt start date
-  const ceYear=now.getFullYear();
-  const ce=calcCumExpected(ceYear)[n];
-  const cePrev=calcCumExpected(ceYear-1)[n];
-  let paidUntilDate=null,qarzdorFromDate=null;
-  if(ce||cePrev){
-    // Build unified array of monthly cumExp across 2 years
-    const allCums=[];
-    if(cePrev){for(let m=0;m<12;m++)allCums.push({y:ceYear-1,m,cum:cePrev.cum[m]})}
-    if(ce){for(let m=0;m<12;m++)allCums.push({y:ceYear,m,cum:ce.cum[m]})}
-    // Find last month where cumExp <= totalPaid (fully paid through)
-    let lastPaidIdx=-1;
-    for(let i=0;i<allCums.length;i++){
-      if(allCums[i].cum>0&&allCums[i].cum<=totalPaid)lastPaidIdx=i;
-    }
-    // Find first month where cumExp > totalPaid (debt starts)
-    let debtIdx=-1;
-    for(let i=0;i<allCums.length;i++){
-      if(allCums[i].cum>totalPaid&&allCums[i].cum>0){debtIdx=i;break;}
-    }
-    if(lastPaidIdx>=0){
-      const lp=allCums[lastPaidIdx];
-      if(lastPaidIdx+1<allCums.length&&allCums[lastPaidIdx+1].cum>totalPaid){
-        const nx=allCums[lastPaidIdx+1];
-        const monthPortion=nx.cum-lp.cum;
-        const overpaid=totalPaid-lp.cum;
-        const dim=new Date(nx.y,nx.m+1,0).getDate();
-        const daysCovered=monthPortion>0?Math.floor(overpaid/monthPortion*dim):0;
-        paidUntilDate=new Date(nx.y,nx.m,Math.min(daysCovered,dim));
-        qarzdorFromDate=new Date(nx.y,nx.m,Math.min(daysCovered+1,dim));
-      } else {
-        paidUntilDate=new Date(lp.y,lp.m+1,0);
-      }
-    } else if(debtIdx>=0){
-      const de=allCums[debtIdx];
-      const prevCum=debtIdx>0?allCums[debtIdx-1].cum:0;
-      const monthPortion=de.cum-(prevCum||0);
-      const overpaid=totalPaid-(prevCum||0);
-      const dim=new Date(de.y,de.m+1,0).getDate();
-      const daysCovered=monthPortion>0?Math.max(0,Math.floor(overpaid/monthPortion*dim)):0;
-      if(daysCovered>0)paidUntilDate=new Date(de.y,de.m,Math.min(daysCovered,dim));
-      qarzdorFromDate=new Date(de.y,de.m,Math.min(daysCovered+1,dim));
-    }
-  }
+  // Qarzdor from: use shared _findQarzdorDate (same logic as AR Aging)
+  const qarzdorFromDate=_findQarzdorDate(n,totalPaid);
+  // Paid until: one day before qarzdor starts
+  let paidUntilDate=qarzdorFromDate?new Date(qarzdorFromDate.getTime()-864e5):null;
   // Cap paidUntilDate at contract end date
   const endDatesAll=allClientCts.map(c=>c.endD).filter(Boolean);
   const activeUntil=endDatesAll.length?endDatesAll.reduce((a,b)=>a>b?a:b):null;
