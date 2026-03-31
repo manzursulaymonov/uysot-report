@@ -112,6 +112,10 @@ function showClientCard(name){
       qarzdorFromDate=new Date(de.y,de.m,Math.min(daysCovered+1,dim));
     }
   }
+  // Cap paidUntilDate at contract end date
+  const endDatesAll=allClientCts.map(c=>c.endD).filter(Boolean);
+  const activeUntil=endDatesAll.length?endDatesAll.reduce((a,b)=>a>b?a:b):null;
+  if(paidUntilDate&&activeUntil&&paidUntilDate>activeUntil)paidUntilDate=activeUntil;
   const activeCount=cRows.filter(r=>sc(r.status)==='A').length;
   const mrow=cRows[0]||qCRows[0];
   const firma=mrow?.['Firma nomi']||'';
@@ -125,8 +129,6 @@ function showClientCard(name){
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
   // Status indicator: active until / qarzdor from (based on cumExp same as MRR table)
-  const endDatesAll=allClientCts.map(c=>c.endD).filter(Boolean);
-  const activeUntil=endDatesAll.length?endDatesAll.reduce((a,b)=>a>b?a:b):null;
   const isDebt=qarzdorFromDate&&qarzdorFromDate<=now;
   const statusHtml=isDebt
     ?'<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'
