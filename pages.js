@@ -1092,12 +1092,13 @@ function rMoliya(){
   // === AR Aging ===
   const aging=calcARaging();
   const agingTotal=aging.reduce((s,b)=>s+b.total,0);
-  const af=S.arAgingFilter||null;
+  if(!S.arAgingFilter)S.arAgingFilter=[];
+  const af=S.arAgingFilter;
   let agingCards='';
   aging.forEach(b=>{
     const pct=agingTotal>0?Math.round(b.total/agingTotal*100):0;
-    const isActive=af===b.label;
-    agingCards+=`<div class="metric" style="border-top:3px solid ${b.color};cursor:pointer;${isActive?`box-shadow:0 0 0 2px ${b.color};background:var(--bg3)`:''}" onclick="S.arAgingFilter=${JSON.stringify(b.label)}===S.arAgingFilter?null:${JSON.stringify(b.label)};render()" title="${b.label} bo'yicha filterlash">
+    const isActive=af.includes(b.label);
+    agingCards+=`<div class="metric" style="border-top:3px solid ${b.color};cursor:pointer;${isActive?`box-shadow:0 0 0 2px ${b.color};background:var(--bg3)`:''}" onclick="if(!S.arAgingFilter)S.arAgingFilter=[];var i=S.arAgingFilter.indexOf(${JSON.stringify(b.label)});if(i>=0)S.arAgingFilter.splice(i,1);else S.arAgingFilter.push(${JSON.stringify(b.label)});render()" title="${b.label} bo'yicha filterlash">
       <div class="metric-lbl">${b.label}${isActive?' <span style="font-size:9px;color:var(--text3)">(aktiv)</span>':''}</div>
       <div class="metric-val mono" style="color:${b.color}">${fmt(b.total)}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:4px">${b.clients.length} ta mijoz · ${pct}%</div>
@@ -1105,7 +1106,7 @@ function rMoliya(){
   });
   let agingRows='';
   let allAging=aging.flatMap(b=>b.clients.map(c=>({...c,bucket:b.label,color:b.color})));
-  if(af) allAging=allAging.filter(c=>c.bucket===af);
+  if(af.length) allAging=allAging.filter(c=>af.includes(c.bucket));
   allAging.sort((a,b)=>b.qarz-a.qarz).forEach(c=>{
     agingRows+=`<tr>
       <td style="font-weight:500">${cl(c.name)}</td>
@@ -1118,9 +1119,9 @@ function rMoliya(){
   });
   const agingSection=`<div class="card" style="margin-bottom:16px">
     <div class="card-head">
-      <span class="card-label">AR Aging — Qarz yoshi bo'yicha tahlil${af?` · <span style="color:var(--accent)">${af}</span>`:''}</span>
+      <span class="card-label">AR Aging — Qarz yoshi bo'yicha tahlil${af.length?` · <span style="color:var(--accent)">${af.join(', ')}</span>`:''}</span>
       <div style="display:flex;gap:6px;align-items:center">
-        ${af?`<button class="btn" style="font-size:11px;padding:5px 10px" onclick="S.arAgingFilter=null;render()">✕ Filterni tozala</button>`:''}
+        ${af.length?`<button class="btn" style="font-size:11px;padding:5px 10px" onclick="S.arAgingFilter=[];render()">✕ Filterni tozala</button>`:''}
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'araging')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
