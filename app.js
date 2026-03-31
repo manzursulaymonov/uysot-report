@@ -739,8 +739,33 @@ function calcDataAudit(){
       }
     });
 
+    // 8. Qo'shimcha kelishuv sanasi shartnomadan mos kelmaydi
+    const mainByRaqami={};
+    S.rows.forEach(r=>{if(r.raqami&&r.Client){const en=pd(r['amal qilishi']);const st=pd(r.sanasi);if(en)mainByRaqami[r.raqami.trim()]={endD:en,st,client:r.Client,amal:r['amal qilishi']||''}}});
+    S.qRows.forEach(r=>{
+      if(!r.Client||!r.raqami||!r.sanasi)return;
+      const main=mainByRaqami[r.raqami.trim()];
+      if(!main)return;
+      const qEnd=pd(r['amal qilishi']);
+      if(!qEnd)return;
+      const diff=Math.round((qEnd-main.endD)/864e5);
+      if(diff>0){
+        issues.push({
+          client:r.Client,raqami:r.raqami,
+          type:'Qo\'shimcha sana xato',
+          detail:`Qo'shimcha kelishuv ${r['amal qilishi']} da tugaydi, asosiy shartnoma ${main.amal} da tugaydi. ${diff} kun keyinroq — shartnomadan oshib ketgan.`
+        });
+      } else if(diff>=-7&&diff<0){
+        issues.push({
+          client:r.Client,raqami:r.raqami,
+          type:'Qo\'shimcha sana xato',
+          detail:`Qo'shimcha kelishuv ${r['amal qilishi']} da tugaydi, asosiy shartnoma ${main.amal} da tugaydi. ${Math.abs(diff)} kun oldinroq — shartnoma bilan mos emas.`
+        });
+      }
+    });
+
     issues.sort((a,b)=>{
-      const order={'Takroriy raqam':0,'Sanalar ustma-ust':1,'Summa nomuvofiq':2,'MRR nol':3,'Tugash sanasi yo\'q':4,'Uzilish':5,'Bog\'lanmagan to\'lov':6};
+      const order={'Takroriy raqam':0,'Sanalar ustma-ust':1,'Qo\'shimcha sana xato':2,'Summa nomuvofiq':3,'MRR nol':4,'Tugash sanasi yo\'q':5,'Uzilish':6,'Bog\'lanmagan to\'lov':7};
       return(order[a.type]||9)-(order[b.type]||9);
     });
     return issues;
