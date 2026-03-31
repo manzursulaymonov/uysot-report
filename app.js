@@ -624,6 +624,10 @@ function _findQarzdorDate(name,totalPaid){
   const ce=calcCumExpected(ceYear)[name];
   const cePrev=calcCumExpected(ceYear-1)[name];
   if(!ce&&!cePrev)return null;
+  // Find earliest contract start date for this client
+  let firstSt=null;
+  S.rows.forEach(r=>{if(r.Client?.trim()===name){const d=pd(r.sanasi);if(d&&(!firstSt||d<firstSt))firstSt=d}});
+  S.qRows.forEach(r=>{if(r.Client?.trim()===name){const d=pd(r.sanasi);if(d&&(!firstSt||d<firstSt))firstSt=d}});
   const allCums=[];
   if(cePrev){for(let m=0;m<12;m++)allCums.push({y:ceYear-1,m,cum:cePrev.cum[m]})}
   if(ce){for(let m=0;m<12;m++)allCums.push({y:ceYear,m,cum:ce.cum[m]})}
@@ -635,13 +639,14 @@ function _findQarzdorDate(name,totalPaid){
   for(let i=0;i<allCums.length;i++){
     if(allCums[i].cum>totalPaid&&allCums[i].cum>0){debtIdx=i;break;}
   }
+  let result=null;
   if(lastPaidIdx>=0&&lastPaidIdx+1<allCums.length&&allCums[lastPaidIdx+1].cum>totalPaid){
     const lp=allCums[lastPaidIdx],nx=allCums[lastPaidIdx+1];
     const monthPortion=nx.cum-lp.cum;
     const overpaid=totalPaid-lp.cum;
     const dim=new Date(nx.y,nx.m+1,0).getDate();
     const daysCovered=monthPortion>0?Math.floor(overpaid/monthPortion*dim):0;
-    return new Date(nx.y,nx.m,Math.min(daysCovered+1,dim));
+    result=new Date(nx.y,nx.m,Math.min(daysCovered+1,dim));
   } else if(debtIdx>=0){
     const de=allCums[debtIdx];
     const prevCum=debtIdx>0?allCums[debtIdx-1].cum:0;
@@ -649,9 +654,11 @@ function _findQarzdorDate(name,totalPaid){
     const overpaid=totalPaid-(prevCum||0);
     const dim=new Date(de.y,de.m+1,0).getDate();
     const daysCovered=monthPortion>0?Math.max(0,Math.floor(overpaid/monthPortion*dim)):0;
-    return new Date(de.y,de.m,Math.min(daysCovered+1,dim));
+    result=new Date(de.y,de.m,Math.min(daysCovered+1,dim));
   }
-  return null;
+  // Qarzdor sanasi birinchi shartnoma boshlanishidan oldin bo'lmasligi kerak
+  if(result&&firstSt&&result<firstSt)result=firstSt;
+  return result;
 }
 
 // === AR AGING ===
