@@ -1143,8 +1143,10 @@ function rMoliya(){
   const audit=calcDataAudit();
   let auditRows='';
   audit.forEach(a=>{
+    // Vergul bilan ajratilgan mijozlarni alohida linklar qilish
+    const clientLinks=a.client.split(',').map(c=>c.trim()).filter(Boolean).map(c=>cl(c)).join(', ');
     auditRows+=`<tr>
-      <td style="font-weight:500">${cl(a.client)}</td>
+      <td style="font-weight:500">${clientLinks}</td>
       <td style="font-size:12px">${a.raqami||'—'}</td>
       <td style="font-size:12px">${a.type}</td>
       <td style="font-size:12px;max-width:300px">${a.detail}</td>
@@ -1153,6 +1155,9 @@ function rMoliya(){
   const auditSection=`<div class="card" style="margin-bottom:16px">
     <div class="card-head">
       <span class="card-label">Ma'lumotlar tahlili · ${audit.length} ta xatolik</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'audit')" title="Yuklab olish">${_dlSvg}</button>
+      </div>
     </div>
     <div class="card-body">
       ${audit.length?`<div class="tbl-scroll"><table><thead><tr>

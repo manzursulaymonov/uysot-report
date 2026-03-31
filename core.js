@@ -324,6 +324,9 @@ function _dlRows(type){
   if(type==='collection'){
     return calcCollectionRate().map(c=>({'Mijoz':c.name,'Kutilgan':c.expected,"To'langan":c.paid,'Farq':c.delta,'Undiruv %':c.rate}));
   }
+  if(type==='audit'){
+    return calcDataAudit().map(a=>({'Mijoz':a.client,'Shartnoma':a.raqami,'Xatolik turi':a.type,'Tafsilot':a.detail}));
+  }
   return null;
 }
 
@@ -333,7 +336,7 @@ function exportXLSX(type){
   if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Ma'lumot");
-  const fn={contracts:'Shartnomalar',debts:'Qarzdorlik',araging:'AR_Aging',collection:'Inkasso'}[type]||type;
+  const fn={contracts:'Shartnomalar',debts:'Qarzdorlik',araging:'AR_Aging',collection:'Inkasso',audit:'Tahlil'}[type]||type;
   XLSX.writeFile(wb,fn+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
   showToast(fn+' XLSX yuklandi','success');
 }

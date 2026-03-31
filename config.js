@@ -948,6 +948,17 @@ window.exportCollectionRate=function(){
   downloadCSV(rows,'Inkasso')
 };
 
+window.exportAudit=function(){
+  const audit=calcDataAudit();
+  const rows=audit.map(a=>({
+    'Mijoz':a.client,
+    'Shartnoma':a.raqami,
+    'Xatolik turi':a.type,
+    'Tafsilot':a.detail
+  }));
+  downloadCSV(rows,'Tahlil')
+};
+
 window.exportMrrForecast=function(){
   const fc=calcMrrForecast();
   const rows=fc.map(m=>({
