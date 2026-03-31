@@ -892,14 +892,9 @@ function rM(){
 function rCl(){
 const dr=dashRange();
 const ch=calcClientHealth();
-const view=S.clView||'umumiy';
-const healthy=ch.filter(c=>c.status==='healthy').length, warn=ch.filter(c=>c.status==='warning').length, crit=ch.filter(c=>c.status==='critical').length;
+const view=S.clView||'shartnomalar';
 
 let h=`<div class="page-header"><div><div class="page-title">Mijozlar</div><div class="page-sub">${ch.length} ta korxona tahlili</div></div></div>`;
-
-if(view==='shartnomalar'){
-  return h+_rCBody();
-}
 
 if(view==='tahlil'){
   const rg=calcRegionalPerf();
@@ -941,26 +936,8 @@ if(view==='tahlil'){
   return h;
 }
 
-// DEFAULT: umumiy — health scores + client list
-h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--green)"></span>Mijoz Sog'ligi — <span style="color:var(--green)">${healthy}</span> sog'lom / <span style="color:var(--amber)">${warn}</span> ogohlantirish / <span style="color:var(--red)">${crit}</span> xavfli</span></div>
-<div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Mijoz</th><th class="text-r">MRR</th><th class="text-r">Ball</th><th>Holat</th><th class="text-r col-hide">Qarz</th><th class="text-r col-hide">Shartnoma</th><th class="text-r col-hide">Staj</th></tr></thead><tbody>`;
-ch.forEach(c=>{
-  const bc=c.status==='healthy'?'b-green':c.status==='warning'?'b-amber':'b-red';
-  const bl=c.status==='healthy'?'Sog\'lom':c.status==='warning'?'⚠️ Xavf':'🔴 Kritik';
-  const dayDisp=c.daysToEnd===-999?'<span style="color:var(--red);font-weight:600">Tugagan</span>':(c.daysToEnd>0?c.daysToEnd+' kun':'—');
-  h+=`<tr><td style="font-weight:600;font-size:12px">${cl(c.name)}</td><td class="text-r mono" style="font-size:11px">${fmt(c.mrr)}</td><td class="text-r mono" style="font-weight:700;color:${c.score>=80?'var(--green)':c.score>=50?'var(--amber)':'var(--red)'}">${c.score}</td><td><span class="badge ${bc}" style="font-size:9px;padding:2px 6px">${bl}</span></td><td class="text-r col-hide mono" style="font-size:11px;color:${c.debt>0?'var(--red)':'var(--text3)'}">${c.debt>0?fmt(c.debt):'—'}</td><td class="text-r col-hide mono" style="font-size:11px">${dayDisp}</td><td class="text-r col-hide" style="font-size:11px">${c.tenureM} oy</td></tr>`;
-});
-h+=`</tbody></table></div></div>`;
-
-const m={};S.rows.forEach(r=>{const c=r.Client||'?';if(!m[c])m[c]={n:c,ct:0,a:0,mrr:0,s:0,mg:new Set(),reg:new Set(),lastDate:null};m[c].ct++;m[c].mrr+=r._mUSD;m[c].s+=r._sUSD;if(r.Manager)m[c].mg.add(r.Manager);if(r.Hudud)m[c].reg.add(r.Hudud);if(sc(r.status)==='A')m[c].a++;const d=pd(r.sanasi);if(d&&(!m[c].lastDate||d>m[c].lastDate)){m[c].lastDate=d;m[c].lastMgr=r.Manager||''}});
-let dList=Object.values(m).sort((a,b)=>(b.lastDate||0)-(a.lastDate||0));
-if(S.clQ){const q=S.clQ.toLowerCase();dList=dList.filter(r=>r.n.toLowerCase().includes(q)||[...r.mg].join(' ').toLowerCase().includes(q))}
-const t=dList.length,pg=Math.ceil(t/S.clN),sl=dList.slice(S.clP*S.clN,(S.clP+1)*S.clN);
-
-h+=`<div class="toolbar" style="margin-top:16px"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz yoki menejer..." value="${S.clQ}" oninput="onSearch('clQ',this.value)"><button class="search-clear" onclick="onSearch('clQ','');render()" type="button">&times;</button></div></div>
-<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>Mijoz</th><th>Menejer</th><th class="text-r">Shartnomalar</th><th class="text-r">Aktiv</th><th>Hudud</th><th class="text-r">MRR ($)</th><th class="text-r">Jami ($)</th><th>Oxirgi sana</th></tr></thead><tbody>${sl.map(r=>`<tr><td style="font-weight:600">${cl(r.n)}</td><td style="font-size:12px">${r.lastMgr||[...r.mg].join(', ')||'—'}</td><td class="text-r mono">${r.ct}</td><td class="text-r">${r.a?`<span class="badge b-green">${r.a}</span>`:'<span class="badge b-gray">0</span>'}</td><td style="font-size:11px">${[...r.reg].join(', ')||'—'}</td><td class="text-r mono" style="font-weight:600">${fmt(r.mrr)}</td><td class="text-r mono">${fmt(r.s)}</td><td class="mono" style="font-size:10.5px;color:var(--text2)">${r.lastDate?r.lastDate.toLocaleDateString('ru-RU'):'—'}</td></tr>`).join('')}</tbody></table></div></div>${pag(S.clP,pg,t,S.clN,'clP')}`;
-
-return h;
+// DEFAULT: shartnomalar
+return h+_rCBody();
 }
 
 // === TOP MRR ===
