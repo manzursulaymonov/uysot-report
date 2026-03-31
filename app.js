@@ -629,7 +629,7 @@ function calcDataAudit(){
       const st=pd(r.sanasi),en=pd(r['amal qilishi']);
       if(!st)return;
       const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
-      clientContracts[c].push({raqami:r.raqami||'',st,endD,sanasi:r.sanasi,amal:r['amal qilishi']||'',musd:r._mUSD||0,sUSD:r._sUSD||0,dur:r._dur||0,status:r.status||''});
+      clientContracts[c].push({raqami:r.raqami||'',st,endD,sanasi:r.sanasi,amal:r['amal qilishi']||'',musd:r._mUSD||0,sUSD:r._sUSD||0,dur:r._dur||0,status:r.status||'',firma:r['Firma nomi']||''});
     });
 
     Object.entries(clientContracts).forEach(([name,cts])=>{
@@ -640,7 +640,10 @@ function calcDataAudit(){
         const cur=sorted[i],next=sorted[i+1];
 
         // 1. Yangi shartnoma eski tugashidan oldin boshlangan (overlap)
-        if(next.st<=cur.endD){
+        // Firmasi turli va sanalari aynan bir xil bo'lsa — bu parallel shartnomalar, xatolik emas
+        const sameDate=cur.st.getTime()===next.st.getTime()&&cur.endD.getTime()===next.endD.getTime();
+        const diffFirma=cur.firma&&next.firma&&cur.firma!==next.firma;
+        if(next.st<=cur.endD&&!(sameDate&&diffFirma)){
           const gap=Math.round((cur.endD-next.st)/864e5);
           issues.push({
             client:name,raqami:next.raqami,
