@@ -1126,6 +1126,23 @@ function rMoliya(){
     <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
     <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Kelishuv</button>
   </div>`;
+  // Inkasso metrics
+  const totalExpected=cr.reduce((s,c)=>s+c.expected,0);
+  const totalPaidInk=cr.reduce((s,c)=>s+c.paid,0);
+  const fulfilled=cr.filter(c=>c.rate>=100).length;
+  const partial=cr.filter(c=>c.rate>0&&c.rate<100).length;
+  const noPay=cr.filter(c=>c.rate===0).length;
+  const overPaid=cr.filter(c=>c.rate>100).length;
+  const collPct=totalExpected>0?Math.round(totalPaidInk/totalExpected*100):0;
+  const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
+  const inkMetrics=`<div class="metrics" style="grid-template-columns:repeat(6,1fr);margin-bottom:16px">
+    <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
+    <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
+    <div class="metric"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
+    <div class="metric"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
+    <div class="metric"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
+    <div class="metric"><div class="metric-lbl">Ortiqcha to'lagan</div><div class="metric-val" style="color:var(--accent)">${overPaid}</div><div class="metric-foot">${cr.length?Math.round(overPaid/cr.length*100):0}%</div></div>
+  </div>`;
   const crSection=`<div class="card">
     <div class="card-head">
       <span class="card-label">Inkasso (To'lov undiruvi) — ${curMon}</span>
@@ -1137,7 +1154,7 @@ function rMoliya(){
       </div>
     </div>
     <div class="card-body" style="padding:0">
-      ${cr.length?`<div class="tbl-scroll"><table><thead><tr>
+      ${cr.length?`<div style="padding:16px 16px 0">${inkMetrics}</div><div class="tbl-scroll"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
         <th class="text-r">Farq</th><th>Undiruv darajasi</th>
