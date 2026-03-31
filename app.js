@@ -617,6 +617,115 @@ function calcCumExpected(year){
   });
 }
 
+// === DATA AUDIT ===
+function calcDataAudit(){
+  return cached('dataAudit_v1',()=>{
+    const issues=[];
+    const clientContracts={};
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.sanasi)return;
+      const c=r.Client.trim();
+      if(!clientContracts[c])clientContracts[c]=[];
+      const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+      if(!st)return;
+      const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+      clientContracts[c].push({raqami:r.raqami||'',st,endD,sanasi:r.sanasi,amal:r['amal qilishi']||'',musd:r._mUSD||0,sUSD:r._sUSD||0,dur:r._dur||0,status:r.status||''});
+    });
+
+    Object.entries(clientContracts).forEach(([name,cts])=>{
+      if(cts.length<2)return;
+      const sorted=[...cts].sort((a,b)=>a.st-b.st);
+
+      for(let i=0;i<sorted.length-1;i++){
+        const cur=sorted[i],next=sorted[i+1];
+
+        // 1. Yangi shartnoma eski tugashidan oldin boshlangan (overlap)
+        if(next.st<=cur.endD){
+          const gap=Math.round((cur.endD-next.st)/864e5);
+          issues.push({
+            client:name,raqami:next.raqami,
+            type:'Sanalar ustma-ust',
+            detail:`"${cur.raqami}" ${cur.amal} da tugaydi, "${next.raqami}" ${next.sanasi} da boshlangan. ${gap} kun ustma-ust. MRR ikki marta hisoblanishi mumkin.`
+          });
+        }
+
+        // 2. Shartnomalar orasida bo'shliq (gap)
+        const gapDays=Math.round((next.st-cur.endD)/864e5);
+        if(gapDays>30){
+          issues.push({
+            client:name,raqami:next.raqami,
+            type:'Uzilish',
+            detail:`"${cur.raqami}" ${cur.amal} da tugagan, "${next.raqami}" ${next.sanasi} da boshlangan. ${gapDays} kun uzilish.`
+          });
+        }
+      }
+    });
+
+    // 3. Oylik MRR = 0 bo'lgan aktiv shartnomalar
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.sanasi)return;
+      const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+      if(!st)return;
+      const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
+      const now=new Date();
+      if(st<=now&&endD>=now&&(r._mUSD||0)===0&&(r._sUSD||0)>0){
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'MRR nol',
+          detail:`Aktiv shartnoma (${r.sanasi} — ${r['amal qilishi']||'?'}), jami $${fmt(r._sUSD||0)} lekin oylik MRR $0.`
+        });
+      }
+    });
+
+    // 4. Tugash sanasi yo'q
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.sanasi)return;
+      if(!r['amal qilishi']&&(r._mUSD||0)>0){
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Tugash sanasi yo\'q',
+          detail:`Shartnoma ${r.sanasi} da boshlangan, muddati ${r._dur||'?'} oy, lekin tugash sanasi kiritilmagan.`
+        });
+      }
+    });
+
+    // 5. Jami summa va (oylik × muddat) mos kelmaydi
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.sanasi||!r._mUSD||!r._dur)return;
+      const expected=Math.round(r._mUSD*r._dur);
+      const actual=Math.round(r._sUSD||0);
+      const diff=Math.abs(expected-actual);
+      if(diff>r._mUSD*0.5&&actual>0){
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Summa nomuvofiq',
+          detail:`Oylik $${fmt(r._mUSD)} × ${r._dur} oy = $${fmt(expected)}, lekin jami $${fmt(actual)} kiritilgan. Farq: $${fmt(diff)}.`
+        });
+      }
+    });
+
+    // 6. To'lov shartnomaga bog'lanmagan
+    const pm=calcPayments();
+    const contractKeys=new Set();
+    S.rows.forEach(r=>{if(r.Client&&r.raqami)contractKeys.add(r.Client.trim()+'|'+r.raqami.trim())});
+    Object.entries(pm).forEach(([k,v])=>{
+      if(v.total>0&&!contractKeys.has(k)){
+        issues.push({
+          client:v.client,raqami:v.shartnoma,
+          type:'Bog\'lanmagan to\'lov',
+          detail:`$${fmt(v.total)} to'lov "${v.shartnoma}" shartnomaga bog'langan, lekin bunday shartnoma topilmadi.`
+        });
+      }
+    });
+
+    issues.sort((a,b)=>{
+      const order={'Sanalar ustma-ust':0,'Summa nomuvofiq':1,'MRR nol':2,'Tugash sanasi yo\'q':3,'Uzilish':4,'Bog\'lanmagan to\'lov':5};
+      return(order[a.type]||9)-(order[b.type]||9);
+    });
+    return issues;
+  });
+}
+
 // === QARZDOR START DATE (cumExp based) ===
 function _findQarzdorDate(name,totalPaid){
   const now=new Date();

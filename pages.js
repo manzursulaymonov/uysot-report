@@ -1139,9 +1139,32 @@ function rMoliya(){
     </div>
   </div>`;
 
+  // === Tahlil (Data Quality Audit) ===
+  const audit=calcDataAudit();
+  let auditRows='';
+  audit.forEach(a=>{
+    auditRows+=`<tr>
+      <td style="font-weight:500">${cl(a.client)}</td>
+      <td style="font-size:12px">${a.raqami||'—'}</td>
+      <td style="font-size:12px">${a.type}</td>
+      <td style="font-size:12px;max-width:300px">${a.detail}</td>
+    </tr>`;
+  });
+  const auditSection=`<div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <span class="card-label">Ma'lumotlar tahlili · ${audit.length} ta xatolik</span>
+    </div>
+    <div class="card-body">
+      ${audit.length?`<div class="tbl-scroll"><table><thead><tr>
+        <th>Mijoz</th><th>Shartnoma</th><th>Xatolik turi</th><th>Tafsilot</th>
+      </tr></thead><tbody>${auditRows}</tbody></table></div>`:'<div style="text-align:center;color:var(--green);padding:24px">Xatolik topilmadi ✅</div>'}
+    </div>
+  </div>`;
+
   const view=S.molView||'aging';
-  const header=`<div class="page-header"><div><div class="page-title">Moliya / CFO</div><div class="page-sub">AR Aging · Inkasso tahlili</div></div></div>`;
-  const tabs=_pageTabs([{v:'aging',l:'AR Aging'},{v:'inkasso',l:'Inkasso'}],view,'molView');
+  const header=`<div class="page-header"><div><div class="page-title">Finance</div><div class="page-sub">AR Aging · Inkasso · Tahlil</div></div></div>`;
+  const tabs=_pageTabs([{v:'aging',l:'AR Aging'},{v:'inkasso',l:'Inkasso'},{v:'tahlil',l:'Tahlil'}],view,'molView');
   if(view==='inkasso') return header+tabs+crSection;
+  if(view==='tahlil') return header+tabs+auditSection;
   return header+tabs+agingSection;
 }
