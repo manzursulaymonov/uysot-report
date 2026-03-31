@@ -68,53 +68,48 @@ function showClientCard(name){
   const firstDate=allDates.length?allDates.reduce((a,b)=>a<b?a:b):null;
   const tenureM=firstDate?Math.round((now-firstDate)/(30.44*86400000)):0;
   // Paid until / Qarzdor from: use calcCumExpected (same as MRR table)
+  // Scan both previous year and current year to find exact debt start date
   const ceYear=now.getFullYear();
   const ce=calcCumExpected(ceYear)[n];
-  // Also check previous year cumExp for contracts spanning years
   const cePrev=calcCumExpected(ceYear-1)[n];
   let paidUntilDate=null,qarzdorFromDate=null;
-  if(ce){
-    // Find last month where cumExp <= totalPaid
-    let lastPaidMonth=-1;
-    for(let m=0;m<12;m++){
-      if(ce.cum[m]>0&&ce.cum[m]<=totalPaid)lastPaidMonth=m;
+  if(ce||cePrev){
+    // Build unified array of monthly cumExp across 2 years
+    const allCums=[];
+    if(cePrev){for(let m=0;m<12;m++)allCums.push({y:ceYear-1,m,cum:cePrev.cum[m]})}
+    if(ce){for(let m=0;m<12;m++)allCums.push({y:ceYear,m,cum:ce.cum[m]})}
+    // Find last month where cumExp <= totalPaid (fully paid through)
+    let lastPaidIdx=-1;
+    for(let i=0;i<allCums.length;i++){
+      if(allCums[i].cum>0&&allCums[i].cum<=totalPaid)lastPaidIdx=i;
     }
     // Find first month where cumExp > totalPaid (debt starts)
-    let debtMonth=-1;
-    for(let m=0;m<12;m++){
-      if(ce.cum[m]>totalPaid&&ce.cum[m]>0){debtMonth=m;break;}
+    let debtIdx=-1;
+    for(let i=0;i<allCums.length;i++){
+      if(allCums[i].cum>totalPaid&&allCums[i].cum>0){debtIdx=i;break;}
     }
-    // Check if previous year was already fully paid
-    if(lastPaidMonth===-1&&cePrev){
-      for(let m=11;m>=0;m--){
-        if(cePrev.cum[m]>0&&cePrev.cum[m]<=totalPaid){
-          paidUntilDate=new Date(ceYear-1,m+1,0);break;
-        }
-      }
-    }
-    if(lastPaidMonth>=0){
-      // Calculate exact day within next month
-      const nextM=lastPaidMonth+1;
-      if(nextM<=11&&ce.cum[nextM]>totalPaid){
-        const prevCum=ce.cum[lastPaidMonth];
-        const monthPortion=ce.cum[nextM]-prevCum;
-        const overpaid=totalPaid-prevCum;
-        const dim=new Date(ceYear,nextM+1,0).getDate();
+    if(lastPaidIdx>=0){
+      const lp=allCums[lastPaidIdx];
+      if(lastPaidIdx+1<allCums.length&&allCums[lastPaidIdx+1].cum>totalPaid){
+        const nx=allCums[lastPaidIdx+1];
+        const monthPortion=nx.cum-lp.cum;
+        const overpaid=totalPaid-lp.cum;
+        const dim=new Date(nx.y,nx.m+1,0).getDate();
         const daysCovered=monthPortion>0?Math.floor(overpaid/monthPortion*dim):0;
-        paidUntilDate=new Date(ceYear,nextM,Math.min(daysCovered,dim));
-        qarzdorFromDate=new Date(ceYear,nextM,Math.min(daysCovered+1,dim));
+        paidUntilDate=new Date(nx.y,nx.m,Math.min(daysCovered,dim));
+        qarzdorFromDate=new Date(nx.y,nx.m,Math.min(daysCovered+1,dim));
       } else {
-        paidUntilDate=new Date(ceYear,lastPaidMonth+1,0);
+        paidUntilDate=new Date(lp.y,lp.m+1,0);
       }
-    } else if(debtMonth>=0){
-      // Even first month not fully paid
-      const prevCum=debtMonth>0?ce.cum[debtMonth-1]:(cePrev?cePrev.cum[11]:0);
-      const monthPortion=ce.cum[debtMonth]-(prevCum||0);
+    } else if(debtIdx>=0){
+      const de=allCums[debtIdx];
+      const prevCum=debtIdx>0?allCums[debtIdx-1].cum:0;
+      const monthPortion=de.cum-(prevCum||0);
       const overpaid=totalPaid-(prevCum||0);
-      const dim=new Date(ceYear,debtMonth+1,0).getDate();
+      const dim=new Date(de.y,de.m+1,0).getDate();
       const daysCovered=monthPortion>0?Math.max(0,Math.floor(overpaid/monthPortion*dim)):0;
-      if(daysCovered>0)paidUntilDate=new Date(ceYear,debtMonth,Math.min(daysCovered,dim));
-      qarzdorFromDate=new Date(ceYear,debtMonth,Math.min(daysCovered+1,dim));
+      if(daysCovered>0)paidUntilDate=new Date(de.y,de.m,Math.min(daysCovered,dim));
+      qarzdorFromDate=new Date(de.y,de.m,Math.min(daysCovered+1,dim));
     }
   }
   const activeCount=cRows.filter(r=>sc(r.status)==='A').length;
