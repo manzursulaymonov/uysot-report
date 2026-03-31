@@ -83,8 +83,8 @@ function showClientCard(name){
   const health=calcClientHealth().find(c=>c.name===n);
   const hBadge=health?(health.status==='healthy'?'<span class="badge b-green">Sog\'lom</span>':health.status==='warning'?'<span class="badge b-amber">⚠ Xavf</span>':'<span class="badge b-red">Kritik</span>'):'';
   const allPays=[];
-  S.payRows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'pay'})});
-  S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24'})});
+  S.payRows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'pay',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
+  S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
   // Status indicator: active until / qarzdor from (based on cumExp same as MRR table)
@@ -127,11 +127,35 @@ function showClientCard(name){
       +'<td class="text-r mono" style="font-size:11px;color:'+cv(ssum)+'">'+fmt(ssum)+'</td>'
       +'</tr>';
   }).join('');
-  const payHtml=allPays.slice(0,50).map(p=>'<tr>'
-    +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(p.dateStr||'—')+'</td>'
-    +'<td style="font-size:11.5px">'+tl(p.type)+(p.kassa?' ('+p.kassa+')':'')+(p.src==='y24'?' <span style="font-size:9px;color:var(--text3)">[2024]</span>':'')+'</td>'
-    +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(p.usd)+' $</td>'
-    +'</tr>').join('');
+  const payHtml=allPays.slice(0,50).map(p=>{
+    const origNum=pn(p.origSum||'0');
+    const isUZS=p.valyuta==='UZS'||p.valyuta==='SUM';
+    const kurs=isUZS&&origNum>0&&p.usd>0?Math.round(origNum/p.usd):null;
+    const kursUZS=!isUZS&&p.usd>0?null:null; // USD to'lov uchun kurs yo'q
+    let detail=tl(p.type);
+    if(p.kassa)detail+=' ('+p.kassa+')';
+    if(p.src==='y24')detail+=' <span style="font-size:9px;color:var(--text3)">[2024]</span>';
+    // Tooltip: kassa, valyuta, original summa, kurs
+    let tipParts=[];
+    if(p.kassa)tipParts.push('Kassa: '+p.kassa);
+    if(isUZS&&origNum>0){
+      tipParts.push('Asl summa: '+fmt(origNum)+' so\'m');
+      if(kurs)tipParts.push('Kurs: 1$ = '+fmt(kurs)+' so\'m');
+    } else if(origNum>0&&!isUZS){
+      tipParts.push('Valyuta: '+(p.valyuta||'USD'));
+    }
+    const tip=tipParts.length?tipParts.join(' · '):'';
+    // Sub-detail row
+    let subHtml='';
+    if(isUZS&&origNum>0){
+      subHtml='<div style="font-size:9.5px;color:var(--text3);margin-top:1px">'+fmt(origNum)+' so\'m'+(kurs?' · 1$='+fmt(kurs):'')+'</div>';
+    }
+    return'<tr style="cursor:default" title="'+tip+'">'
+      +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(p.dateStr||'—')+'</td>'
+      +'<td style="font-size:11.5px">'+detail+subHtml+'</td>'
+      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(p.usd)+' $</td>'
+      +'</tr>';
+  }).join('');
   const dC=kelQarz>0?'var(--red)':kelQarz<0?'var(--amber)':'var(--green)';
   // MRR 12-month trend
   const cid='cc'+Date.now();
