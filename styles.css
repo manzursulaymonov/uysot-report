@@ -321,7 +321,7 @@ tbody tr{transition:background var(--transition-fast)}
 .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .search{position:relative;width:280px}
 .search input{
-  width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);
+  width:100%;padding:8px 28px 8px 32px;border:1px solid var(--border);
   border-radius:var(--radius);font-size:12.5px;font-family:var(--font);
   background:var(--bg2);color:var(--text);
   transition:all var(--transition-fast);
@@ -332,6 +332,15 @@ tbody tr{transition:background var(--transition-fast)}
   position:absolute;left:9px;top:50%;transform:translateY(-50%);
   width:15px;height:15px;color:var(--text3);
 }
+.search .search-clear{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:18px;height:18px;border:none;background:var(--border);
+  border-radius:50%;cursor:pointer;display:none;align-items:center;
+  justify-content:center;padding:0;color:var(--text2);font-size:12px;
+  line-height:1;transition:all var(--transition-fast);
+}
+.search .search-clear:hover{background:var(--text3);color:var(--bg)}
+.search input:not(:placeholder-shown)~.search-clear{display:flex}
 select.flt{
   padding:8px 28px 8px 10px;border:1px solid var(--border);
   border-radius:var(--radius);font-size:12.5px;font-family:var(--font);
