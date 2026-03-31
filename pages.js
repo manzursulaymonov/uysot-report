@@ -67,12 +67,56 @@ function showClientCard(name){
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
   const firstDate=allDates.length?allDates.reduce((a,b)=>a<b?a:b):null;
   const tenureM=firstDate?Math.round((now-firstDate)/(30.44*86400000)):0;
-  // Paid until calculation: (totalPaid - totalTadbiq) / MRR = months from contract start
-  const totalTadbiq=cRows.reduce((s,r)=>s+(r._tUSD||0),0)+qCRows.reduce((s,r)=>s+(pn(r['Tadbiq USD'])||0),0);
-  const netPaid=totalPaid-totalTadbiq;
-  const mrrForCalc=activeMrr||curMrr;
-  const paidMonths=mrrForCalc>0?netPaid/mrrForCalc:0;
-  const paidUntilDate=firstDate&&paidMonths>0?new Date(firstDate.getFullYear(),firstDate.getMonth()+Math.floor(paidMonths),firstDate.getDate()):null;
+  // Paid until / Qarzdor from: use calcCumExpected (same as MRR table)
+  const ceYear=now.getFullYear();
+  const ce=calcCumExpected(ceYear)[n];
+  // Also check previous year cumExp for contracts spanning years
+  const cePrev=calcCumExpected(ceYear-1)[n];
+  let paidUntilDate=null,qarzdorFromDate=null;
+  if(ce){
+    // Find last month where cumExp <= totalPaid
+    let lastPaidMonth=-1;
+    for(let m=0;m<12;m++){
+      if(ce.cum[m]>0&&ce.cum[m]<=totalPaid)lastPaidMonth=m;
+    }
+    // Find first month where cumExp > totalPaid (debt starts)
+    let debtMonth=-1;
+    for(let m=0;m<12;m++){
+      if(ce.cum[m]>totalPaid&&ce.cum[m]>0){debtMonth=m;break;}
+    }
+    // Check if previous year was already fully paid
+    if(lastPaidMonth===-1&&cePrev){
+      for(let m=11;m>=0;m--){
+        if(cePrev.cum[m]>0&&cePrev.cum[m]<=totalPaid){
+          paidUntilDate=new Date(ceYear-1,m+1,0);break;
+        }
+      }
+    }
+    if(lastPaidMonth>=0){
+      // Calculate exact day within next month
+      const nextM=lastPaidMonth+1;
+      if(nextM<=11&&ce.cum[nextM]>totalPaid){
+        const prevCum=ce.cum[lastPaidMonth];
+        const monthPortion=ce.cum[nextM]-prevCum;
+        const overpaid=totalPaid-prevCum;
+        const dim=new Date(ceYear,nextM+1,0).getDate();
+        const daysCovered=monthPortion>0?Math.floor(overpaid/monthPortion*dim):0;
+        paidUntilDate=new Date(ceYear,nextM,Math.min(daysCovered,dim));
+        qarzdorFromDate=new Date(ceYear,nextM,Math.min(daysCovered+1,dim));
+      } else {
+        paidUntilDate=new Date(ceYear,lastPaidMonth+1,0);
+      }
+    } else if(debtMonth>=0){
+      // Even first month not fully paid
+      const prevCum=debtMonth>0?ce.cum[debtMonth-1]:(cePrev?cePrev.cum[11]:0);
+      const monthPortion=ce.cum[debtMonth]-(prevCum||0);
+      const overpaid=totalPaid-(prevCum||0);
+      const dim=new Date(ceYear,debtMonth+1,0).getDate();
+      const daysCovered=monthPortion>0?Math.max(0,Math.floor(overpaid/monthPortion*dim)):0;
+      if(daysCovered>0)paidUntilDate=new Date(ceYear,debtMonth,Math.min(daysCovered,dim));
+      qarzdorFromDate=new Date(ceYear,debtMonth,Math.min(daysCovered+1,dim));
+    }
+  }
   const activeCount=cRows.filter(r=>sc(r.status)==='A').length;
   const mrow=cRows[0]||qCRows[0];
   const firma=mrow?.['Firma nomi']||'';
@@ -85,19 +129,14 @@ function showClientCard(name){
   S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24'})});
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
-  // Status indicator: active until / qarzdor from
+  // Status indicator: active until / qarzdor from (based on cumExp same as MRR table)
   const endDatesAll=allClientCts.map(c=>c.endD).filter(Boolean);
   const activeUntil=endDatesAll.length?endDatesAll.reduce((a,b)=>a>b?a:b):null;
-  const lastPayDate=allPays.length>0?allPays[0].date:null;
-  // qarzdorFrom = first day of month after last payment; only show if that date is already in the past
-  const qarzdorFrom=kelQarz>0?(lastPayDate?new Date(lastPayDate.getFullYear(),lastPayDate.getMonth()+1,1):firstDate):null;
-  const isDebt=qarzdorFrom&&qarzdorFrom<=now;
-  // Paid until info
-  const paidUntilHtml=paidUntilDate?'<br><span style="font-size:10px;opacity:.8">To\'langan: '+fmtD(paidUntilDate)+' gacha</span>':'';
+  const isDebt=qarzdorFromDate&&qarzdorFromDate<=now;
   const statusHtml=isDebt
-    ?'<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFrom)+' dan</span>'
+    ?'<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'
     :activeUntil
-    ?'<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+fmtD(activeUntil)+' gacha'+paidUntilHtml+'</span>'
+    ?'<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+(paidUntilDate?fmtD(paidUntilDate):fmtD(activeUntil))+' gacha</span>'
     :'';
   // Colored delta helper
   const dlt=v=>v>0?'<span style="color:var(--green);font-size:9px;font-family:var(--mono);display:block">+'+fmt(v)+'</span>':v<0?'<span style="color:var(--red);font-size:9px;font-family:var(--mono);display:block">'+fmt(v)+'</span>':'';
