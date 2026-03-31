@@ -515,10 +515,22 @@ function mrrData(year){
         
         if(!act.length) continue;
         
-        // MRR for this month — include future contracts too
+        // MRR for this month — check which contracts are active on month-end date
         let dayMrr = 0;
         for(let i=0; i<act.length; i++) {
-            dayMrr += act[i].musd;
+            const ct = act[i];
+            if(ct.st <= mE && ct.endD >= mE) {
+                dayMrr += ct.musd;
+            }
+        }
+        // If no contract active on month-end (mid-month transition), check month-start
+        if(dayMrr===0){
+          for(let i=0; i<act.length; i++) {
+            const ct = act[i];
+            if(ct.st <= mS && ct.endD >= mS) {
+              dayMrr += ct.musd;
+            }
+          }
         }
         monthly[m] = dayMrr;
       }
