@@ -892,7 +892,7 @@ window.exportContracts=function(){
   if(!S.rows.length){showToast("Ma'lumot yo'q",'error');return}
   const pm=calcPayments();
   const rows=S.rows.map(r=>{
-    const p=pm[r.raqami]||{};
+    const p=pm[r.Client+'|'+r.raqami]||{};
     return{
       'Raqami':r.raqami||'',
       'Mijoz':r.Client||'',

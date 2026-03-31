@@ -313,7 +313,7 @@ function _dlRows(type){
   if(type==='contracts'){
     if(!S.rows.length)return null;
     const pm=calcPayments();
-    return S.rows.map(r=>{const p=pm[r.raqami]||{};return{'Raqami':r.raqami||'','Mijoz':r.Client||'','Firma':r['Firma nomi']||'','Hudud':r.Hudud||'','Menejer':r.Manager||'','Boshlanish':r.sanasi||'','Tugash':r['amal qilishi']||'','Oylik USD':Math.round(r._mUSD||0),'Jami USD':Math.round(r._sUSD||0),"To'langan":Math.round(p.total||0),'Qarz':Math.round((r._sUSD||0)-(p.total||0)),'Status':r.status||''}});
+    return S.rows.map(r=>{const p=pm[r.Client+'|'+r.raqami]||{};return{'Raqami':r.raqami||'','Mijoz':r.Client||'','Firma':r['Firma nomi']||'','Hudud':r.Hudud||'','Menejer':r.Manager||'','Boshlanish':r.sanasi||'','Tugash':r['amal qilishi']||'','Oylik USD':Math.round(r._mUSD||0),'Jami USD':Math.round(r._sUSD||0),"To'langan":Math.round(p.total||0),'Qarz':Math.round((r._sUSD||0)-(p.total||0)),'Status':r.status||''}});
   }
   if(type==='debts'){
     return calcDebtTable(S.debtDate||new Date()).map(r=>({'Mijoz':r.name,"Sh. qoldig'i":Math.round(r.qoldiq||0),'Oy oxiri qarzi':Math.round(r.oyQarz||0),'Kelishuv qarzi':Math.round(r.kelQarz||0)}));
