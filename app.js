@@ -740,11 +740,11 @@ function calcDataAudit(){
     });
 
     // 8. Qo'shimcha kelishuv sanasi shartnomadan mos kelmaydi
-    const mainByRaqami={};
-    S.rows.forEach(r=>{if(r.raqami&&r.Client){const en=pd(r['amal qilishi']);const st=pd(r.sanasi);if(en)mainByRaqami[r.raqami.trim()]={endD:en,st,client:r.Client,amal:r['amal qilishi']||''}}});
+    const mainByClientRaqami={};
+    S.rows.forEach(r=>{if(r.raqami&&r.Client){const en=pd(r['amal qilishi']);const st=pd(r.sanasi);if(en)mainByClientRaqami[r.Client.trim()+'|'+r.raqami.trim()]={endD:en,st,client:r.Client,amal:r['amal qilishi']||''}}});
     S.qRows.forEach(r=>{
       if(!r.Client||!r.raqami||!r.sanasi)return;
-      const main=mainByRaqami[r.raqami.trim()];
+      const main=mainByClientRaqami[r.Client.trim()+'|'+r.raqami.trim()];
       if(!main)return;
       const qEnd=pd(r['amal qilishi']);
       if(!qEnd)return;
