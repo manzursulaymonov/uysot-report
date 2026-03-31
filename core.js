@@ -222,9 +222,15 @@ function calcDebtTable(reportDate){
     const oyQarz=ce?Math.round(ce.cum[repMonth]-paid):Math.round(cl.totalSum-paid);
     const mainCts=cl.contracts.filter(c=>c.isMain&&c.musd>0);
     const anchor=mainCts.length?mainCts.reduce((a,c)=>c.st<a.st?c:a,mainCts[0]):cl.contracts.find(c=>c.musd>0);
-    let kelExp=0;cl.contracts.forEach(ct=>{kelExp+=ct.tUSD});
-    if(anchor){
-      const anchorPre=anchor.pre||1;const aM0=anchor.st.getFullYear()*12+anchor.st.getMonth();
+    const anchorPre=anchor?(anchor.pre||1):1;
+    let kelQarz;
+    if(anchorPre<=1){
+      // Prepayment 1 oy: kelQarz = oyQarz (bir xil logika)
+      kelQarz=oyQarz;
+    } else {
+      // Prepayment 2+ oy: billing-block logikasi
+      let kelExp=0;cl.contracts.forEach(ct=>{kelExp+=ct.tUSD});
+      const aM0=anchor.st.getFullYear()*12+anchor.st.getMonth();
       const rM=repMonthEnd.getFullYear()*12+repMonthEnd.getMonth();
       const blocksDue=Math.floor(Math.max(0,rM-aM0)/anchorPre)+1;
       const paidThroughM=aM0+blocksDue*anchorPre-1;
@@ -251,8 +257,8 @@ function calcDebtTable(reportDate){
           }
         }
       });
+      kelQarz=Math.round(kelExp-paid);
     }
-    const kelQarz=Math.round(kelExp-paid);
     const lastP=calcLastPayments();const lp=lastP[cl.name]||null;
     const payDay=anchor?anchor.st.getDate():null;
     if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:Math.round(cl.totalSum),paid:Math.round(paid),lastPay:lp,payDay});
