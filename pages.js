@@ -1099,9 +1099,11 @@ function rMoliya(){
   const now=new Date();
   const curMon=mos[now.getMonth()]+' '+now.getFullYear();
   let crRows='';
+  const capRate=S.inkassoCap!==false;
   cr.forEach(c=>{
-    const rateCol=c.rate>=90?'var(--green)':c.rate>=70?'var(--amber)':'var(--red)';
-    const barW=Math.min(100,c.rate);
+    const dispRate=capRate?Math.min(c.rate,100):c.rate;
+    const rateCol=dispRate>=90?'var(--green)':dispRate>=70?'var(--amber)':'var(--red)';
+    const barW=Math.min(100,dispRate);
     const deltaCol=c.delta>=0?'var(--green)':'var(--red)';
     crRows+=`<tr>
       <td style="font-weight:500">${cl(c.name)}</td>
@@ -1113,12 +1115,12 @@ function rMoliya(){
           <div style="flex:1;background:var(--border);border-radius:4px;height:8px">
             <div style="width:${barW}%;background:${rateCol};height:8px;border-radius:4px"></div>
           </div>
-          <span style="font-size:11px;font-weight:700;color:${rateCol};min-width:36px;text-align:right">${c.rate}%</span>
+          <span style="font-size:11px;font-weight:700;color:${rateCol};min-width:36px;text-align:right">${dispRate}%</span>
         </div>
       </td>
     </tr>`;
   });
-  const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+c.rate,0)/cr.length):0;
+  const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+(capRate?Math.min(c.rate,100):c.rate),0)/cr.length):0;
   const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
   const modeToggle=`<div style="display:flex;gap:2px;background:var(--bg3);border-radius:6px;padding:2px">
     <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
@@ -1129,6 +1131,7 @@ function rMoliya(){
       <span class="card-label">Inkasso (To'lov undiruvi) — ${curMon}</span>
       <div style="display:flex;gap:8px;align-items:center">
         ${modeToggle}
+        <button class="btn${capRate?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoCap=!S.inkassoCap;render()" title="100% dan oshmasin">Cap 100%</button>
         <span style="font-size:13px;font-weight:700;color:${avgRateCol}">${avgRate}% o'rtacha</span>
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'collection')" title="Yuklab olish">${_dlSvg}</button>
       </div>
