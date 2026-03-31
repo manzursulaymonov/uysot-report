@@ -927,19 +927,57 @@ function calcMrrForecast(){
 }
 
 // === INKASSO / COLLECTION RATE ===
-function calcCollectionRate(){
-  return cached('collRate_v2',()=>{
+function calcCollectionRate(mode){
+  mode=mode||S.inkassoMode||'oy';
+  return cached('collRate_v3_'+mode,()=>{
     const now=new Date();
+    const curM=now.getMonth();
     const cumExp=calcCumExpected(now.getFullYear());
     const pm=calcPayments();
     const clientPaid={};
     Object.values(pm).forEach(v=>{clientPaid[v.client]=(clientPaid[v.client]||0)+v.total});
+
+    // Shu oy davomida to'langan summani hisoblash
+    const monthPaid={};
+    const mS=new Date(now.getFullYear(),curM,1);
+    const addMonthPay=(rows,dateK,usdK)=>{
+      if(!rows)return;
+      rows.forEach(r=>{
+        const c=r.Client?.trim();if(!c)return;
+        const d=pd(r[dateK]);if(!d)return;
+        if(d>=mS&&d<=now){monthPaid[c]=(monthPaid[c]||0)+pn(r[usdK]||'0')}
+      });
+    };
+    addMonthPay(S.payRows,'sanasi','USD');
+    addMonthPay(S.y2024Rows,'sanasi','USD');
+
+    if(mode==='kelishuv'){
+      // Kelishuv bo'yicha: calcDebtTable dan
+      const dt=calcDebtTable(now);
+      return dt.map(d=>{
+        const mPaid=Math.round(monthPaid[d.name]||0);
+        const oyBoshi=d.kelQarz+mPaid; // oy boshida qarz = hozirgi qarz + shu oyda to'langan
+        if(oyBoshi<100)return null;
+        const rate=oyBoshi>0?Math.round(mPaid/oyBoshi*100):0;
+        return{name:d.name,expected:oyBoshi,paid:mPaid,rate,delta:mPaid-oyBoshi};
+      }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
+    }
+
+    // Oy oxiri: cumExp dan
     return Object.entries(cumExp).map(([name,data])=>{
-      const expected=Math.round(data.cum[now.getMonth()]||0);
+      const cumCur=data.cum[curM]||0;
+      const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
+      const totalPaid=clientPaid[name]||0;
+      const mPaid=Math.round(monthPaid[name]||0);
+      // Oy boshidagi qarz = oldingi oy oxiri kutilgan - jami to'langan + shu oy to'lovini qaytarish
+      const oyBoshiQarz=Math.round(cumPrev-totalPaid+mPaid);
+      // Shu oy kutilgani
+      const oyKutilgan=Math.round(cumCur-cumPrev);
+      // Oy boshidagi qarz + shu oy kutilgani
+      const expected=Math.max(0,oyBoshiQarz+oyKutilgan);
       if(expected<100)return null;
-      const paid=Math.round(clientPaid[name]||0);
-      const rate=expected>0?Math.round(paid/expected*100):0;
-      return{name,expected,paid,rate,delta:paid-expected};
+      const rate=expected>0?Math.round(mPaid/expected*100):0;
+      return{name,expected,paid:mPaid,rate,delta:mPaid-expected};
     }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
   });
 }

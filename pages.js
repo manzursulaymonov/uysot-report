@@ -1093,11 +1093,12 @@ function rMoliya(){
   </div>`;
 
   // === Collection Rate ===
-  const cr=calcCollectionRate();
+  const inkMode=S.inkassoMode||'oy';
+  const cr=calcCollectionRate(inkMode);
   const now=new Date();
   const curMon=mos[now.getMonth()]+' '+now.getFullYear();
   let crRows='';
-  cr.slice(0,50).forEach(c=>{
+  cr.forEach(c=>{
     const rateCol=c.rate>=90?'var(--green)':c.rate>=70?'var(--amber)':'var(--red)';
     const barW=Math.min(100,c.rate);
     const deltaCol=c.delta>=0?'var(--green)':'var(--red)';
@@ -1118,18 +1119,23 @@ function rMoliya(){
   });
   const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+c.rate,0)/cr.length):0;
   const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
+  const modeToggle=`<div style="display:flex;gap:2px;background:var(--bg3);border-radius:6px;padding:2px">
+    <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
+    <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Kelishuv</button>
+  </div>`;
   const crSection=`<div class="card">
     <div class="card-head">
       <span class="card-label">Inkasso (To'lov undiruvi) — ${curMon}</span>
       <div style="display:flex;gap:8px;align-items:center">
+        ${modeToggle}
         <span style="font-size:13px;font-weight:700;color:${avgRateCol}">${avgRate}% o'rtacha</span>
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'collection')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
     <div class="card-body" style="padding:0">
       ${cr.length?`<div class="tbl-scroll"><table><thead><tr>
-        <th>Mijoz</th><th class="text-r" title="Shartnoma bo'yicha kutilgan to'lovlar (yil boshidan)">Kutilgan</th>
-        <th class="text-r" title="Haqiqiy to'langan summa">To'langan</th>
+        <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
+        <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
         <th class="text-r">Farq</th><th>Undiruv darajasi</th>
       </tr></thead><tbody>${crRows}</tbody></table></div>
       <div style="padding:12px 16px;font-size:11px;color:var(--text3);border-top:1px solid var(--border)">
