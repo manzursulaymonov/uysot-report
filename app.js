@@ -969,9 +969,10 @@ function calcCollectionRate(mode){
       return dt.map(d=>{
         const mPaid=Math.round(monthPaid[d.name]||0);
         const oyBoshi=d.kelQarz+mPaid; // oy boshida qarz = hozirgi qarz + shu oyda to'langan
-        if(oyBoshi<100)return null;
-        const rate=oyBoshi>0?Math.round(mPaid/oyBoshi*100):0;
-        return{name:d.name,expected:oyBoshi,paid:mPaid,rate,delta:mPaid-oyBoshi};
+        const expected=Math.max(0,oyBoshi);
+        if(expected<1)return null;
+        const rate=expected>0?Math.round(mPaid/expected*100):0;
+        return{name:d.name,expected,paid:mPaid,rate,delta:mPaid-expected};
       }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
     }
 
@@ -981,13 +982,14 @@ function calcCollectionRate(mode){
       const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
       const totalPaid=clientPaid[name]||0;
       const mPaid=Math.round(monthPaid[name]||0);
-      // Oy boshidagi qarz = oldingi oy oxiri kutilgan - jami to'langan + shu oy to'lovini qaytarish
-      const oyBoshiQarz=Math.round(cumPrev-totalPaid+mPaid);
+      // Oy boshidagi qarz (oldingi oygacha kutilgan - oy boshigacha to'langan)
+      const paidBeforeMonth=totalPaid-mPaid; // shu oydan oldin to'langan
+      const oyBoshiQarz=Math.round(cumPrev-paidBeforeMonth);
       // Shu oy kutilgani
       const oyKutilgan=Math.round(cumCur-cumPrev);
-      // Oy boshidagi qarz + shu oy kutilgani
+      // Agar oy boshida ortiqcha to'langan bo'lsa, kutilgandan ayirish
       const expected=Math.max(0,oyBoshiQarz+oyKutilgan);
-      if(expected<100)return null;
+      if(expected<1)return null;
       const rate=expected>0?Math.round(mPaid/expected*100):0;
       return{name,expected,paid:mPaid,rate,delta:mPaid-expected};
     }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
