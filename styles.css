@@ -726,10 +726,8 @@ select.flt:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px r
   .client-kpi-grid{grid-template-columns:repeat(2,1fr)!important}
   .client-kpi-grid2{grid-template-columns:repeat(2,1fr)!important}
   .client-detail-grid{grid-template-columns:1fr!important}
-  .pay-tbl{table-layout:fixed;width:100%}
-  .pay-tbl th:first-child,.pay-tbl td:first-child{width:70px}
-  .pay-tbl th:last-child,.pay-tbl td:last-child{width:80px}
-  .pay-tbl td:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0}
+  .client-detail-grid>div{min-width:0;max-width:100%;overflow:hidden}
+  .pay-tbl td:nth-child(2){word-break:break-word}
 }
 
 /* === SCROLLBAR STYLING === */

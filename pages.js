@@ -174,7 +174,8 @@ function showClientCard(name){
   // MRR 12-month trend
   const cid='cc'+Date.now();
   const UZ_MON=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
-  const mLabel=d=>d.getFullYear()+' '+UZ_MON[d.getMonth()];
+  const UZ_MON_S=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+  const mLabel=d=>_isM?(UZ_MON_S[d.getMonth()]+" '"+String(d.getFullYear()%100)):(d.getFullYear()+' '+UZ_MON[d.getMonth()]);
   const mrrL=[],mrrV=[];
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const s2=mrrOnDate(d,all,qAll);const v=s2.contracts.filter(c=>c.client===n).reduce((a,c)=>a+c.musd,0);mrrL.push(mLabel(d));mrrV.push(Math.round(v));}
   // Payment monthly trend
@@ -203,7 +204,7 @@ function showClientCard(name){
     +'<button onclick="this.closest(\'.overlay\').remove()" style="background:none;border:none;font-size:26px;cursor:pointer;color:var(--text3);line-height:1;padding:0 0 0 16px;flex-shrink:0">×</button>'
     +'</div>'
     // Body
-    +'<div style="overflow-y:auto;flex:1;padding:18px 24px">'
+    +'<div style="overflow-y:auto;flex:1;padding:18px;padding-left:'+(_isM?'12px':'24px')+';padding-right:'+(_isM?'12px':'24px')+'">'
     // Row 1: 4 main metric cards
     +'<div class="client-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'
     +'<div style="background:var(--accent-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--accent)">'
@@ -245,7 +246,7 @@ function showClientCard(name){
     // Two-column layout: left=tables, right=charts
     +'<div class="client-detail-grid" style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">'
     // LEFT column
-    +'<div>'
+    +'<div style="min-width:0;overflow:hidden">'
     // Health strip
     +(health?'<div style="display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--bg3);border-radius:8px;margin-bottom:14px;font-size:12px;flex-wrap:wrap">'
     +'<span>Sog\'liq: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
@@ -272,21 +273,21 @@ function showClientCard(name){
     +'</div>'
     +'</div>'
     // RIGHT column: charts
-    +'<div style="display:flex;flex-direction:column;gap:14px;min-width:0">'
+    +'<div style="display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">'
     // MRR bar chart
-    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:hidden">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:hidden">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">MRR dinamikasi (12 oy)</div>'
-    +'<div style="position:relative;height:140px;max-width:100%"><canvas id="'+cid+'_mrr"></canvas></div>'
+    +'<div style="position:relative;height:140px;width:100%"><canvas id="'+cid+'_mrr"></canvas></div>'
     +'</div>'
     // Payment trend bar chart
-    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:hidden">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:hidden">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">To\'lovlar trendi (12 oy)</div>'
-    +'<div style="position:relative;height:140px;max-width:100%"><canvas id="'+cid+'_trend"></canvas></div>'
+    +'<div style="position:relative;height:140px;width:100%"><canvas id="'+cid+'_trend"></canvas></div>'
     +'</div>'
     // Payment type donut
-    +(dtLabels.length?'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:hidden">'
+    +(dtLabels.length?'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:hidden">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">To\'lov turlari</div>'
-    +'<div style="position:relative;height:160px;max-width:100%"><canvas id="'+cid+'_pay"></canvas></div>'
+    +'<div style="position:relative;height:160px;width:100%"><canvas id="'+cid+'_pay"></canvas></div>'
     +'</div>':'')
     +'</div>'
     +'</div>'
