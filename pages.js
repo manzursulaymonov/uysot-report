@@ -55,7 +55,9 @@ function showClientCard(name,cur){
   const cRows=S.rows.filter(r=>r.Client?.trim()===n);
   const qCRows=S.qRows.filter(r=>r.Client?.trim()===n);
   const pm=isUZS?calcPaymentsUZS():calcPayments();
+  const pmUSD=calcPayments(); // always USD for debt/status calculations
   let totalPaid=0;Object.values(pm).forEach(v=>{if(v.client===n)totalPaid+=v.total});
+  let totalPaidUSD=0;Object.values(pmUSD).forEach(v=>{if(v.client===n)totalPaidUSD+=v.total});
   const totalSum=cRows.reduce((s,r)=>s+(isUZS?(r._sUZS||0):(r._sUSD||0)),0)+qCRows.reduce((s,r)=>s+(isUZS?pn(r['sum UZS']||'0'):(r._sUSD||0)),0);
   const {all,qAll}=buildContracts();const now=new Date();
   // For future contracts, also check future date
@@ -72,12 +74,18 @@ function showClientCard(name,cur){
   const futureMrrUZS=isUZS?cRows.filter(r=>{const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return false;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);return st<=latestEnd&&endD>=latestEnd&&(r._mUZS||0)>0}).reduce((s,r)=>s+(r._mUZS||0),0):0;
   const activeMrr=isUZS?(curMrrUZS||futureMrrUZS):(curMrrUSD||futureMrrUSD);
   const debtRow=calcDebtTable(now).find(r=>r.name===n);
-  const oyQarz=debtRow?.oyQarz||0,kelQarz=debtRow?.kelQarz||0;
+  const oyQarzUSD=debtRow?.oyQarz||0,kelQarzUSD=debtRow?.kelQarz||0;
+  // UZS qoldiq = jami UZS - to'langan UZS (oddiy hisob)
+  const totalSumUZS=cRows.reduce((s,r)=>s+(r._sUZS||0),0)+qCRows.reduce((s,r)=>s+pn(r['sum UZS']||'0'),0);
+  let totalPaidUZSVal=0;Object.values(calcPaymentsUZS()).forEach(v=>{if(v.client===n)totalPaidUZSVal+=v.total});
+  const qoldiqUZS=Math.round(totalSumUZS-totalPaidUZSVal);
+  const oyQarz=isUZS?qoldiqUZS:oyQarzUSD;
+  const kelQarz=isUZS?qoldiqUZS:kelQarzUSD;
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
   const firstDate=allDates.length?allDates.reduce((a,b)=>a<b?a:b):null;
   const tenureM=firstDate?Math.round((now-firstDate)/(30.44*86400000)):0;
-  // Qarzdor from: use shared _findQarzdorDate (same logic as AR Aging)
-  const qarzdorFromDate=_findQarzdorDate(n,totalPaid);
+  // Qarzdor from: always use USD (same logic as AR Aging)
+  const qarzdorFromDate=_findQarzdorDate(n,totalPaidUSD);
   // Paid until: one day before qarzdor starts
   let paidUntilDate=qarzdorFromDate?new Date(qarzdorFromDate.getTime()-864e5):null;
   // Cap paidUntilDate at contract end date
@@ -100,7 +108,7 @@ function showClientCard(name,cur){
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
   // Status indicator: active / qarzdor / churn / kutilmoqda
-  const hasDebt=oyQarz>0||kelQarz>0;
+  const hasDebt=oyQarzUSD>0||kelQarzUSD>0;
   const isDebt=qarzdorFromDate&&qarzdorFromDate<=now&&hasDebt;
   const daysSinceEnd=isChurn?Math.round((now-activeUntil)/864e5):0;
   const isGrace=isChurn&&daysSinceEnd<=7; // 7 kun ichida yangi kelishuv kutilmoqda
