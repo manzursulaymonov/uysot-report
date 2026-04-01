@@ -717,6 +717,16 @@ select.flt:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px r
   .metrics{grid-template-columns:1fr}
   .modal{padding:20px;border-radius:var(--radius)}
 }
+/* Client card modal responsive */
+@media(max-width:768px){
+  .modal{width:100vw!important;max-width:100vw!important;max-height:100vh!important;border-radius:0!important;margin:0}
+  .overlay{align-items:stretch}
+}
+@media(max-width:600px){
+  .client-kpi-grid{grid-template-columns:repeat(2,1fr)!important}
+  .client-kpi-grid2{grid-template-columns:repeat(2,1fr)!important}
+  .client-detail-grid{grid-template-columns:1fr!important}
+}
 
 /* === SCROLLBAR STYLING === */
 ::-webkit-scrollbar{width:6px;height:6px}

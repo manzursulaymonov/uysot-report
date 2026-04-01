@@ -57,11 +57,15 @@ function showClientCard(name){
   // For future contracts, also check future date
   const allClientCts=all.concat(qAll).filter(c=>c.client===n);
   const latestEnd=allClientCts.length?allClientCts.reduce((a,b)=>b.endD>a.endD?b:a).endD:now;
-  const snapDt=latestEnd>now?latestEnd:now;
-  const snap=mrrOnDate(snapDt,all,qAll);
-  const curMrr=snap.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
-  // Also get MRR from current or nearest future active contract
-  const activeMrr=curMrr||allClientCts.filter(c=>c.musd>0).reduce((s,c)=>s+c.musd,0);
+  // Current MRR: only contracts active RIGHT NOW
+  const snapNow=mrrOnDate(now,all,qAll);
+  const curMrr=snapNow.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
+  // For future contracts, get their MRR too
+  const snapFuture=latestEnd>now?mrrOnDate(latestEnd,all,qAll):snapNow;
+  const futureMrr=snapFuture.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
+  const activeMrr=curMrr||futureMrr;
+  // Churn detection: all contracts ended
+  const isChurn=allClientCts.length>0&&latestEnd<now;
   const debtRow=calcDebtTable(now).find(r=>r.name===n);
   const oyQarz=debtRow?.oyQarz||0,kelQarz=debtRow?.kelQarz||0;
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
@@ -78,6 +82,7 @@ function showClientCard(name){
   const activeCount=cRows.filter(r=>sc(r.status)==='A').length;
   const mrow=cRows[0]||qCRows[0];
   const firma=mrow?.['Firma nomi']||'';
+  const inn=mrow?.INN||'';
   const mgr=mrow?.Manager||'';
   const hudud=mrow?.Hudud||'';
   const health=calcClientHealth().find(c=>c.name===n);
@@ -87,13 +92,18 @@ function showClientCard(name){
   S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
-  // Status indicator: active until / qarzdor from (based on cumExp same as MRR table)
-  const isDebt=qarzdorFromDate&&qarzdorFromDate<=now;
-  const statusHtml=isDebt
-    ?'<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'
-    :activeUntil
-    ?'<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+(paidUntilDate?fmtD(paidUntilDate):fmtD(activeUntil))+' gacha</span>'
-    :'';
+  // Status indicator: active / qarzdor / churn
+  const hasDebt=oyQarz>0||kelQarz>0;
+  const isDebt=qarzdorFromDate&&qarzdorFromDate<=now&&hasDebt;
+  const churnBadge=isChurn?'<span style="display:inline-flex;align-items:center;background:rgba(107,114,128,0.1);border:1px solid rgba(107,114,128,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--text3)">CHURN</span>':'';
+  let statusHtml='';
+  if(isDebt){
+    statusHtml='<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'+churnBadge;
+  } else if(isChurn){
+    statusHtml=churnBadge;
+  } else if(activeUntil){
+    statusHtml='<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+(paidUntilDate?fmtD(paidUntilDate):fmtD(activeUntil))+' gacha</span>';
+  }
   // Colored delta helper
   const dlt=v=>v>0?'<span style="color:var(--green);font-size:9px;font-family:var(--mono);display:block">+'+fmt(v)+'</span>':v<0?'<span style="color:var(--red);font-size:9px;font-family:var(--mono);display:block">'+fmt(v)+'</span>':'';
   const qByRaqami={};qCRows.forEach(r=>{const aq=r.raqami||'_';if(!qByRaqami[aq])qByRaqami[aq]=[];qByRaqami[aq].push(r)});
@@ -181,7 +191,7 @@ function showClientCard(name){
     +'<div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">'
     +'<span style="font-weight:700;font-size:20px">'+n+'</span>'+hBadge+statusHtml+'</div>'
     +'<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3)">'
-    +(firma?'<span>🏢 '+firma+'</span>':'')
+    +(firma?'<span>🏢 '+firma+(inn?' <span style="font-family:var(--mono);color:var(--text2);font-size:11px">INN: '+inn+'<button onclick="navigator.clipboard.writeText(\''+inn+'\');showToast(\'INN nusxalandi\',\'success\')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0 0 0 3px;font-size:11px" title="Nusxalash">📋</button></span>':'')+'</span>':'')
     +(hudud?'<span>📍 '+hudud+'</span>':'')
     +(mgr?'<span>👤 '+mgr+'</span>':'')
     +(firstDate?'<span>📅 '+fmtD(firstDate)+' dan beri · '+tenureM+' oy</span>':'')
@@ -191,11 +201,11 @@ function showClientCard(name){
     // Body
     +'<div style="overflow-y:auto;flex:1;padding:18px 24px">'
     // Row 1: 4 main metric cards
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'
+    +'<div class="client-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'
     +'<div style="background:var(--accent-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--accent)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Joriy MRR</div>'
-    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--accent)">'+(activeMrr?fmt(activeMrr)+' $':'—')+'</div>'
-    +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+activeCount+' aktiv shartnoma</div></div>'
+    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--accent)">'+(isChurn?'0 $':activeMrr?fmt(activeMrr)+' $':'—')+'</div>'
+    +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+(isChurn?'churn':activeCount+' aktiv shartnoma')+'</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--green)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Jami shartnoma</div>'
     +'<div class="mono" style="font-size:22px;font-weight:700">'+fmt(totalSum)+' $</div>'
@@ -210,7 +220,7 @@ function showClientCard(name){
     +(oyQarz>0?'<div style="font-size:10px;color:var(--amber);margin-top:2px">Oy oxiri: '+fmt(oyQarz)+' $</div>':'<div style="font-size:10px;color:var(--text3);margin-top:2px">Oy oxiri ham to\'liq</div>')
     +'</div></div>'
     // Row 2: 4 mini KPI cards
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
+    +'<div class="client-kpi-grid2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
     +'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:3px">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Sog\'liq balli</div>'
     +'<div class="mono" style="font-size:17px;font-weight:700;color:'+(health?(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)'):'var(--text3)')+'">'+( health?health.score+'/100':'—')+'</div>'
@@ -229,7 +239,7 @@ function showClientCard(name){
     +'<div style="font-size:10px;color:var(--text3)">o\'rtacha to\'lov / oy</div></div>'
     +'</div>'
     // Two-column layout: left=tables, right=charts
-    +'<div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">'
+    +'<div class="client-detail-grid" style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">'
     // LEFT column
     +'<div>'
     // Health strip
