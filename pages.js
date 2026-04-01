@@ -723,7 +723,8 @@ if(view==='muddatlar'){
     if(!rnMap[name].inn&&r.INN)rnMap[name].inn=r.INN;
     if(en<rnMap[name].endDate){rnMap[name].endDate=en;rnMap[name].mgr=r.Manager||''}
   });
-  const rnAll=Object.values(rnMap).map(c=>({...c,daysLeft:Math.round((c.endDate-now)/864e5)})).filter(c=>c.daysLeft<=7&&c.daysLeft>=-7).sort((a,b)=>a.daysLeft-b.daysLeft);
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const rnAll=Object.values(rnMap).map(c=>({...c,daysLeft:Math.round((c.endDate-today)/864e5)})).filter(c=>c.daysLeft<=7&&c.daysLeft>=-7).sort((a,b)=>a.daysLeft-b.daysLeft);
   const ctExp=rnAll.filter(r=>r.daysLeft<0).length,ctAhead=rnAll.filter(r=>r.daysLeft>=0).length;
   h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--amber)"></span>Muddat Kalendari (±7 kun) — <span style="color:var(--green);font-weight:700">${ctAhead}</span> tugayotgan${ctExp?` / <span style="color:var(--text3)">${ctExp} tugagan</span>`:''}</span></div>
   <div class="card-body dash-new-full" style="padding:0"><div class="tbl-scroll" style="max-height:calc(100vh - 220px)"><table><thead><tr><th>Mijoz</th><th class="col-hide">Firma</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th><th class="text-r">Qoldi</th></tr></thead><tbody>`;
