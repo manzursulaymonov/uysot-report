@@ -49,7 +49,7 @@ function cl(n){if(!n)return'—';const s=JSON.stringify(n).replace(/"/g,'&quot;'
 function showClientCard(name,cur){
   const n=name.trim();
   const isUZS=(cur||S._cardCur||'usd')==='uzs';
-  const ccy=isUZS?'so\'m':'$';
+  const ccy=isUZS?'':'$';
   const ccyKey=isUZS?'uzs':'usd';
   S._cardCur=ccyKey;
   const cRows=S.rows.filter(r=>r.Client?.trim()===n);
@@ -221,7 +221,7 @@ function showClientCard(name,cur){
     return'<tr style="cursor:default" title="'+tip+'">'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+dateDisp+'</td>'
       +'<td style="font-size:11.5px">'+detail+subHtml+'</td>'
-      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+(isUZS?fmt(p.uzs)+' so\'m':fmt(p.usd)+' $')+'</td>'
+      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(isUZS?p.uzs:p.usd)+(isUZS?'':' $')+'</td>'
       +'</tr>';
   }).join('');
   const dC=kelQarz>0?'var(--red)':kelQarz<0?'var(--amber)':'var(--green)';
@@ -262,16 +262,18 @@ function showClientCard(name,cur){
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   o.innerHTML='<div class="modal" style="padding:0;width:min(98vw,1160px);max-height:96vh;display:flex;flex-direction:column">'
     // Header
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:18px 24px;border-bottom:1px solid var(--border);flex-shrink:0">'
-    +'<div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">'
-    +'<span style="font-weight:700;font-size:20px">'+n+'</span>'+curToggle+hBadge+statusHtml+'</div>'
-    +'<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3)">'
-    +(firma?'<span>🏢 '+firma+(inn?' <span style="font-family:var(--mono);color:var(--text2);font-size:11px">INN: '+inn+'<button onclick="navigator.clipboard.writeText(\''+inn+'\');showToast(\'INN nusxalandi\',\'success\')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0 0 0 3px;font-size:11px" title="Nusxalash">📋</button></span>':'')+'</span>':'')
+    +'<div style="padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700;font-size:18px">'+n+'</span>'+curToggle+statusHtml+'</div>'
+    +'<button onclick="this.closest(\'.overlay\').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text3);line-height:1;padding:0;flex-shrink:0">×</button>'
+    +'</div>'
+    +'<div class="col-hide" style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text3)">'
+    +(firma?'<span>🏢 '+firma+(inn?' <span style="font-family:var(--mono);color:var(--text2);font-size:10px">INN: '+inn+'<button onclick="navigator.clipboard.writeText(\''+inn+'\');showToast(\'Nusxalandi\',\'success\')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0 0 0 3px;font-size:10px" title="Nusxalash">📋</button></span>':'')+'</span>':'')
     +(hudud?'<span>📍 '+hudud+'</span>':'')
     +(mgr?'<span>👤 '+mgr+'</span>':'')
-    +(firstDate?'<span>📅 '+fmtD(firstDate)+' dan beri · '+tenureM+' oy</span>':'')
-    +'</div></div>'
-    +'<button onclick="this.closest(\'.overlay\').remove()" style="background:none;border:none;font-size:26px;cursor:pointer;color:var(--text3);line-height:1;padding:0 0 0 16px;flex-shrink:0">×</button>'
+    +(firstDate?'<span>📅 '+fmtD(firstDate)+' · '+tenureM+' oy</span>':'')
+    +hBadge
+    +'</div>'
     +'</div>'
     // Body
     +'<div style="overflow-y:auto;flex:1;padding:18px;padding-left:'+(_isM?'12px':'24px')+';padding-right:'+(_isM?'12px':'24px')+'">'
@@ -337,7 +339,7 @@ function showClientCard(name,cur){
     +'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">To\'lovlar tarixi'+(allPays.length>50?' (so\'nggi 50 ta)':' ('+allPays.length+' ta)')+'</div>'
     +(payHtml?'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">'
     +'<div style="max-height:220px;overflow-y:auto">'
-    +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">'+(isUZS?'UZS':'USD')+'</th></tr></thead>'
+    +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">'+(isUZS?'Summa':'USD')+'</th></tr></thead>'
     +'<tbody>'+payHtml+'</tbody></table></div></div>'
     :'<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">To\'lovlar tarixi mavjud emas</div>')
     +'</div>'
@@ -370,7 +372,7 @@ function showClientCard(name,cur){
     const txtC=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.45)';
     const accentC=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#1746a2';
     const tealC=getComputedStyle(document.documentElement).getPropertyValue('--teal').trim()||'#0d9488';
-    const ccySym=isUZS?'so\'m':'$';
+    const ccySym=isUZS?'UZS':'$';
     const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.parsed.y||ctx.parsed||0)+' '+ccySym}}},scales:{x:{grid:{color:gridC},ticks:{color:txtC,font:{size:9},maxRotation:45}},y:{grid:{color:gridC},ticks:{color:txtC,font:{size:9},callback:v=>fmt(v)}}}};
     const mEl=document.getElementById(cid+'_mrr');
     if(mEl)new Chart(mEl,{type:'bar',data:{labels:mrrL,datasets:[{data:mrrV,backgroundColor:accentC+'99',borderColor:accentC,borderWidth:1.5,borderRadius:4}]},options:opts});
