@@ -267,13 +267,12 @@ function showClientCard(name,cur){
     +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700;font-size:18px">'+n+'</span>'+curToggle+statusHtml+'</div>'
     +'<button onclick="this.closest(\'.overlay\').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text3);line-height:1;padding:0;flex-shrink:0">×</button>'
     +'</div>'
-    +'<div class="col-hide" style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text3)">'
+    +(_isM?'':'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text3)">'
     +(firma?'<span>🏢 '+firma+(inn?' <span style="font-family:var(--mono);color:var(--text2);font-size:10px">INN: '+inn+'<button onclick="navigator.clipboard.writeText(\''+inn+'\');showToast(\'Nusxalandi\',\'success\')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0 0 0 3px;font-size:10px" title="Nusxalash">📋</button></span>':'')+'</span>':'')
     +(hudud?'<span>📍 '+hudud+'</span>':'')
     +(mgr?'<span>👤 '+mgr+'</span>':'')
     +(firstDate?'<span>📅 '+fmtD(firstDate)+' · '+tenureM+' oy</span>':'')
-    +hBadge
-    +'</div>'
+    +'</div>')
     +'</div>'
     // Body
     +'<div style="overflow-y:auto;flex:1;padding:18px;padding-left:'+(_isM?'12px':'24px')+';padding-right:'+(_isM?'12px':'24px')+'">'
