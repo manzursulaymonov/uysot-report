@@ -75,12 +75,43 @@ function showClientCard(name,cur){
   const activeMrr=isUZS?(curMrrUZS||futureMrrUZS):(curMrrUSD||futureMrrUSD);
   const debtRow=calcDebtTable(now).find(r=>r.name===n);
   const oyQarzUSD=debtRow?.oyQarz||0,kelQarzUSD=debtRow?.kelQarz||0;
-  // UZS qoldiq = jami UZS - to'langan UZS (oddiy hisob)
-  const totalSumUZS=cRows.reduce((s,r)=>s+(r._sUZS||0),0)+qCRows.reduce((s,r)=>s+pn(r['sum UZS']||'0'),0);
-  let totalPaidUZSVal=0;Object.values(calcPaymentsUZS()).forEach(v=>{if(v.client===n)totalPaidUZSVal+=v.total});
-  const qoldiqUZS=Math.round(totalSumUZS-totalPaidUZSVal);
-  const oyQarz=isUZS?qoldiqUZS:oyQarzUSD;
-  const kelQarz=isUZS?qoldiqUZS:kelQarzUSD;
+  // UZS debt: same cumExp logic but with UZS fields
+  let oyQarzUZS=0,kelQarzUZS=0;
+  if(isUZS){
+    const ceUZS=calcCumExpectedUZS(now.getFullYear());
+    const ceData=ceUZS[n];
+    const pmUZSall=calcPaymentsUZS();
+    let paidUZSTotal=0;Object.values(pmUZSall).forEach(v=>{if(v.client===n)paidUZSTotal+=v.total});
+    if(ceData){
+      oyQarzUZS=Math.round(ceData.cum[now.getMonth()]-paidUZSTotal);
+    }
+    // kelQarz UZS: for prepayment=1, same as oyQarz; for 2+, use billing-block
+    const mainCts=cRows.filter(r=>(r._mUZS||0)>0).sort((a,b)=>(pd(a.sanasi)||0)-(pd(b.sanasi)||0));
+    const anchor=mainCts[0];
+    const anchorPre=anchor?(anchor._pre||1):1;
+    if(anchorPre<=1){
+      kelQarzUZS=oyQarzUZS;
+    } else if(ceData){
+      // Billing-block: find paidThroughM then cumExp at that month
+      const repM=now.getMonth();
+      const anchorSt=pd(anchor.sanasi);
+      if(anchorSt){
+        const aM0=anchorSt.getFullYear()*12+anchorSt.getMonth();
+        const rM=now.getFullYear()*12+repM;
+        const blocksDue=Math.floor(Math.max(0,rM-aM0)/anchorPre)+1;
+        const paidThroughM=aM0+blocksDue*anchorPre-1;
+        const ptMonth=paidThroughM%12;
+        const ptYear=Math.floor(paidThroughM/12);
+        // Get cumExp at paidThroughM
+        const ceTarget=ptYear===now.getFullYear()?ceData.cum[ptMonth]:(ptYear<now.getFullYear()?ceData.preYear:ceData.cum[11]);
+        kelQarzUZS=Math.round((ceTarget||0)-paidUZSTotal);
+      } else {
+        kelQarzUZS=oyQarzUZS;
+      }
+    }
+  }
+  const oyQarz=isUZS?oyQarzUZS:oyQarzUSD;
+  const kelQarz=isUZS?kelQarzUZS:kelQarzUSD;
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
   const firstDate=allDates.length?allDates.reduce((a,b)=>a<b?a:b):null;
   const tenureM=firstDate?Math.round((now-firstDate)/(30.44*86400000)):0;
