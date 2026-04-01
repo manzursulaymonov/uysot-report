@@ -2,7 +2,7 @@
   "name": "UYSOT Shartnomalar CRM",
   "short_name": "UYSOT",
   "description": "Shartnomalar CRM Dashboard — MRR, mijozlar, qarzdorlik tahlili",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f5f3ef",
   "theme_color": "#1746a2",
