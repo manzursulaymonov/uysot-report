@@ -64,8 +64,6 @@ function showClientCard(name){
   const snapFuture=latestEnd>now?mrrOnDate(latestEnd,all,qAll):snapNow;
   const futureMrr=snapFuture.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
   const activeMrr=curMrr||futureMrr;
-  // Churn detection: all contracts ended
-  const isChurn=allClientCts.length>0&&latestEnd<now;
   const debtRow=calcDebtTable(now).find(r=>r.name===n);
   const oyQarz=debtRow?.oyQarz||0,kelQarz=debtRow?.kelQarz||0;
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
@@ -79,6 +77,8 @@ function showClientCard(name){
   const endDatesAll=allClientCts.map(c=>c.endD).filter(Boolean);
   const activeUntil=endDatesAll.length?endDatesAll.reduce((a,b)=>a>b?a:b):null;
   if(paidUntilDate&&activeUntil&&paidUntilDate>activeUntil)paidUntilDate=activeUntil;
+  // Churn detection: all contracts ended before today
+  const isChurn=activeUntil&&activeUntil<now;
   const activeCount=cRows.filter(r=>sc(r.status)==='A').length;
   const mrow=cRows[0]||qCRows[0];
   const firma=mrow?.['Firma nomi']||'';
@@ -101,7 +101,7 @@ function showClientCard(name){
     statusHtml='<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'+churnBadge;
   } else if(isChurn){
     statusHtml=churnBadge;
-  } else if(activeUntil){
+  } else if(activeUntil&&activeUntil>=now){
     statusHtml='<span style="display:inline-flex;align-items:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--green)"><span class="status-dot active"></span>AKTIV · '+(paidUntilDate?fmtD(paidUntilDate):fmtD(activeUntil))+' gacha</span>';
   }
   // Colored delta helper
