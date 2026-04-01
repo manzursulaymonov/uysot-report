@@ -777,7 +777,6 @@ function calcDataAudit(){
     });
 
     // 9. Valyuta farqi — USD va UZS qoldiqlarni solishtirish
-    const pm=calcPayments();
     S.rows.forEach(r=>{
       if(!r.Client||!r.raqami)return;
       const k=r.Client+'|'+r.raqami;
