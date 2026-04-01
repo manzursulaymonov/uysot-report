@@ -137,11 +137,15 @@ function showClientCard(name){
       +'<td class="text-r mono" style="font-size:11px;color:'+cv(ssum)+'">'+fmt(ssum)+'</td>'
       +'</tr>';
   }).join('');
+  const _isM=window.innerWidth<=600;
   const payHtml=allPays.slice(0,50).map(p=>{
+    // Mobile: short date (13.03.26), Desktop: full (13.03.2026)
+    const dShort=p.date?p.date.getDate().toString().padStart(2,'0')+'.'+String(p.date.getMonth()+1).padStart(2,'0')+'.'+String(p.date.getFullYear()%100).padStart(2,'0'):'—';
+    const dFull=p.dateStr||'—';
+    const dateDisp=_isM?dShort:dFull;
     const origNum=pn(p.origSum||'0');
     const isUZS=p.valyuta==='UZS'||p.valyuta==='SUM';
     const kurs=isUZS&&origNum>0&&p.usd>0?Math.round(origNum/p.usd):null;
-    const kursUZS=!isUZS&&p.usd>0?null:null; // USD to'lov uchun kurs yo'q
     let detail=tl(p.type);
     if(p.kassa)detail+=' ('+p.kassa+')';
     if(p.src==='y24')detail+=' <span style="font-size:9px;color:var(--text3)">[2024]</span>';
@@ -161,7 +165,7 @@ function showClientCard(name){
       subHtml='<div style="font-size:9.5px;color:var(--text3);margin-top:1px">'+fmt(origNum)+' so\'m'+(kurs?' · 1$='+fmt(kurs):'')+'</div>';
     }
     return'<tr style="cursor:default" title="'+tip+'">'
-      +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(p.dateStr||'—')+'</td>'
+      +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+dateDisp+'</td>'
       +'<td style="font-size:11.5px">'+detail+subHtml+'</td>'
       +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(p.usd)+' $</td>'
       +'</tr>';
@@ -262,27 +266,27 @@ function showClientCard(name){
     +'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">To\'lovlar tarixi'+(allPays.length>50?' (so\'nggi 50 ta)':' ('+allPays.length+' ta)')+'</div>'
     +(payHtml?'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">'
     +'<div style="max-height:220px;overflow-y:auto">'
-    +'<table><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">USD</th></tr></thead>'
+    +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">USD</th></tr></thead>'
     +'<tbody>'+payHtml+'</tbody></table></div></div>'
     :'<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">To\'lovlar tarixi mavjud emas</div>')
     +'</div>'
     +'</div>'
     // RIGHT column: charts
-    +'<div style="display:flex;flex-direction:column;gap:14px">'
+    +'<div style="display:flex;flex-direction:column;gap:14px;min-width:0">'
     // MRR bar chart
-    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:hidden">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">MRR dinamikasi (12 oy)</div>'
-    +'<div style="position:relative;height:140px"><canvas id="'+cid+'_mrr"></canvas></div>'
+    +'<div style="position:relative;height:140px;max-width:100%"><canvas id="'+cid+'_mrr"></canvas></div>'
     +'</div>'
     // Payment trend bar chart
-    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:hidden">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">To\'lovlar trendi (12 oy)</div>'
-    +'<div style="position:relative;height:140px"><canvas id="'+cid+'_trend"></canvas></div>'
+    +'<div style="position:relative;height:140px;max-width:100%"><canvas id="'+cid+'_trend"></canvas></div>'
     +'</div>'
     // Payment type donut
-    +(dtLabels.length?'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px">'
+    +(dtLabels.length?'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:hidden">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">To\'lov turlari</div>'
-    +'<div style="position:relative;height:160px"><canvas id="'+cid+'_pay"></canvas></div>'
+    +'<div style="position:relative;height:160px;max-width:100%"><canvas id="'+cid+'_pay"></canvas></div>'
     +'</div>':'')
     +'</div>'
     +'</div>'
