@@ -631,7 +631,7 @@ function calcCumExpected(year){
 
 // === DATA AUDIT ===
 function calcDataAudit(){
-  return cached('dataAudit_v1',()=>{
+  return cached('dataAudit_v2',()=>{
     const issues=[];
     const clientContracts={};
     S.rows.forEach(r=>{
@@ -776,9 +776,65 @@ function calcDataAudit(){
       }
     });
 
+    // 9. Valyuta farqi — USD va UZS qoldiqlarni solishtirish
+    const pm=calcPayments();
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.raqami)return;
+      const k=r.Client+'|'+r.raqami;
+      const p=pm[k]||{total:0};
+      const sUSD=r._sUSD||0;
+      const sUZS=r._sUZS||0;
+      if(!sUSD&&!sUZS)return;
+      const qoldiqUSD=Math.round(sUSD-p.total);
+      // UZS to'lovlarni hisoblash
+      let paidUZS=0;
+      S.payRows.forEach(pr=>{
+        if(pr.Client?.trim()!==r.Client||pr.shartnoma?.trim()!==r.raqami?.trim())return;
+        const val=(pr.Valyuta||'USD').toUpperCase();
+        if(val==='UZS'||val==='SUM')paidUZS+=pn(pr.summasi||'0');
+      });
+      const qoldiqUZS=sUZS>0?Math.round(sUZS-paidUZS):0;
+      // USD da yopilgan, UZS da qarz yoki aksincha
+      if(Math.abs(qoldiqUSD)<=1&&sUZS>0&&Math.abs(qoldiqUZS)>1000){
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Valyuta farqi',
+          detail:`USD bo'yicha yopilgan (qoldiq: $${fmt(qoldiqUSD)}), lekin UZS bo'yicha ${qoldiqUZS>0?fmt(qoldiqUZS)+' so\'m qarz':fmt(Math.abs(qoldiqUZS))+' so\'m ortiqcha'}.`
+        });
+      } else if(qoldiqUSD>10&&sUZS>0&&Math.abs(qoldiqUZS)<=1000){
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Valyuta farqi',
+          detail:`USD bo'yicha $${fmt(qoldiqUSD)} qarz, lekin UZS bo'yicha yopilgan (${fmt(qoldiqUZS)} so'm).`
+        });
+      } else if(qoldiqUSD<-10&&sUZS>0&&qoldiqUZS>1000){
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Valyuta farqi',
+          detail:`USD bo'yicha $${fmt(Math.abs(qoldiqUSD))} ortiqcha, lekin UZS bo'yicha ${fmt(qoldiqUZS)} so'm qarz. Kurs farqi bo'lishi mumkin.`
+        });
+      }
+    });
+
+    // 10. To'lov shartnomaga mos emas (to'langan > jami summa, 10% dan ko'p)
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.raqami)return;
+      const k=r.Client+'|'+r.raqami;
+      const p=pm[k]||{total:0};
+      const sUSD=r._sUSD||0;
+      if(sUSD>0&&p.total>sUSD*1.1){
+        const ortiqcha=Math.round(p.total-sUSD);
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Ortiqcha to\'lov',
+          detail:`Shartnoma jami: $${fmt(sUSD)}, to'langan: $${fmt(p.total)}. $${fmt(ortiqcha)} ortiqcha — noto'g'ri bog'lanish yoki kurs farqi.`
+        });
+      }
+    });
+
     issues.sort((a,b)=>{
-      const order={'Takroriy raqam':0,'Sanalar ustma-ust':1,'Qo\'shimcha sana xato':2,'Summa nomuvofiq':3,'MRR nol':4,'Tugash sanasi yo\'q':5,'Uzilish':6,'Bog\'lanmagan to\'lov':7};
-      return(order[a.type]||9)-(order[b.type]||9);
+      const order={'Takroriy raqam':0,'Sanalar ustma-ust':1,'Qo\'shimcha sana xato':2,'Valyuta farqi':3,'Ortiqcha to\'lov':4,'Summa nomuvofiq':5,'MRR nol':6,'Tugash sanasi yo\'q':7,'Uzilish':8,'Bog\'lanmagan to\'lov':9};
+      return(order[a.type]||99)-(order[b.type]||99);
     });
     return issues;
   });
