@@ -135,7 +135,7 @@ const sheets=[
   {k:'mkt',l:'Marketing',d:'Marketing xarajatlari (Yil, Oy, Summa)',n:S.mktRows.length,ft:'mkt'}
 ];
 const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
-o.innerHTML=`<div class="modal" style="max-width:520px">
+o.innerHTML=`<div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
 <h2 style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</h2>
 
 <div style="margin-bottom:16px">
@@ -171,8 +171,11 @@ Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CS
 </div></div>
 <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Kalitlar: <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent2)">Claude</a> · <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent2)">Gemini</a>. AI ixtiyoriy — oddiy hisobot AI'siz ham ishlaydi.</div></div>
 
-${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center">
-<button class="btn" style="color:var(--red);border-color:var(--red);font-size:11px" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Keshni tozalash</button>
+${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button class="btn" style="color:var(--red);border-color:var(--red);font-size:11px" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn" style="font-size:11px" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
+</div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
 </div>`:`<div class="modal-btns"><button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button></div>`}
 </div>`;document.body.appendChild(o)}
