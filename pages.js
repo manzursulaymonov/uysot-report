@@ -92,13 +92,18 @@ function showClientCard(name){
   S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
-  // Status indicator: active / qarzdor / churn
+  // Status indicator: active / qarzdor / churn / kutilmoqda
   const hasDebt=oyQarz>0||kelQarz>0;
   const isDebt=qarzdorFromDate&&qarzdorFromDate<=now&&hasDebt;
-  const churnBadge=isChurn?'<span style="display:inline-flex;align-items:center;background:rgba(107,114,128,0.1);border:1px solid rgba(107,114,128,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--text3)">CHURN</span>':'';
+  const daysSinceEnd=isChurn?Math.round((now-activeUntil)/864e5):0;
+  const isGrace=isChurn&&daysSinceEnd<=7; // 7 kun ichida yangi kelishuv kutilmoqda
+  const churnBadge=isChurn&&!isGrace?'<span style="display:inline-flex;align-items:center;background:rgba(107,114,128,0.1);border:1px solid rgba(107,114,128,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--text3)">CHURN</span>':'';
+  const graceBadge=isGrace?'<span style="display:inline-flex;align-items:center;background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--amber)">Yangi kelishuv kutilmoqda</span>':'';
   let statusHtml='';
   if(isDebt){
-    statusHtml='<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'+churnBadge;
+    statusHtml='<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:3px 10px 3px 7px;font-size:11px;font-weight:600;color:var(--red)"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'+(isChurn?(!isGrace?churnBadge:graceBadge):'');
+  } else if(isGrace){
+    statusHtml=graceBadge;
   } else if(isChurn){
     statusHtml=churnBadge;
   } else if(activeUntil&&activeUntil>=now){
@@ -712,21 +717,24 @@ if(view==='muddatlar'){
     if(!r.Client)return;const musd=r._mUSD||pn(r['Oylik USD'])||0;if(musd<=0)return;
     const en=pd(r['amal qilishi']);if(!en)return;
     const name=r.Client;
-    if(!rnMap[name])rnMap[name]={name,endDate:en,mrr:0,mgr:r.Manager||''};
+    if(!rnMap[name])rnMap[name]={name,endDate:en,mrr:0,mgr:r.Manager||'',firma:r['Firma nomi']||'',inn:r.INN||''};
     rnMap[name].mrr+=musd;
+    if(!rnMap[name].firma&&r['Firma nomi'])rnMap[name].firma=r['Firma nomi'];
+    if(!rnMap[name].inn&&r.INN)rnMap[name].inn=r.INN;
     if(en<rnMap[name].endDate){rnMap[name].endDate=en;rnMap[name].mgr=r.Manager||''}
   });
   const rnAll=Object.values(rnMap).map(c=>({...c,daysLeft:Math.round((c.endDate-now)/864e5)})).filter(c=>c.daysLeft<=7&&c.daysLeft>=-7).sort((a,b)=>a.daysLeft-b.daysLeft);
   const ctExp=rnAll.filter(r=>r.daysLeft<0).length,ctAhead=rnAll.filter(r=>r.daysLeft>=0).length;
   h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--amber)"></span>Muddat Kalendari (±7 kun) — <span style="color:var(--green);font-weight:700">${ctAhead}</span> tugayotgan${ctExp?` / <span style="color:var(--text3)">${ctExp} tugagan</span>`:''}</span></div>
-  <div class="card-body dash-new-full" style="padding:0"><div class="tbl-scroll" style="max-height:calc(100vh - 220px)"><table><thead><tr><th>Mijoz</th><th>Menejer</th><th class="text-r">MRR</th><th class="text-r">Qoldi</th></tr></thead><tbody>`;
+  <div class="card-body dash-new-full" style="padding:0"><div class="tbl-scroll" style="max-height:calc(100vh - 220px)"><table><thead><tr><th>Mijoz</th><th class="col-hide">Firma</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th><th class="text-r">Qoldi</th></tr></thead><tbody>`;
   if(rnAll.length)rnAll.forEach(r=>{
     const expired=r.daysLeft<0;
     const dc=expired?'var(--text3)':r.daysLeft<=5?'var(--red)':r.daysLeft<=10?'var(--amber)':'var(--green)';
-    const nm=expired?`<span style="text-decoration:line-through;opacity:0.6">${r.name}</span>`:r.name;
+    const nm=expired?`<span style="opacity:0.6">${cl(r.name)}</span>`:cl(r.name);
     const dl=expired?`<span style="font-size:10px;color:var(--text3)">${Math.abs(r.daysLeft)} kun oldin</span>`:`${r.daysLeft} kun`;
-    h+=`<tr${expired?' style="opacity:0.5"':''}><td style="font-weight:600;font-size:12px">${nm}</td><td style="font-size:11px;color:var(--text2)">${r.mgr||'—'}</td><td class="text-r mono" style="font-size:11px">${fmt(r.mrr)}</td><td class="text-r mono" style="font-size:11px;font-weight:700;color:${dc}">${dl}</td></tr>`;
-  });else h+=`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Yaqinda tugaydigan shartnoma yo'q ✅</td></tr>`;
+    const firmaHtml=r.firma?r.firma+(r.inn?'<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">'+r.inn+' <button onclick="navigator.clipboard.writeText(\''+r.inn+'\');showToast(\'Nusxalandi\',\'success\')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0;font-size:9px">📋</button></div>':''):'—';
+    h+=`<tr${expired?' style="opacity:0.5"':''}><td style="font-weight:600;font-size:12px">${nm}</td><td class="col-hide" style="font-size:11px;color:var(--text2)">${firmaHtml}</td><td class="col-hide" style="font-size:11px;color:var(--text2)">${r.mgr||'—'}</td><td class="text-r mono" style="font-size:11px">${fmt(r.mrr)}</td><td class="text-r mono" style="font-size:11px;font-weight:700;color:${dc}">${dl}</td></tr>`;
+  });else h+=`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Yaqinda tugaydigan shartnoma yo'q ✅</td></tr>`;
   h+=`</tbody></table></div></div></div>`;
 }else{
   h+=`<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, firma, INN..." value="${S.cQ}" oninput="onSearch('cQ',this.value)"><button class="search-clear" onclick="onSearch('cQ','');render()" type="button">&times;</button></div>
@@ -1050,10 +1058,10 @@ return'<tr><td style="font-weight:500">'+cl(r.name)+'</td>'+
   <div class="card-body">
     ${dt.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">Oy oxiri qarz bo'yicha TOP 5</div>
-    ${dt.filter(r=>r.oyQarz>0).sort((a,b)=>b.oyQarz-a.oyQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:500">${r.name}</span><span class="mono" style="color:var(--amber);font-weight:600">${fmt(r.oyQarz)}</span></div>`).join('')}
+    ${dt.filter(r=>r.oyQarz>0).sort((a,b)=>b.oyQarz-a.oyQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:500">${cl(r.name)}</span><span class="mono" style="color:var(--amber);font-weight:600">${fmt(r.oyQarz)}</span></div>`).join('')}
     </div>
     <div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">Kelishuv qarz bo'yicha TOP 5</div>
-    ${dt.filter(r=>r.kelQarz>0).sort((a,b)=>b.kelQarz-a.kelQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:500">${r.name}</span><span class="mono" style="color:var(--red);font-weight:600">${fmt(r.kelQarz)}</span></div>`).join('')}
+    ${dt.filter(r=>r.kelQarz>0).sort((a,b)=>b.kelQarz-a.kelQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:500">${cl(r.name)}</span><span class="mono" style="color:var(--red);font-weight:600">${fmt(r.kelQarz)}</span></div>`).join('')}
     </div></div>`:'<div style="text-align:center;color:var(--text3);padding:24px">Qarzdor mijozlar yo\'q ✅</div>'}
   </div></div>`;
 }
