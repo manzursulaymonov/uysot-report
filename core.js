@@ -70,7 +70,7 @@ function fmtD(d){const dd=d.getDate(),mm=d.getMonth()+1,yy=d.getFullYear()%100;r
 function pd(s){if(!s)return null;let p=s.split('.');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);p=s.split('-');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);return null}
 
 // === PARSE ===
-function parse(t){const r=Papa.parse(t,{skipEmptyLines:true});const h=r.data[0];return r.data.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k.trim()]=(row[i]||'').trim());o._mUSD=pn(o['Oylik USD']);o._mUZS=pn(o['oylik UZS']);o._sUSD=pn(o['sum USD']);o._sUZS=pn(o['sum UZS']);o._tUSD=pn(o['Tadbiq USD']);o._dur=parseFloat(o['muddati (oy)'])||0;o._pre=parseInt(o['Prepayment'])||1;return o}).filter(r=>r.Client||r['Firma nomi'])}
+function parse(t){const r=Papa.parse(t,{skipEmptyLines:true});const h=r.data[0];return r.data.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k.trim()]=(row[i]||'').trim());o._mUSD=pn(o['Oylik USD']);o._mUZS=pn(o['oylik UZS']);o._sUSD=pn(o['sum USD']);o._sUZS=pn(o['sum UZS']);o._tUSD=pn(o['Tadbiq USD']);o._tUZS=pn(o['Tadbiq UZS']);o._dur=parseFloat(o['muddati (oy)'])||0;o._pre=parseInt(o['Prepayment'])||1;return o}).filter(r=>r.Client||r['Firma nomi'])}
 function parseRaw(t){const r=Papa.parse(t,{skipEmptyLines:true});const h=r.data[0];return r.data.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k.trim()]=(row[i]||'').trim());return o})}
 function parseMkt(t){
   const r=Papa.parse(t,{skipEmptyLines:true});
@@ -98,6 +98,16 @@ function calcPayments(){
     S.payRows.forEach(r=>{const c=r.Client?.trim(),sh=r.shartnoma?.trim();if(!c||!sh)return;const k=c+'|'+sh;if(!pm[k])pm[k]={client:c,shartnoma:sh,pay:0,y24:0,per:0};pm[k].pay+=pn(r.USD)});
     S.y2024Rows.forEach(r=>{const c=r.Client?.trim(),sh=r.shartnoma?.trim();if(!c||!sh)return;const k=c+'|'+sh;if(!pm[k])pm[k]={client:c,shartnoma:sh,pay:0,y24:0,per:0};pm[k].y24+=pn(r.USD)});
     S.perevodRows.forEach(r=>{const c=r.Client?.trim(),sh=r.shartnoma?.trim();if(!c||!sh)return;const k=c+'|'+sh;if(!pm[k])pm[k]={client:c,shartnoma:sh,pay:0,y24:0,per:0};pm[k].per+=pn(r['Tolov(usd)'])});
+    Object.values(pm).forEach(v=>v.total=v.pay+v.y24+v.per);
+    return pm;
+  });
+}
+function calcPaymentsUZS(){
+  return cached('paymentsUZS',()=>{
+    const pm={};
+    S.payRows.forEach(r=>{const c=r.Client?.trim(),sh=r.shartnoma?.trim();if(!c||!sh)return;const k=c+'|'+sh;if(!pm[k])pm[k]={client:c,shartnoma:sh,pay:0,y24:0,per:0};pm[k].pay+=pn(r.UZS||r.summasi||'0')});
+    S.y2024Rows.forEach(r=>{const c=r.Client?.trim(),sh=r.shartnoma?.trim();if(!c||!sh)return;const k=c+'|'+sh;if(!pm[k])pm[k]={client:c,shartnoma:sh,pay:0,y24:0,per:0};pm[k].y24+=pn(r.UZS||'0')});
+    S.perevodRows.forEach(r=>{const c=r.Client?.trim(),sh=r.shartnoma?.trim();if(!c||!sh)return;const k=c+'|'+sh;if(!pm[k])pm[k]={client:c,shartnoma:sh,pay:0,y24:0,per:0};pm[k].per+=pn(r['Tolov']||'0')});
     Object.values(pm).forEach(v=>v.total=v.pay+v.y24+v.per);
     return pm;
   });

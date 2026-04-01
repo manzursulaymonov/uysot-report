@@ -46,24 +46,31 @@ function showRegionModal(hudud){
 function cl(n){if(!n)return'—';const s=JSON.stringify(n).replace(/"/g,'&quot;');return'<span class="client-link" onclick="showClientCard('+s+')">'+(n)+'</span>'}
 
 // === CLIENT CARD MODAL ===
-function showClientCard(name){
+function showClientCard(name,cur){
   const n=name.trim();
+  const isUZS=(cur||S._cardCur||'usd')==='uzs';
+  const ccy=isUZS?'so\'m':'$';
+  const ccyKey=isUZS?'uzs':'usd';
+  S._cardCur=ccyKey;
   const cRows=S.rows.filter(r=>r.Client?.trim()===n);
   const qCRows=S.qRows.filter(r=>r.Client?.trim()===n);
-  const pm=calcPayments();
+  const pm=isUZS?calcPaymentsUZS():calcPayments();
   let totalPaid=0;Object.values(pm).forEach(v=>{if(v.client===n)totalPaid+=v.total});
-  const totalSum=cRows.reduce((s,r)=>s+(r._sUSD||0),0)+qCRows.reduce((s,r)=>s+(r._sUSD||0),0);
+  const totalSum=cRows.reduce((s,r)=>s+(isUZS?(r._sUZS||0):(r._sUSD||0)),0)+qCRows.reduce((s,r)=>s+(isUZS?pn(r['sum UZS']||'0'):(r._sUSD||0)),0);
   const {all,qAll}=buildContracts();const now=new Date();
   // For future contracts, also check future date
   const allClientCts=all.concat(qAll).filter(c=>c.client===n);
   const latestEnd=allClientCts.length?allClientCts.reduce((a,b)=>b.endD>a.endD?b:a).endD:now;
   // Current MRR: only contracts active RIGHT NOW
   const snapNow=mrrOnDate(now,all,qAll);
-  const curMrr=snapNow.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
+  const curMrrUSD=snapNow.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
+  // UZS MRR: sum _mUZS from active contracts
+  const curMrrUZS=isUZS?cRows.filter(r=>{const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return false;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);return st<=now&&endD>=now&&(r._mUZS||0)>0}).reduce((s,r)=>s+(r._mUZS||0),0):0;
   // For future contracts, get their MRR too
   const snapFuture=latestEnd>now?mrrOnDate(latestEnd,all,qAll):snapNow;
-  const futureMrr=snapFuture.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
-  const activeMrr=curMrr||futureMrr;
+  const futureMrrUSD=snapFuture.contracts.filter(c=>c.client===n).reduce((s,c)=>s+c.musd,0);
+  const futureMrrUZS=isUZS?cRows.filter(r=>{const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return false;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);return st<=latestEnd&&endD>=latestEnd&&(r._mUZS||0)>0}).reduce((s,r)=>s+(r._mUZS||0),0):0;
+  const activeMrr=isUZS?(curMrrUZS||futureMrrUZS):(curMrrUSD||futureMrrUSD);
   const debtRow=calcDebtTable(now).find(r=>r.name===n);
   const oyQarz=debtRow?.oyQarz||0,kelQarz=debtRow?.kelQarz||0;
   const allDates=[...cRows,...qCRows].map(r=>pd(r.sanasi)).filter(Boolean);
@@ -88,8 +95,8 @@ function showClientCard(name){
   const health=calcClientHealth().find(c=>c.name===n);
   const hBadge=health?(health.status==='healthy'?'<span class="badge b-green">Sog\'lom</span>':health.status==='warning'?'<span class="badge b-amber">⚠ Xavf</span>':'<span class="badge b-red">Kritik</span>'):'';
   const allPays=[];
-  S.payRows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'pay',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
-  S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
+  S.payRows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),uzs:pn(r.UZS||r.summasi||'0'),type:r['tolov turi']||'',kassa:r.kassa||'',src:'pay',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
+  S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),uzs:pn(r.UZS||'0'),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
   allPays.sort((a,b)=>b.date-a.date);
   const tl=t=>({naqd:'Naqd',karta:'Karta',bank:'Bank',perevod:'Perevod'}[t]||t||'—');
   // Status indicator: active / qarzdor / churn / kutilmoqda
@@ -115,24 +122,27 @@ function showClientCard(name){
   const ctHtml=cRows.map(r=>{
     const k=r.Client+'|'+r.raqami;const p=pm[k]||{total:0};
     const qExtras=qByRaqami[r.raqami]||[];
-    const qExtraSum=qExtras.reduce((s,q)=>s+(q._sUSD||0),0);
-    const qExtraMrr=qExtras.reduce((s,q)=>s+pn(q['Oylik USD']),0);
-    const qExtraTdb=qExtras.reduce((s,q)=>s+pn(q['Tadbiq USD']),0);
-    const jamiSum=(r._sUSD||0)+qExtraSum;
-    const tadbiqSum=(r._tUSD||0)+qExtraTdb;
+    const qExtraSum=qExtras.reduce((s,q)=>s+(isUZS?pn(q['sum UZS']||'0'):(q._sUSD||0)),0);
+    const qExtraMrr=qExtras.reduce((s,q)=>s+pn(q[isUZS?'oylik UZS':'Oylik USD']),0);
+    const qExtraTdb=qExtras.reduce((s,q)=>s+pn(q[isUZS?'Tadbiq UZS':'Tadbiq USD']),0);
+    const jamiSum=(isUZS?(r._sUZS||0):(r._sUSD||0))+qExtraSum;
+    const tadbiqSum=(isUZS?(r._tUZS||0):(r._tUSD||0))+qExtraTdb;
+    const oylik=isUZS?(r._mUZS||0):(r._mUSD||0);
     const qoldiq=Math.round(jamiSum-p.total);const qC=qoldiq>0?'var(--red)':qoldiq<0?'var(--amber)':'var(--green)';
     return'<tr><td class="mono" style="font-size:10px;color:var(--text3)">'+r.raqami+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+r.sanasi+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(r['amal qilishi']||'—')+'</td>'
       +'<td class="text-r mono" style="font-size:11px;line-height:1.2">'+fmt(tadbiqSum)+dlt(qExtraTdb)+'</td>'
-      +'<td class="text-r mono" style="font-size:11px;line-height:1.2">'+fmt(r._mUSD)+dlt(qExtraMrr)+'</td>'
+      +'<td class="text-r mono" style="font-size:11px;line-height:1.2">'+fmt(oylik)+dlt(qExtraMrr)+'</td>'
       +'<td class="text-r mono" style="font-size:11px;line-height:1.2">'+fmt(jamiSum)+dlt(qExtraSum)+'</td>'
       +'<td class="text-r mono" style="font-size:11px;color:var(--teal)">'+(p.total?fmt(p.total):'—')+'</td>'
       +'<td class="text-r mono" style="font-size:11px;color:'+qC+';font-weight:'+(qoldiq>0?'600':'400')+'">'+(jamiSum?fmt(qoldiq):'—')+'</td>'
       +'</tr>';
   }).join('');
   const qHtml=qCRows.map(r=>{
-    const musd=pn(r['Oylik USD']);const tdb=pn(r['Tadbiq USD']);const ssum=r._sUSD||0;
+    const musd=isUZS?pn(r['oylik UZS']):pn(r['Oylik USD']);
+    const tdb=isUZS?pn(r['Tadbiq UZS']):pn(r['Tadbiq USD']);
+    const ssum=isUZS?pn(r['sum UZS']||'0'):(r._sUSD||0);
     const cv=v=>v>0?'var(--green)':v<0?'var(--red)':'var(--text)';
     return'<tr><td class="mono" style="font-size:10px;color:var(--text3)">'+(r.raqami||'—')+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(r.sanasi||'—')+'</td>'
@@ -172,7 +182,7 @@ function showClientCard(name){
     return'<tr style="cursor:default" title="'+tip+'">'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+dateDisp+'</td>'
       +'<td style="font-size:11.5px">'+detail+subHtml+'</td>'
-      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(p.usd)+' $</td>'
+      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+(isUZS?fmt(p.uzs)+' so\'m':fmt(p.usd)+' $')+'</td>'
       +'</tr>';
   }).join('');
   const dC=kelQarz>0?'var(--red)':kelQarz<0?'var(--amber)':'var(--green)';
@@ -182,24 +192,40 @@ function showClientCard(name){
   const UZ_MON_S=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
   const mLabel=d=>_isM?(UZ_MON_S[d.getMonth()]+" '"+String(d.getFullYear()%100)):(d.getFullYear()+' '+UZ_MON[d.getMonth()]);
   const mrrL=[],mrrV=[];
-  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const s2=mrrOnDate(d,all,qAll);const v=s2.contracts.filter(c=>c.client===n).reduce((a,c)=>a+c.musd,0);mrrL.push(mLabel(d));mrrV.push(Math.round(v));}
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    if(isUZS){
+      // UZS MRR: sum _mUZS from contracts active on that date
+      let v=0;cRows.forEach(r=>{const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);if(st<=d&&endD>=d)v+=(r._mUZS||0)});
+      mrrL.push(mLabel(d));mrrV.push(Math.round(v));
+    } else {
+      const s2=mrrOnDate(d,all,qAll);const v=s2.contracts.filter(c=>c.client===n).reduce((a,c)=>a+c.musd,0);
+      mrrL.push(mLabel(d));mrrV.push(Math.round(v));
+    }
+  }
   // Payment monthly trend
-  const mPayMap={};allPays.forEach(p=>{const m=p.date.getFullYear()+'-'+(p.date.getMonth()+1).toString().padStart(2,'0');mPayMap[m]=(mPayMap[m]||0)+p.usd;});
+  const payAmt=p=>isUZS?p.uzs:p.usd;
+  const mPayMap={};allPays.forEach(p=>{const m=p.date.getFullYear()+'-'+(p.date.getMonth()+1).toString().padStart(2,'0');mPayMap[m]=(mPayMap[m]||0)+payAmt(p);});
   const payTL=[],payTV=[];
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const m=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');payTL.push(mLabel(d));payTV.push(Math.round(mPayMap[m]||0));}
   // Payment by type donut
-  const byType={};allPays.forEach(p=>{const k=tl(p.type);byType[k]=(byType[k]||0)+p.usd;});
+  const byType={};allPays.forEach(p=>{const k=tl(p.type);byType[k]=(byType[k]||0)+payAmt(p);});
   const dtLabels=Object.keys(byType),dtVals=Object.values(byType).map(v=>Math.round(v));
   // Mini KPIs
   const payPct=totalSum>0?Math.round(totalPaid/totalSum*100):0;
   const daysToEnd=health?health.daysToEnd:null;
   const arpa=tenureM>0?Math.round(totalPaid/tenureM):0;
+  // Currency toggle HTML
+  const curToggle='<div style="display:flex;gap:2px;background:var(--bg3);border-radius:6px;padding:2px;margin-left:8px">'
+    +'<button class="btn'+(isUZS?'':' btn-primary')+'" style="padding:2px 8px;font-size:11px" onclick="document.querySelector(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'usd\')">$</button>'
+    +'<button class="btn'+(isUZS?' btn-primary':'')+'" style="padding:2px 8px;font-size:11px" onclick="document.querySelector(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'uzs\')">so\'m</button>'
+    +'</div>';
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   o.innerHTML='<div class="modal" style="padding:0;width:min(98vw,1160px);max-height:96vh;display:flex;flex-direction:column">'
     // Header
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:18px 24px;border-bottom:1px solid var(--border);flex-shrink:0">'
     +'<div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">'
-    +'<span style="font-weight:700;font-size:20px">'+n+'</span>'+hBadge+statusHtml+'</div>'
+    +'<span style="font-weight:700;font-size:20px">'+n+'</span>'+curToggle+hBadge+statusHtml+'</div>'
     +'<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3)">'
     +(firma?'<span>🏢 '+firma+(inn?' <span style="font-family:var(--mono);color:var(--text2);font-size:11px">INN: '+inn+'<button onclick="navigator.clipboard.writeText(\''+inn+'\');showToast(\'INN nusxalandi\',\'success\')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0 0 0 3px;font-size:11px" title="Nusxalash">📋</button></span>':'')+'</span>':'')
     +(hudud?'<span>📍 '+hudud+'</span>':'')
@@ -214,20 +240,20 @@ function showClientCard(name){
     +'<div class="client-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'
     +'<div style="background:var(--accent-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--accent)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Joriy MRR</div>'
-    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--accent)">'+(isChurn?'0 $':activeMrr?fmt(activeMrr)+' $':'—')+'</div>'
+    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--accent)">'+(isChurn?'0 '+ccy:activeMrr?fmt(activeMrr)+' '+ccy:'—')+'</div>'
     +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+(isChurn?'churn':activeCount+' aktiv shartnoma')+'</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--green)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Jami shartnoma</div>'
-    +'<div class="mono" style="font-size:22px;font-weight:700">'+fmt(totalSum)+' $</div>'
+    +'<div class="mono" style="font-size:22px;font-weight:700">'+fmt(totalSum)+' '+ccy+'</div>'
     +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+(cRows.length+qCRows.length)+' ta shartnoma</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--teal)">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">To\'langan</div>'
-    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--teal)">'+fmt(totalPaid)+' $</div>'
+    +'<div class="mono" style="font-size:22px;font-weight:700;color:var(--teal)">'+fmt(totalPaid)+' '+ccy+'</div>'
     +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+allPays.length+' ta to\'lov</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid '+(kelQarz>0?'var(--red)':'var(--green)')+'">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Kelishuv qoldig\'i</div>'
-    +'<div class="mono" style="font-size:22px;font-weight:700;color:'+dC+'">'+(kelQarz>0?fmt(kelQarz)+' $':'✓ Yo\'q')+'</div>'
-    +(oyQarz>0?'<div style="font-size:10px;color:var(--amber);margin-top:2px">Oy oxiri: '+fmt(oyQarz)+' $</div>':'<div style="font-size:10px;color:var(--text3);margin-top:2px">Oy oxiri ham to\'liq</div>')
+    +'<div class="mono" style="font-size:22px;font-weight:700;color:'+dC+'">'+(kelQarz>0?fmt(kelQarz)+' '+ccy:'✓ Yo\'q')+'</div>'
+    +(oyQarz>0?'<div style="font-size:10px;color:var(--amber);margin-top:2px">Oy oxiri: '+fmt(oyQarz)+' '+ccy+'</div>':'<div style="font-size:10px;color:var(--text3);margin-top:2px">Oy oxiri ham to\'liq</div>')
     +'</div></div>'
     // Row 2: 4 mini KPI cards
     +'<div class="client-kpi-grid2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
@@ -245,7 +271,7 @@ function showClientCard(name){
     +'<div style="font-size:10px;color:var(--text3)">shartnoma muddati</div></div>'
     +'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:3px">'
     +'<div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px">ARPA / oy</div>'
-    +'<div class="mono" style="font-size:17px;font-weight:700;color:var(--accent)">'+fmt(arpa)+' $</div>'
+    +'<div class="mono" style="font-size:17px;font-weight:700;color:var(--accent)">'+fmt(arpa)+' '+ccy+'</div>'
     +'<div style="font-size:10px;color:var(--text3)">o\'rtacha to\'lov / oy</div></div>'
     +'</div>'
     // Two-column layout: left=tables, right=charts
@@ -255,24 +281,24 @@ function showClientCard(name){
     // Health strip
     +(health?'<div style="display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--bg3);border-radius:8px;margin-bottom:14px;font-size:12px;flex-wrap:wrap">'
     +'<span>Sog\'liq: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
-    +(health.debt>0?'<span style="color:var(--text3)">·</span><span>Qarz: <span class="mono" style="color:var(--red)">'+fmt(health.debt)+' $</span></span>':'')
+    +(health.debt>0?'<span style="color:var(--text3)">·</span><span>Qarz: <span class="mono" style="color:var(--red)">'+fmt(health.debt)+' '+ccy+'</span></span>':'')
     +(health.daysToEnd>0&&health.daysToEnd<999?'<span style="color:var(--text3)">·</span><span>Tugashiga: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' kun</span></span>':(health.daysToEnd===-999?'<span style="color:var(--text3)">·</span><span style="color:var(--red)">Shartnoma tugagan</span>':''))
     +'</div>':'')
     // Contracts table
     +(ctHtml?'<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">Shartnomalar</div>'
     +'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">'
-    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq $</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th><th class="text-r">To\'langan</th><th class="text-r">Qoldiq</th></tr></thead>'
+    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th><th class="text-r">To\'langan</th><th class="text-r">Qoldiq</th></tr></thead>'
     +'<tbody>'+ctHtml+'</tbody></table></div></div></div>':'')
     // Additional contracts table
     +(qHtml?'<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px">Qo\'shimcha kelishuvlar</div>'
     +'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">'
-    +'<table style="opacity:0.9"><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq $</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th></tr></thead>'
+    +'<table style="opacity:0.9"><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th></tr></thead>'
     +'<tbody>'+qHtml+'</tbody></table></div></div></div>':'')
     // Payment history
     +'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">To\'lovlar tarixi'+(allPays.length>50?' (so\'nggi 50 ta)':' ('+allPays.length+' ta)')+'</div>'
     +(payHtml?'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">'
     +'<div style="max-height:220px;overflow-y:auto">'
-    +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">USD</th></tr></thead>'
+    +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">'+(isUZS?'UZS':'USD')+'</th></tr></thead>'
     +'<tbody>'+payHtml+'</tbody></table></div></div>'
     :'<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">To\'lovlar tarixi mavjud emas</div>')
     +'</div>'
@@ -305,12 +331,13 @@ function showClientCard(name){
     const txtC=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.45)';
     const accentC=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#1746a2';
     const tealC=getComputedStyle(document.documentElement).getPropertyValue('--teal').trim()||'#0d9488';
-    const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.parsed.y||ctx.parsed||0)+' $'}}},scales:{x:{grid:{color:gridC},ticks:{color:txtC,font:{size:9},maxRotation:45}},y:{grid:{color:gridC},ticks:{color:txtC,font:{size:9},callback:v=>fmt(v)}}}};
+    const ccySym=isUZS?'so\'m':'$';
+    const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.parsed.y||ctx.parsed||0)+' '+ccySym}}},scales:{x:{grid:{color:gridC},ticks:{color:txtC,font:{size:9},maxRotation:45}},y:{grid:{color:gridC},ticks:{color:txtC,font:{size:9},callback:v=>fmt(v)}}}};
     const mEl=document.getElementById(cid+'_mrr');
     if(mEl)new Chart(mEl,{type:'bar',data:{labels:mrrL,datasets:[{data:mrrV,backgroundColor:accentC+'99',borderColor:accentC,borderWidth:1.5,borderRadius:4}]},options:opts});
     const tEl=document.getElementById(cid+'_trend');
     if(tEl)new Chart(tEl,{type:'bar',data:{labels:payTL,datasets:[{data:payTV,backgroundColor:tealC+'99',borderColor:tealC,borderWidth:1.5,borderRadius:4}]},options:opts});
-    if(dtLabels.length){const pEl=document.getElementById(cid+'_pay');if(pEl)new Chart(pEl,{type:'doughnut',data:{labels:dtLabels,datasets:[{data:dtVals,backgroundColor:['#1746a2cc','#0d9488cc','#16a34acc','#d97706cc','#dc2626cc'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:txtC,font:{size:10},boxWidth:12,padding:8}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.parsed)+' $'}}}}})}
+    if(dtLabels.length){const pEl=document.getElementById(cid+'_pay');if(pEl)new Chart(pEl,{type:'doughnut',data:{labels:dtLabels,datasets:[{data:dtVals,backgroundColor:['#1746a2cc','#0d9488cc','#16a34acc','#d97706cc','#dc2626cc'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:txtC,font:{size:10},boxWidth:12,padding:8}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.parsed)+' '+ccySym}}}}})}
   });
 }
 
