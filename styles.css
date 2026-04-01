@@ -728,6 +728,7 @@ select.flt:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px r
   .client-detail-grid{grid-template-columns:1fr!important}
   .client-detail-grid>div{min-width:0;max-width:100%;overflow:hidden}
   .pay-tbl td:nth-child(2){word-break:break-word}
+  .client-kpi-grid .mono,.client-kpi-grid2 .mono{font-size:16px!important}
 }
 
 /* === SCROLLBAR STYLING === */
