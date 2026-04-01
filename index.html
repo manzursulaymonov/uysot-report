@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="UYSOT — Shartnomalar CRM Dashboard. MRR tracking, mijozlar, menejerlar va qarzdorlik tahlili.">
 <meta name="theme-color" content="#1746a2">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>UYSOT — Shartnomalar Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -66,5 +69,14 @@
 <script src="app.js"></script>
 <script src="pages.js"></script>
 <script src="config.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(r=>{
+      console.log('[SW] Registered:', r.scope);
+    }).catch(e=>console.warn('[SW] Registration failed:', e));
+  });
+}
+</script>
 </body>
 </html>
