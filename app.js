@@ -590,8 +590,8 @@ function mrrData(year){
 function calcCumExpected(year){
   return cached('cumExp_'+year,()=>{
     const result={};const allCts={};
-    S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUSD||r._mUSD<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUSD,tUSD:r._tUSD||0,sTotal:r._sUSD||0,st,endD,isQ:false})});
-    S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD:pn(r['Tadbiq USD'])||0,sTotal:pn(r['sum USD'])||0,st,endD,isQ:true})});
+    S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUSD||r._mUSD<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUSD,tUSD:r._tUSD||0,sTotal:Math.max(0,(r._sUSD||0)-(r._tUSD||0)),st,endD,isQ:false})});
+    S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUSD=pn(r['Tadbiq USD'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD,sTotal:Math.max(0,(pn(r['sum USD'])||0)-tUSD),st,endD,isQ:true})});
     Object.entries(allCts).forEach(([name,cts])=>{
       // Precompute firstMP and lastMP per contract (mirrors calcDebtTable logic)
       cts.forEach(ct=>{
@@ -640,8 +640,8 @@ function calcCumExpected(year){
 function calcCumExpectedUZS(year){
   return cached('cumExpUZS_'+year,()=>{
     const result={};const allCts={};
-    S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUZS||r._mUZS<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUZS,tUSD:r._tUZS||0,sTotal:r._sUZS||0,st,endD,isQ:false})});
-    S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['oylik UZS']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD:pn(r['Tadbiq UZS'])||0,sTotal:pn(r['sum UZS'])||0,st,endD,isQ:true})});
+    S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUZS||r._mUZS<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUZS,tUSD:r._tUZS||0,sTotal:Math.max(0,(r._sUZS||0)-(r._tUZS||0)),st,endD,isQ:false})});
+    S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['oylik UZS']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUZS=pn(r['Tadbiq UZS'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD:tUZS,sTotal:Math.max(0,(pn(r['sum UZS'])||0)-tUZS),st,endD,isQ:true})});
     Object.entries(allCts).forEach(([name,cts])=>{
       cts.forEach(ct=>{
         const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
