@@ -832,13 +832,21 @@ function calcDataAudit(){
     });
 
     // 9. Valyuta farqi — USD va UZS qoldiqlarni solishtirish
+    // Qo'shimcha kelishuvlarni shartnomaga biriktirish (mijoz kartasidagi logika bilan bir xil)
+    const qExtraUSD={},qExtraUZS={};
+    S.qRows.forEach(r=>{
+      if(!r.Client||!r.raqami)return;
+      const k=r.Client.trim()+'|'+r.raqami.trim();
+      qExtraUSD[k]=(qExtraUSD[k]||0)+(r._sUSD||0);
+      qExtraUZS[k]=(qExtraUZS[k]||0)+(r._sUZS||pn(r['sum UZS'])||0);
+    });
     const pmUZS=calcPaymentsUZS();
     S.rows.forEach(r=>{
       if(!r.Client||!r.raqami)return;
       const k=r.Client+'|'+r.raqami;
       const p=pm[k]||{total:0};
-      const sUSD=r._sUSD||0;
-      const sUZS=r._sUZS||0;
+      const sUSD=(r._sUSD||0)+(qExtraUSD[k]||0);
+      const sUZS=(r._sUZS||0)+(qExtraUZS[k]||0);
       if(!sUSD&&!sUZS)return;
       const qoldiqUSD=Math.round(sUSD-p.total);
       // UZS to'lovlarni hisoblash (calcPaymentsUZS barcha to'lovlarni hisobga oladi)
@@ -871,7 +879,7 @@ function calcDataAudit(){
       if(!r.Client||!r.raqami)return;
       const k=r.Client+'|'+r.raqami;
       const p=pm[k]||{total:0};
-      const sUSD=r._sUSD||0;
+      const sUSD=(r._sUSD||0)+(qExtraUSD[k]||0);
       if(sUSD>0&&p.total>sUSD*1.1){
         const ortiqcha=Math.round(p.total-sUSD);
         issues.push({
