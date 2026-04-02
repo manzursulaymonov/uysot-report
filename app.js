@@ -832,6 +832,7 @@ function calcDataAudit(){
     });
 
     // 9. Valyuta farqi — USD va UZS qoldiqlarni solishtirish
+    const pmUZS=calcPaymentsUZS();
     S.rows.forEach(r=>{
       if(!r.Client||!r.raqami)return;
       const k=r.Client+'|'+r.raqami;
@@ -840,14 +841,9 @@ function calcDataAudit(){
       const sUZS=r._sUZS||0;
       if(!sUSD&&!sUZS)return;
       const qoldiqUSD=Math.round(sUSD-p.total);
-      // UZS to'lovlarni hisoblash
-      let paidUZS=0;
-      S.payRows.forEach(pr=>{
-        if(pr.Client?.trim()!==r.Client||pr.shartnoma?.trim()!==r.raqami?.trim())return;
-        const val=(pr.Valyuta||'USD').toUpperCase();
-        if(val==='UZS'||val==='SUM')paidUZS+=pn(pr.summasi||'0');
-      });
-      const qoldiqUZS=sUZS>0?Math.round(sUZS-paidUZS):0;
+      // UZS to'lovlarni hisoblash (calcPaymentsUZS barcha to'lovlarni hisobga oladi)
+      const pUZS=pmUZS[k]||{total:0};
+      const qoldiqUZS=sUZS>0?Math.round(sUZS-pUZS.total):0;
       // USD da yopilgan, UZS da qarz yoki aksincha
       if(Math.abs(qoldiqUSD)<=1&&sUZS>0&&Math.abs(qoldiqUZS)>1000){
         issues.push({
