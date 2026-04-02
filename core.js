@@ -70,7 +70,7 @@ function fmtD(d){const dd=d.getDate(),mm=d.getMonth()+1,yy=d.getFullYear()%100;r
 function snapEl(el,btn){
   if(!el||typeof html2canvas==='undefined')return showToast("html2canvas yuklanmagan",'error');
   const orig=btn?.innerHTML;if(btn)btn.innerHTML='⏳';
-  html2canvas(el,{backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--color-bg')||'#fff',scale:2,useCORS:true}).then(c=>{
+  html2canvas(el,{backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#fff',scale:2,useCORS:true}).then(c=>{
     c.toBlob(blob=>{
       if(!blob)return showToast("Rasm yaratilmadi",'error');
       navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{

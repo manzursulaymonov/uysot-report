@@ -168,7 +168,7 @@ function showClientCard(name,cur){
     const tadbiqSum=(isUZS?(r._tUZS||0):(r._tUSD||0))+qExtraTdb;
     const oylik=isUZS?(r._mUZS||0):(r._mUSD||0);
     const qoldiq=Math.round(jamiSum-p.total);const qC=qoldiq>0?'var(--red)':qoldiq<0?'var(--amber)':'var(--green)';
-    return'<tr><td class="mono" style="font-size:10px;color:var(--text3)">'+r.raqami+'</td>'
+    return'<tr><td class="mono" style="font-size:10px;color:var(--text2)">'+r.raqami+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+r.sanasi+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(r['amal qilishi']||'—')+'</td>'
       +'<td class="text-r mono" style="font-size:11px;line-height:1.2">'+fmt(tadbiqSum)+dlt(qExtraTdb)+'</td>'
@@ -183,7 +183,7 @@ function showClientCard(name,cur){
     const tdb=isUZS?pn(r['Tadbiq UZS']):pn(r['Tadbiq USD']);
     const ssum=isUZS?pn(r['sum UZS']||'0'):(r._sUSD||0);
     const cv=v=>v>0?'var(--green)':v<0?'var(--red)':'var(--text)';
-    return'<tr><td class="mono" style="font-size:10px;color:var(--text3)">'+(r.raqami||'—')+'</td>'
+    return'<tr><td class="mono" style="font-size:10px;color:var(--text2)">'+(r.raqami||'—')+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(r.sanasi||'—')+'</td>'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+(r['amal qilishi']||'—')+'</td>'
       +'<td class="text-r mono" style="font-size:11px;color:'+cv(tdb)+'">'+fmt(tdb)+'</td>'
@@ -329,7 +329,7 @@ function showClientCard(name,cur){
     +(health.daysToEnd>0&&health.daysToEnd<999?'<span style="color:var(--text3)">·</span><span>Tugashiga: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' kun</span></span>':(health.daysToEnd===-999?'<span style="color:var(--text3)">·</span><span style="color:var(--red)">Shartnoma tugagan</span>':''))
     +'</div>':'')
     // Contracts table
-    +(ctHtml?'<div id="_snap_ct" style="margin-bottom:14px;padding:8px;background:var(--color-bg,#fff);border-radius:10px">'
+    +(ctHtml?'<div id="_snap_ct" style="margin-bottom:14px;padding:8px;background:var(--bg2);border-radius:10px">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)">Shartnomalar</div>'
     +'<button onclick="snapEl(document.getElementById(\'_snap_ct\'),this)" style="background:none;border:1px solid var(--border);border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--text3);font-size:12px;display:flex;align-items:center;gap:4px" title="Rasmga olish (clipboard)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M5 3v2M19 3v2"/></svg></button></div>'
@@ -337,9 +337,9 @@ function showClientCard(name,cur){
     +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th><th class="text-r">To\'langan</th><th class="text-r">Qoldiq</th></tr></thead>'
     +'<tbody>'+ctHtml+'</tbody></table></div></div>'
     // Additional contracts table (inside snapshot area)
-    +(qHtml?'<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px">Qo\'shimcha kelishuvlar</div>'
+    +(qHtml?'<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">Qo\'shimcha kelishuvlar</div>'
     +'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">'
-    +'<table style="opacity:0.9"><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th></tr></thead>'
+    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th></tr></thead>'
     +'<tbody>'+qHtml+'</tbody></table></div></div></div>':'')
     +'</div>':'')
     // Payment history
