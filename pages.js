@@ -325,15 +325,19 @@ function showClientCard(name,cur){
     +(health.daysToEnd>0&&health.daysToEnd<999?'<span style="color:var(--text3)">·</span><span>Tugashiga: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' kun</span></span>':(health.daysToEnd===-999?'<span style="color:var(--text3)">·</span><span style="color:var(--red)">Shartnoma tugagan</span>':''))
     +'</div>':'')
     // Contracts table
-    +(ctHtml?'<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">Shartnomalar</div>'
+    +(ctHtml?'<div id="_snap_ct" style="margin-bottom:14px;padding:8px;background:var(--color-bg,#fff);border-radius:10px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)">Shartnomalar</div>'
+    +'<button onclick="snapEl(document.getElementById(\'_snap_ct\'),this)" style="background:none;border:1px solid var(--border);border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--text3);font-size:12px;display:flex;align-items:center;gap:4px" title="Rasmga olish (clipboard)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M5 3v2M19 3v2"/></svg></button></div>'
     +'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">'
     +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th><th class="text-r">To\'langan</th><th class="text-r">Qoldiq</th></tr></thead>'
-    +'<tbody>'+ctHtml+'</tbody></table></div></div></div>':'')
-    // Additional contracts table
-    +(qHtml?'<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px">Qo\'shimcha kelishuvlar</div>'
+    +'<tbody>'+ctHtml+'</tbody></table></div></div>'
+    // Additional contracts table (inside snapshot area)
+    +(qHtml?'<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px">Qo\'shimcha kelishuvlar</div>'
     +'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">'
     +'<table style="opacity:0.9"><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th></tr></thead>'
     +'<tbody>'+qHtml+'</tbody></table></div></div></div>':'')
+    +'</div>':'')
     // Payment history
     +'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">To\'lovlar tarixi'+(allPays.length>50?' (so\'nggi 50 ta)':' ('+allPays.length+' ta)')+'</div>'
     +(payHtml?'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">'

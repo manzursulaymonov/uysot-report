@@ -67,6 +67,22 @@ function pn(s){if(typeof s==='number')return s;return parseFloat((s||'').toStrin
 function fmt(n){return n?Math.round(n).toLocaleString('en-US').replace(/,/g,' '):'—'}
 function fk(n){const a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(1).replace(/\.0$/,'')+'M';if(a>=1000)return(n/1000).toFixed(1).replace(/\.0$/,'')+'K';return Math.round(n)}
 function fmtD(d){const dd=d.getDate(),mm=d.getMonth()+1,yy=d.getFullYear()%100;return(dd<10?'0':'')+dd+'.'+(mm<10?'0':'')+mm+'.'+yy}
+function snapEl(el,btn){
+  if(!el||typeof html2canvas==='undefined')return showToast("html2canvas yuklanmagan",'error');
+  const orig=btn?.innerHTML;if(btn)btn.innerHTML='⏳';
+  html2canvas(el,{backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--color-bg')||'#fff',scale:2,useCORS:true}).then(c=>{
+    c.toBlob(blob=>{
+      if(!blob)return showToast("Rasm yaratilmadi",'error');
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
+        showToast('Nusxalandi! Ctrl+V bilan joylashtiring','success');if(btn)btn.innerHTML=orig;
+      }).catch(()=>{
+        // Fallback: download
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shartnomalar.png';a.click();URL.revokeObjectURL(a.href);
+        showToast('Yuklandi (clipboard ruxsat bermadi)','info');if(btn)btn.innerHTML=orig;
+      });
+    },'image/png');
+  }).catch(e=>{showToast('Xatolik: '+e.message,'error');if(btn)btn.innerHTML=orig});
+}
 function pd(s){if(!s)return null;let p=s.split('.');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);p=s.split('-');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);return null}
 
 // === PARSE ===
