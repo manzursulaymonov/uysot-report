@@ -325,7 +325,7 @@ function showClientCard(name,cur){
     // Health strip
     +(health?'<div style="display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--bg3);border-radius:8px;margin-bottom:14px;font-size:12px;flex-wrap:wrap">'
     +'<span>Sog\'liq: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
-    +(health.debt>0?'<span style="color:var(--text3)">·</span><span>Qarz: <span class="mono" style="color:var(--red)">'+fmt(health.debt)+' '+ccy+'</span></span>':'')
+    +(health.debt>0?'<span style="color:var(--text3)">·</span><span>Qarz: <span class="mono" style="color:var(--red)">'+fmt(oyQarz)+' '+ccy+'</span></span>':'')
     +(health.daysToEnd>0&&health.daysToEnd<999?'<span style="color:var(--text3)">·</span><span>Tugashiga: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' kun</span></span>':(health.daysToEnd===-999?'<span style="color:var(--text3)">·</span><span style="color:var(--red)">Shartnoma tugagan</span>':''))
     +'</div>':'')
     // Contracts table
