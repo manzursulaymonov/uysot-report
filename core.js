@@ -200,20 +200,27 @@ function calcDebtTable(reportDate){
     const c=r.Client;
     if(!clients[c])clients[c]={name:c,contracts:[],totalSum:0,firma:''};
     if(musd>0){
-      let actualSum=tUSD||0;let d=new Date(st.getFullYear(),st.getMonth(),1);
-      const fmE=new Date(st.getFullYear(),st.getMonth()+1,0);
-      const fmDays=Math.round((fmE-st)/864e5)+1;const on1st=st.getDate()===1;
-      const firstMP=on1st?musd:Math.round(musd*fmDays/fmE.getDate());
-      while(d<=endD){
-        const mE=new Date(d.getFullYear(),d.getMonth()+1,0);
-        if(st>mE||endD<d){d.setMonth(d.getMonth()+1);continue}
-        const isF=(st.getFullYear()===d.getFullYear()&&st.getMonth()===d.getMonth());
-        const isL=(endD.getFullYear()===d.getFullYear()&&endD.getMonth()===d.getMonth());
-        if(isF&&isL){actualSum+=Math.round(musd*Math.round((endD-st)/864e5+1)/mE.getDate())}
-        else if(isF){actualSum+=firstMP}
-        else if(isL){const mS=new Date(d);actualSum+=Math.round(musd*Math.round((endD-mS)/864e5+1)/mE.getDate())}
-        else{actualSum+=musd}
-        d.setMonth(d.getMonth()+1);
+      const sheetSum=pn(r['sum USD'])||0;
+      let actualSum=tUSD||0;
+      if(sheetSum>0){
+        // Use sheet total directly to avoid proration rounding errors
+        actualSum+=sheetSum;
+      } else {
+        let d=new Date(st.getFullYear(),st.getMonth(),1);
+        const fmE=new Date(st.getFullYear(),st.getMonth()+1,0);
+        const fmDays=Math.round((fmE-st)/864e5)+1;const on1st=st.getDate()===1;
+        const firstMP=on1st?musd:Math.round(musd*fmDays/fmE.getDate());
+        while(d<=endD){
+          const mE=new Date(d.getFullYear(),d.getMonth()+1,0);
+          if(st>mE||endD<d){d.setMonth(d.getMonth()+1);continue}
+          const isF=(st.getFullYear()===d.getFullYear()&&st.getMonth()===d.getMonth());
+          const isL=(endD.getFullYear()===d.getFullYear()&&endD.getMonth()===d.getMonth());
+          if(isF&&isL){actualSum+=Math.round(musd*Math.round((endD-st)/864e5+1)/mE.getDate())}
+          else if(isF){actualSum+=firstMP}
+          else if(isL){const mS=new Date(d);actualSum+=Math.round(musd*Math.round((endD-mS)/864e5+1)/mE.getDate())}
+          else{actualSum+=musd}
+          d.setMonth(d.getMonth()+1);
+        }
       }
       clients[c].totalSum+=actualSum;
       clients[c].contracts.push({musd,tUSD:tUSD||0,st,endD,pre:1,isMain:false});
