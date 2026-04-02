@@ -707,10 +707,11 @@ function calcDataAudit(){
         const cur=sorted[i],next=sorted[i+1];
 
         // 1. Yangi shartnoma eski tugashidan oldin boshlangan (overlap)
-        // Firmasi turli va sanalari aynan bir xil bo'lsa — bu parallel shartnomalar, xatolik emas
-        const sameDate=cur.st.getTime()===next.st.getTime()&&cur.endD.getTime()===next.endD.getTime();
+        // Tugash sanasi bir xil bo'lsa — parallel shartnomalar, xatolik emas
+        const sameEnd=cur.endD.getTime()===next.endD.getTime();
+        const sameDate=cur.st.getTime()===next.st.getTime()&&sameEnd;
         const diffFirma=cur.firma&&next.firma&&cur.firma!==next.firma;
-        if(next.st<=cur.endD&&!(sameDate&&diffFirma)){
+        if(next.st<=cur.endD&&!sameEnd&&!(sameDate&&diffFirma)){
           const gap=Math.round((cur.endD-next.st)/864e5);
           issues.push({
             client:name,raqami:next.raqami,
