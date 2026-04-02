@@ -198,30 +198,34 @@ function showClientCard(name,cur){
     const dFull=p.dateStr||'—';
     const dateDisp=_isM?dShort:dFull;
     const origNum=pn(p.origSum||'0');
-    const isUZS=p.valyuta==='UZS'||p.valyuta==='SUM';
-    const kurs=isUZS&&origNum>0&&p.usd>0?Math.round(origNum/p.usd):null;
+    const payIsUZS=p.valyuta==='UZS'||p.valyuta==='SUM';
+    const kurs=payIsUZS&&origNum>0&&p.usd>0?Math.round(origNum/p.usd):null;
     let detail=tl(p.type);
     if(p.kassa)detail+=' ('+p.kassa+')';
     if(p.src==='y24')detail+=' <span style="font-size:9px;color:var(--text3)">[2024]</span>';
     // Tooltip: kassa, valyuta, original summa, kurs
     let tipParts=[];
     if(p.kassa)tipParts.push('Kassa: '+p.kassa);
-    if(isUZS&&origNum>0){
+    if(payIsUZS&&origNum>0){
       tipParts.push('Asl summa: '+fmt(origNum)+' so\'m');
       if(kurs)tipParts.push('Kurs: 1$ = '+fmt(kurs)+' so\'m');
-    } else if(origNum>0&&!isUZS){
+    } else if(origNum>0&&!payIsUZS){
       tipParts.push('Valyuta: '+(p.valyuta||'USD'));
     }
     const tip=tipParts.length?tipParts.join(' · '):'';
-    // Sub-detail row
+    // Sub-detail: show original currency info when different from card mode
     let subHtml='';
-    if(isUZS&&origNum>0){
+    if(payIsUZS&&!isUZS&&origNum>0){
       subHtml='<div style="font-size:9.5px;color:var(--text3);margin-top:1px">'+fmt(origNum)+' so\'m'+(kurs?' · 1$='+fmt(kurs):'')+'</div>';
+    } else if(!payIsUZS&&isUZS&&p.usd>0){
+      subHtml='<div style="font-size:9.5px;color:var(--text3);margin-top:1px">'+fmt(p.usd)+' $</div>';
     }
+    // Display amount: always follow card currency mode
+    const dispAmt=isUZS?p.uzs:p.usd;
     return'<tr style="cursor:default" title="'+tip+'">'
       +'<td class="mono" style="font-size:10.5px;white-space:nowrap">'+dateDisp+'</td>'
       +'<td style="font-size:11.5px">'+detail+subHtml+'</td>'
-      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(isUZS?p.uzs:p.usd)+(isUZS?'':' $')+'</td>'
+      +'<td class="text-r mono" style="color:var(--teal);font-weight:600">+'+fmt(dispAmt)+(isUZS?'':' $')+'</td>'
       +'</tr>';
   }).join('');
   const dC=kelQarz>0?'var(--red)':kelQarz<0?'var(--amber)':'var(--green)';
