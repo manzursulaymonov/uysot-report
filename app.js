@@ -328,7 +328,8 @@ function calcManagerBoard(){
     const add=(mRaw,type,countVal,mrrVal)=>{
       const list=mRaw.split(',').map(n=>n.trim()).filter(Boolean);
       const split=list.length||1;
-      list.forEach(m=>{
+      list.forEach(raw=>{
+        const m=mgrDisplayName(raw);
         if(!mgrs[m]) mgrs[m]={name:m, newCount:0, newMRR:0, churnCount:0, churnMRR:0, expMRR:0, conMRR:0};
         if(type==='new'){ mgrs[m].newCount+=countVal; mgrs[m].newMRR+=mrrVal/split; }
         else if(type==='churn'){ mgrs[m].churnCount+=countVal; mgrs[m].churnMRR+=mrrVal/split; }
@@ -475,9 +476,10 @@ function calcManagerAcquisition() {
             const count = mSet.size;
             const splitMRR = data.firstMRR / count;
             mSet.forEach(m => {
-                if (!mgrs[m]) mgrs[m] = { clients: 0, initialMRR: 0 };
-                mgrs[m].clients += 1;
-                mgrs[m].initialMRR += splitMRR;
+                const dn=mgrDisplayName(m);
+                if (!mgrs[dn]) mgrs[dn] = { clients: 0, initialMRR: 0 };
+                mgrs[dn].clients += 1;
+                mgrs[dn].initialMRR += splitMRR;
             });
         });
 
@@ -1205,7 +1207,7 @@ function showMgrStats(mgrName) {
     Object.keys(dr.clientMeta || {}).forEach(name => {
         const meta = dr.clientMeta[name];
         const mgrs = (meta.firstMgrs || '').split(',').map(n => n.trim()).filter(Boolean);
-        if (mgrs.includes(mgrName)) {
+        if (mgrs.some(m => mgrDisplayName(m) === mgrName)) {
             cls.push({
                 name,
                 date: meta.firstEver.st,

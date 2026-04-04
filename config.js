@@ -132,7 +132,8 @@ const sheets=[
   {k:'payments',l:'Payments',d:'2025+ to\'lovlar reestri',n:S.payRows.length,ft:'pay'},
   {k:'2024',l:'2024',d:'2025 gacha jami to\'lovlar',n:S.y2024Rows.length,ft:'y24'},
   {k:'perevod',l:'Perevod',d:'O\'zaro hisob-kitob, kurs farqi',n:S.perevodRows.length,ft:'per'},
-  {k:'mkt',l:'Marketing',d:'Marketing xarajatlari (Yil, Oy, Summa)',n:S.mktRows.length,ft:'mkt'}
+  {k:'mkt',l:'Marketing',d:'Marketing xarajatlari (Yil, Oy, Summa)',n:S.mktRows.length,ft:'mkt'},
+  {k:'menejerlar',l:'Menejerlar',d:'Menejer nomi va statusi (aktiv/ketgan)',n:S.mgrRows.length,ft:'mgr'}
 ];
 const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
 o.innerHTML=`<div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
@@ -173,7 +174,7 @@ Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CS
 
 ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
 <div style="display:flex;gap:6px;flex-wrap:wrap">
-<button class="btn" style="color:var(--red);border-color:var(--red);font-size:11px" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn" style="color:var(--red);border-color:var(--red);font-size:11px" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
 <button class="btn" style="font-size:11px" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
 </div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
@@ -496,6 +497,7 @@ async function loadFromConfig(config){
     if(config['2024']&&config['2024']!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,'2024 arxiv');try{const csv=await fetchCsv(config['2024'],'2024');S.y2024Rows=parseRaw(csv)}catch(e){S.y2024Rows=[]}_done++;updateLoader(_done,_tot,_steps[_done]||'Tugadi');}
     if(config.perevod&&config.perevod!=='HAVOLA_KIRITING'){updateLoader(_done,_tot,'Perevodlar');try{const csv=await fetchCsv(config.perevod,'Perevod');S.perevodRows=parseRaw(csv)}catch(e){S.perevodRows=[]}_done++;updateLoader(_done,_tot,'Tayyor!');}
     if(config.mkt&&config.mkt!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(config.mkt,'Marketing');S.mktRows=parseMkt(csv)}catch(e){S.mktRows=[];}}
+    if(config.menejerlar&&config.menejerlar!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(config.menejerlar,'Menejerlar');S.mgrRows=parseRaw(csv)}catch(e){S.mgrRows=[];}}
     saveCache();clearCache();
     document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');
     document.querySelector('.overlay')?.remove();
@@ -510,8 +512,8 @@ async function loadFromConfig(config){
   }
 }
 
-function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,ts:Date.now()};localStorage.setItem('uysot_data',JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
-function loadCache(){try{const raw=localStorage.getItem('uysot_data');if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];return true}catch(e){return false}}
+function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem('uysot_data',JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
+function loadCache(){try{const raw=localStorage.getItem('uysot_data');if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
 
 function loadJsonConfig(input){const f=input.files[0];if(!f)return;
 const r=new FileReader();r.onload=e=>{try{const config=JSON.parse(e.target.result);if(!config.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');localStorage.setItem('uysot_config',e.target.result);S.config=config;loadFromConfig(config)}catch(e){alert('JSON xatolik: '+e.message)}};r.readAsText(f)}
@@ -528,7 +530,7 @@ function errPage(title,detail){return`<div class="loading" style="gap:12px">
 
 function loadFile(i,type){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{
 const t=e.target.result;
-const map={main:['rows','parse'],extra:['qRows','parse'],pay:['payRows','parseRaw'],y24:['y2024Rows','parseRaw'],per:['perevodRows','parseRaw'],mkt:['mktRows','parseMkt']};
+const map={main:['rows','parse'],extra:['qRows','parse'],pay:['payRows','parseRaw'],y24:['y2024Rows','parseRaw'],per:['perevodRows','parseRaw'],mkt:['mktRows','parseMkt'],mgr:['mgrRows','parseRaw']};
 const [key,fnStr]=map[type]||['rows','parse'];
 const fn = fnStr==='parse'?parse:(fnStr==='parseRaw'?parseRaw:parseMkt);
 S[key]=fn(t);
