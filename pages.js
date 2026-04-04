@@ -845,67 +845,10 @@ function _mrrToolbar(yr){
 }
 
 
-// === MRR CARD + TIMELINE VIEW ===
-function rMRRCard(){
-  const yr=S.mrrYear||2026;const d=mrrData(yr);
-  const now=new Date();const curM=now.getFullYear()===yr?now.getMonth():(yr<now.getFullYear()?11:0);
-  const cumExp=calcCumExpected(yr);
-  const _pm=calcPayments();const clPay={};Object.values(_pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
-  let filtered=[...d.clients];
-  if(S.mrrQ){const q=S.mrrQ.toLowerCase();filtered=filtered.filter(c=>c.name.toLowerCase().includes(q)||(c.mgr||'').toLowerCase().includes(q)||(c.hudud||'').toLowerCase().includes(q))}
-  const cards=filtered.map(c=>{
-    const isActive=c.monthly[curM]>0;
-    const firstM=c.monthly.findIndex(v=>v>0);const lastM=11-[...c.monthly].reverse().findIndex(v=>v>0);
-    const barL=Math.round(firstM/12*100),barW=Math.round((lastM-firstM+1)/12*100);
-    const ce=cumExp[c.name];const paid=clPay[c.name]||0;
-    const exp=ce?(ce.cum[curM]||0):0;
-    const paidPct=exp>0?Math.min(100,Math.round(paid/exp*100)):null;
-    const pCol=paidPct==null?'var(--text3)':paidPct>=100?'var(--green)':paidPct>=70?'var(--amber)':'var(--red)';
-    const mrrCol=isActive?'var(--accent2)':'var(--text3)';
-    const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-    return`<div class="card" style="padding:0">
-      <div style="padding:12px 14px 8px;display:flex;justify-content:space-between;align-items:flex-start">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">${cl(c.name)}</div>
-          <div style="font-size:11px;color:var(--text3)">${c.mgr||'—'}${c.hudud?' · '+c.hudud:''}</div>
-        </div>
-        <div style="text-align:right;margin-left:8px;flex-shrink:0">
-          <div class="mono" style="font-size:18px;font-weight:800;color:${mrrCol};line-height:1">${isActive?fmt(c.mrr):'—'}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:1px">$/oy</div>
-        </div>
-      </div>
-      <div style="padding:0 14px 10px">
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:3px">
-          ${mos.filter((_,i)=>i%3===0).map(m=>`<span>${m}</span>`).join('')}
-        </div>
-        <div style="position:relative;height:8px;background:var(--border);border-radius:4px;margin-bottom:8px">
-          <div style="position:absolute;left:${barL}%;width:${barW}%;height:8px;border-radius:4px;background:${isActive?'var(--accent)':'var(--text3)'};opacity:${isActive?'0.85':'0.35'}"></div>
-        </div>
-        ${paidPct!=null?`<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-          <span style="color:var(--text3)">${c.monthly.filter(v=>v>0).length} oy aktiv</span>
-          <span style="color:${pCol};font-weight:600">${paidPct}% to'langan</span>
-        </div>
-        <div style="height:4px;background:var(--border);border-radius:2px">
-          <div style="width:${Math.min(100,paidPct)}%;height:4px;border-radius:2px;background:${pCol}"></div>
-        </div>`:`<div style="font-size:11px;color:var(--text3)">${c.monthly.filter(v=>v>0).length} oy aktiv</div>`}
-      </div>
-      <div style="padding:6px 14px 10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:11px;color:var(--text3)">${c.dealStart||''}${c.dealEnd?' – '+c.dealEnd:''}</span>
-        ${isActive?'<span class="badge b-green" style="font-size:10px">Aktiv</span>':'<span class="badge" style="font-size:10px;background:var(--bg3);color:var(--text3)">Tugadi</span>'}
-      </div>
-    </div>`;
-  }).join('');
-  return _mrrToolbar(yr)+`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
-  ${cards||'<div style="color:var(--text3);padding:24px">Ma\'lumot yo\'q</div>'}
-  </div>`;
-}
-
-
 
 // === MRR TABLE ===
 function rMRR(){
   const view=S.mrrView||'main';
-  if(view==='card')return rMRRCard();
 const yr=S.mrrYear||2026;const d=mrrData(yr);const cumExp=calcCumExpected(yr);
 const _pm=calcPayments();const clPay={};Object.values(_pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
