@@ -799,11 +799,16 @@ function calcDataAudit(){
     });
     Object.entries(raqamCount).forEach(([raq,clients])=>{
       if(clients.length>1){
-        issues.push({
-          client:clients.join(', '),raqami:raq,
-          type:'Takroriy raqam',
-          detail:`"${raq}" shartnoma raqami ${clients.length} marta ishlatilgan: ${clients.join(', ')}.`
-        });
+        const unique=[...new Set(clients)];
+        if(unique.length<clients.length){
+          const dupes=clients.filter((c,i)=>clients.indexOf(c)!==i);
+          const dupeUniq=[...new Set(dupes)];
+          issues.push({
+            client:dupeUniq.join(', '),raqami:raq,
+            type:'Takroriy raqam',
+            detail:`"${raq}" shartnoma raqami bir xil mijoz tomonidan takrorlangan: ${dupeUniq.join(', ')}.`
+          });
+        }
       }
     });
 
