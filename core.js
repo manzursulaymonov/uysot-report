@@ -152,6 +152,11 @@ function buildContracts(){
     const all=[],qAll=[];
     S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);all.push({client:r.Client,musd:r._mUSD||0,st,endD,mgr:r.Manager||'',hudud:r.Hudud||'',dur:r._dur||0,tUSD:r._tUSD||0,sUSD:r._sUSD||0,izoh:r.izoh||'',raqami:r.raqami||''})});
     S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);qAll.push({client:r.Client,musd,st,endD,mgr:r.Manager||'',hudud:r.Hudud||'',dur:0,tUSD:0,sUSD:0,izoh:'',raqami:''})});
+    // Mijoz hududini faqat birinchi shartnomadan olish
+    const _firstH={};
+    all.forEach(c=>{if(!_firstH[c.client]||c.st<_firstH[c.client].st)_firstH[c.client]={st:c.st,hudud:c.hudud}});
+    all.forEach(c=>{c.hudud=(_firstH[c.client]||{}).hudud||''});
+    qAll.forEach(c=>{c.hudud=(_firstH[c.client]||{}).hudud||c.hudud});
     return{all,qAll};
   });
 }
