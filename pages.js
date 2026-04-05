@@ -400,8 +400,8 @@ function toggleDebtFs(){
   if(window._fsKeyBound)return;
   window._fsKeyBound=true;
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&S.debtFs){S.debtFs=false;clearCache();render();}
-    if(e.key==='Escape'&&S.mrrFs){S.mrrFs=false;clearCache();render();}
+    if(e.key==='Escape'&&S.debtFs){if(document.querySelectorAll('.overlay').length)return;S.debtFs=false;clearCache();render();}
+    if(e.key==='Escape'&&S.mrrFs){if(document.querySelectorAll('.overlay').length)return;S.mrrFs=false;clearCache();render();}
     if(e.key==='f'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const tag=document.activeElement?.tagName;
       if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
@@ -593,11 +593,11 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 <button class="btn" onclick="showDashSettingsModal()" title="Dashboard sozlamalari"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
 <button class="btn" onclick="showReportModal()" title="PDF hisobot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1 -2.12-9.36L23 10"/></svg></button></div></div>
 <div class="flex gap-1 flex-wrap mb-4 items-center">
-${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''}" class="py-[5px] px-3 text-[11.5px]" onclick="${p.k==='c'?"S.dashPre='c';render()":"applyPreset('"+p.k+"')"}">${p.l}</button>`).join('')}
+${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="${p.k==='c'?"S.dashPre='c';render()":"applyPreset('"+p.k+"')"}">${p.l}</button>`).join('')}
 ${isCust?`<div class="flex gap-1 items-center ml-1">
-<input type="date" class="flt" class="text-[11px] p-[5px]" value="${S.dashFrom.toISOString().slice(0,10)}" onchange="S.dashFrom=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-[11px] p-[5px]" value="${S.dashFrom.toISOString().slice(0,10)}" onchange="S.dashFrom=new Date(this.value);clearCache();render()">
 <span class="text-subtle">→</span>
-<input type="date" class="flt" class="text-[11px] p-[5px]" value="${S.dashTo.toISOString().slice(0,10)}" onchange="S.dashTo=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-[11px] p-[5px]" value="${S.dashTo.toISOString().slice(0,10)}" onchange="S.dashTo=new Date(this.value);clearCache();render()">
 </div>`:''}
 <span class="text-[10.5px] text-subtle ml-1">${dr.gran==='day'?'kunlik':'oylik'}</span>
 </div>
@@ -616,14 +616,14 @@ ${(()=>{
   if(c.mrr?.s) h+=`<div class="metric c1"><div class="metric-head"><div class="metric-lbl">MRR</div><span class="metric-info" onclick="showMetricInfo('mrr')">i</span></div>
   <div class="flex items-baseline gap-2"><div class="metric-val anim-val" data-val="${curMRR}" data-fmt="2">0</div>
   ${c.mrr.g?`<div class="metric-foot"><span class="${mrrDelta>=0?'up':'dn'}">${mrrDelta>=0?'<svg class="w-2.5 align-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>':'<svg class="w-2.5 align-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>'} $${fk(Math.abs(mrrDelta))} (${mrrPct>0?'+':''}${mrrPct}%)</span></div>`:''}</div>
-  ${c.mrr.arr?`<div class="metric-foot" class="mt-1.5">ARR: <span class="mono" class="text-primary">$${fk(curMRR*12)}</span></div>`:''}</div>`;
+  ${c.mrr.arr?`<div class="metric-foot mt-1.5">ARR: <span class="mono text-primary">$${fk(curMRR*12)}</span></div>`:''}</div>`;
   
   if(c.nrr?.s) h+=`<div class="metric c5"><div class="metric-head"><div class="metric-lbl">NRR</div><span class="metric-info" onclick="showMetricInfo('nrr')">i</span></div>
   <div class="flex items-baseline gap-2"><div class="metric-val">${nrrVal.toFixed(1)}</div><span class="text-base font-semibold text-primary -ml-1">%</span></div>
   <div class="flex gap-5 mt-3 pt-3 border-t border-brd">
-  ${c.nrr.n?`<div><div class="text-[10px] text-subtle mb-0.5 uppercase tracking-[0.5px]">New</div><div class="up" class="font-semibold text-xs font-mono">+$${fk(mrrFromNew)}</div></div>`:''}
-  ${c.nrr.e?`<div><div class="text-[10px] text-subtle mb-0.5 uppercase tracking-[0.5px]">Net Exp</div><div class="${netExp>=0?'up':'dn'}" class="font-semibold text-xs font-mono">${netExp>=0?'+':''}$${fk(netExp)}</div></div>`:''}
-  ${c.nrr.c?`<div><div class="text-[10px] text-subtle mb-0.5 uppercase tracking-[0.5px]">Churn</div><div class="dn" class="font-semibold text-xs font-mono">-$${fk(mrrFromChurn)}</div></div>`:''}</div></div>`;
+  ${c.nrr.n?`<div><div class="text-[10px] text-subtle mb-0.5 uppercase tracking-[0.5px]">New</div><div class="up font-semibold text-xs font-mono">+$${fk(mrrFromNew)}</div></div>`:''}
+  ${c.nrr.e?`<div><div class="text-[10px] text-subtle mb-0.5 uppercase tracking-[0.5px]">Net Exp</div><div class="${netExp>=0?'up':'dn'} font-semibold text-xs font-mono">${netExp>=0?'+':''}$${fk(netExp)}</div></div>`:''}
+  ${c.nrr.c?`<div><div class="text-[10px] text-subtle mb-0.5 uppercase tracking-[0.5px]">Churn</div><div class="dn font-semibold text-xs font-mono">-$${fk(mrrFromChurn)}</div></div>`:''}</div></div>`;
 
   // GRR — Gross Revenue Retention (saqlanish, Expansion hisobga olinmaydi)
   if(c.nrr?.s){
@@ -631,13 +631,13 @@ ${(()=>{
     const grrCol=grrVal>=95?'var(--green)':grrVal>=85?'var(--amber)':'var(--red)';
     h+=`<div class="metric c4"><div class="metric-head"><div class="metric-lbl">GRR</div><span class="metric-info" onclick="showMetricInfo('grr')">i</span></div>
     <div class="flex items-baseline gap-2"><div class="metric-val" style="color:${grrCol}">${grrVal.toFixed(1)}</div><span class="text-base font-semibold text-primary -ml-1">%</span></div>
-    <div class="metric-foot" class="mt-2 text-[10.5px] text-subtle">Churn + Contraction yo'qotish</div></div>`;
+    <div class="metric-foot mt-2 text-[10.5px] text-subtle">Churn + Contraction yo'qotish</div></div>`;
   }
   
   if(c.cust?.s) h+=`<div class="metric c2"><div class="metric-head"><div class="metric-lbl">Active Customers</div><span class="metric-info" onclick="showMetricInfo('cust')">i</span></div>
   <div class="flex items-baseline gap-2"><div class="metric-val anim-val" data-val="${curClients}">0</div>
   ${c.cust.g?`<div class="metric-foot"><span class="${clientDelta>=0?'up':'dn'}">${clientDelta>=0?'<svg class="w-2.5 align-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>':'<svg class="w-2.5 align-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>'} ${Math.abs(clientDelta)} ${clientPctStr}</span></div>`:''}</div>
-  <div class="metric-foot" class="mt-1.5">${c.cust.ch?`Churn Rate: <span class="mono" style="color:${churnRate>5?'var(--red)':'var(--text)'}">${churnRate.toFixed(1)}%</span>`:''}</div></div>`;
+  <div class="metric-foot mt-1.5">${c.cust.ch?`Churn Rate: <span class="mono" style="color:${churnRate>5?'var(--red)':'var(--text)'}">${churnRate.toFixed(1)}%</span>`:''}</div></div>`;
   
   if(c.arpa?.s) h+=`<div class="metric c3"><div class="metric-head"><div class="metric-lbl">ARPA</div><span class="metric-info" onclick="showMetricInfo('arpa')">i</span></div>
   <div class="flex items-baseline gap-2"><div class="metric-val anim-val" data-val="${arpa}" data-fmt="2">0</div>
@@ -647,7 +647,7 @@ ${(()=>{
     const cacVal = Math.round(dr.cac||0);
     h+=`<div class="metric c4"><div class="metric-head"><div class="metric-lbl">CAC</div><span class="metric-info" onclick="showMetricInfo('cac')">i</span></div>
     <div class="flex items-baseline gap-1.5"><div class="metric-val anim-val" data-val="${cacVal}" data-fmt="2">0</div><span class="text-[13px] text-subtle">USD</span></div>
-    <div class="metric-foot" class="mt-1.5 text-[10px] text-subtle">Mijoz jalb qilish narxi</div></div>`;
+    <div class="metric-foot mt-1.5 text-[10px] text-subtle">Mijoz jalb qilish narxi</div></div>`;
   }
   
   if(c.cash?.s!==false) h+=`<div class="metric c6"><div class="metric-head"><div class="metric-lbl">Net Cash In</div><span class="metric-info" onclick="showMetricInfo('cash')">i</span></div>
@@ -668,7 +668,7 @@ ${(()=>{
     const qrColor = qrVal >= 4 ? 'var(--green)' : qrVal >= 2 ? 'var(--amber)' : 'var(--red)';
     h+=`<div class="metric c1"><div class="metric-head"><div class="metric-lbl">SaaS Quick Ratio</div><span class="metric-info" onclick="showMetricInfo('qr')">i</span></div>
     <div class="flex items-baseline gap-1.5"><div class="metric-val" style="color:${qrColor}">${qrDisp}</div><span class="text-[13px] text-subtle">x</span></div>
-    <div class="metric-foot" class="mt-1.5 text-[10px] text-subtle">O'sish / Yo'qotish nisbati</div></div>`;
+    <div class="metric-foot mt-1.5 text-[10px] text-subtle">O'sish / Yo'qotish nisbati</div></div>`;
   }
 
 
@@ -680,9 +680,9 @@ ${(()=>{
 ${(()=>{
   const c=S.dashCards||{}; let h='';
   if(c.chTrend?.s!==false || c.chComp?.s!==false){
-    h+=`<div class="grid-2" class="mt-5 mb-5">`;
-    if(c.chTrend?.s!==false) h+=`<div class="card"><div class="card-head" class="mb-3 uppercase tracking-[1px] text-[11px] text-subtle font-semibold">TOTAL MRR TREND</div><div class="card-body"><div class="chart-wrap" class="h-[320px]"><canvas id="chTrend"></canvas></div></div></div>`;
-    if(c.chComp?.s!==false) h+=`<div class="card"><div class="card-head" class="mb-3 uppercase tracking-[1px] text-[11px] text-subtle font-semibold">MRR COMPONENTS</div><div class="card-body"><div class="chart-wrap" class="h-[320px]"><canvas id="chComponents"></canvas></div></div></div>`;
+    h+=`<div class="grid-2 mt-5 mb-5">`;
+    if(c.chTrend?.s!==false) h+=`<div class="card"><div class="card-head mb-3 uppercase tracking-[1px] text-[11px] text-subtle font-semibold">TOTAL MRR TREND</div><div class="card-body"><div class="chart-wrap h-[320px]"><canvas id="chTrend"></canvas></div></div></div>`;
+    if(c.chComp?.s!==false) h+=`<div class="card"><div class="card-head mb-3 uppercase tracking-[1px] text-[11px] text-subtle font-semibold">MRR COMPONENTS</div><div class="card-body"><div class="chart-wrap h-[320px]"><canvas id="chComponents"></canvas></div></div></div>`;
     h+=`</div>`;
   }
   
@@ -690,14 +690,14 @@ ${(()=>{
   const showGr = c.cMrrGr?.s!==false && dr.mrrGrowthPcts.length>1;
   const showNm = c.cNetMov?.s!==false;
   if(showGr || showNm){
-    h+=`<div class="grid-2" class="mt-3.5">`;
+    h+=`<div class="grid-2 mt-3.5">`;
 
     // MRR GROWTH RATE SPARKLINE
     if(showGr){
       const pcts=dr.mrrGrowthPcts;
       const maxAbs=Math.max(...pcts.map(p=>Math.abs(p)),1);
-      h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-accent"></span>MRR Growth Rate (%)</span></div>
-      <div class="card-body" class="flex items-end gap-[3px] h-[80px] py-3 px-4">`;
+      h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>MRR Growth Rate (%)</span></div>
+      <div class="card-body flex items-end gap-[3px] h-[80px] py-3 px-4">`;
       pcts.forEach((p,i)=>{
         const noData = i===0 && p===0;
         const h2=Math.max(4,Math.abs(p)/maxAbs*60);
@@ -719,8 +719,8 @@ ${(()=>{
         {label:'Contraction',val:nm.conMRR,col:'var(--amber)',sign:'-'}
       ];
       const maxV=Math.max(...items.map(x=>x.val),1);
-      h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-accent2"></span>Net MRR Movement <span style="color:${nm.net>=0?'var(--green)':'var(--red)'};font-weight:700">${nm.net>=0?'+':''}${fmt(nm.net)}</span></span></div>
-      <div class="card-body" class="py-3.5 px-[18px]">`;
+      h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent2"></span>Net MRR Movement <span style="color:${nm.net>=0?'var(--green)':'var(--red)'};font-weight:700">${nm.net>=0?'+':''}${fmt(nm.net)}</span></span></div>
+      <div class="card-body py-3.5 px-[18px]">`;
       items.forEach(it=>{
         const w=Math.max(4,Math.round(it.val/maxV*100));
         h+=`<div class="flex items-center gap-2.5 mb-2">
@@ -738,9 +738,9 @@ ${(()=>{
   }
 
   if(c.tNew?.s!==false || c.tChurn?.s!==false){
-    h+=`<div class="grid-2" class="mt-3.5">`;
-    if(c.tNew?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-success"></span>New (${totalNew}) <span style="color:var(--green);font-weight:600">+${fmt(mrrFromNew)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${newClients.length?newClients.map(c=>{return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td class="font-semibold text-xs">'+cl(c.name)+'</td><td class="col-hide" class="text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green);font-weight:600">+'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
-    if(c.tChurn?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn (${totalChurn}) <span style="color:var(--red);font-weight:600">-${fmt(mrrFromChurn)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${churnClients.length?churnClients.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="col-hide" class="text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red);font-weight:600">-'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    h+=`<div class="grid-2 mt-3.5">`;
+    if(c.tNew?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>New (${totalNew}) <span style="color:var(--green);font-weight:600">+${fmt(mrrFromNew)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${newClients.length?newClients.map(c=>{return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td class="font-semibold text-xs">'+cl(c.name)+'</td><td class="col-hide text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green);font-weight:600">+'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    if(c.tChurn?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn (${totalChurn}) <span style="color:var(--red);font-weight:600">-${fmt(mrrFromChurn)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${churnClients.length?churnClients.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="col-hide text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red);font-weight:600">-'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
     h+=`</div>`;
   }
 
@@ -750,12 +750,12 @@ ${(()=>{
     const mrrExpOnly = expansions.reduce((s,x)=>s+x.delta,0);
     const mrrConOnly = contractions.reduce((s,x)=>s+Math.abs(x.delta),0);
 
-    h+=`<div class="grid-2" class="mt-3.5">`;
+    h+=`<div class="grid-2 mt-3.5">`;
     // EXPANSION TABLE
-    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-tw-teal"></span>Expansion (${expansions.length}) <span style="color:var(--green);font-weight:600">+${fmt(mrrExpOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="text-r">Oldin</th><th class="text-r">Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${expansions.length?expansions.map(c=>{const badge = (c.isRes?' <span class="badge b-amber" style="font-size:8px;padding:1px 4px">Q</span>':'') + (c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''); return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono" class="text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono" class="text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--green)">+'+fmt(c.delta)+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-teal"></span>Expansion (${expansions.length}) <span style="color:var(--green);font-weight:600">+${fmt(mrrExpOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="text-r">Oldin</th><th class="text-r">Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${expansions.length?expansions.map(c=>{const badge = (c.isRes?' <span class="badge b-amber" style="font-size:8px;padding:1px 4px">Q</span>':'') + (c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''); return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--green)">+'+fmt(c.delta)+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
     
     // CONTRACTION TABLE
-    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-warn"></span>Contraction (${contractions.length}) <span style="color:var(--red);font-weight:600">-${fmt(mrrConOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="text-r">Oldin</th><th class="text-r">Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${contractions.length?contractions.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono" class="text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono" class="text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--red)">-'+fmt(Math.abs(c.delta))+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-warn"></span>Contraction (${contractions.length}) <span style="color:var(--red);font-weight:600">-${fmt(mrrConOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="text-r">Oldin</th><th class="text-r">Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${contractions.length?contractions.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--red)">-'+fmt(Math.abs(c.delta))+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
     h+=`</div>`;
   }
   h+=`</div>`;
@@ -803,15 +803,15 @@ if(view==='muddatlar'){
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const rnAll=Object.values(rnMap).map(c=>({...c,daysLeft:Math.round((c.endDate-today)/864e5)})).filter(c=>c.daysLeft<=7&&c.daysLeft>=-7).sort((a,b)=>a.daysLeft-b.daysLeft);
   const ctExp=rnAll.filter(r=>r.daysLeft<0).length,ctAhead=rnAll.filter(r=>r.daysLeft>=0).length;
-  h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-warn"></span>Muddat Kalendari (±7 kun) — <span class="text-success font-bold">${ctAhead}</span> tugayotgan${ctExp?` / <span class="text-subtle">${ctExp} tugagan</span>`:''}</span></div>
-  <div class="card-body dash-new-full" class="p-0"><div class="tbl-scroll" class="max-h-[calc(100vh-220px)]"><table><thead><tr><th>Mijoz</th><th class="col-hide">Firma</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th><th class="text-r">Qoldi</th></tr></thead><tbody>`;
+  h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-warn"></span>Muddat Kalendari (±7 kun) — <span class="text-success font-bold">${ctAhead}</span> tugayotgan${ctExp?` / <span class="text-subtle">${ctExp} tugagan</span>`:''}</span></div>
+  <div class="card-body dash-new-full p-0"><div class="tbl-scroll max-h-[calc(100vh-220px)]"><table><thead><tr><th>Mijoz</th><th class="col-hide">Firma</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th><th class="text-r">Qoldi</th></tr></thead><tbody>`;
   if(rnAll.length)rnAll.forEach(r=>{
     const expired=r.daysLeft<0;
     const dc=expired?'var(--text3)':r.daysLeft<=5?'var(--red)':r.daysLeft<=10?'var(--amber)':'var(--green)';
     const nm=expired?`<span class="opacity-60">${cl(r.name)}</span>`:cl(r.name);
     const dl=expired?`<span class="text-[10px] text-subtle">${Math.abs(r.daysLeft)} kun oldin</span>`:`${r.daysLeft} kun`;
     const firmaHtml=r.firma?r.firma+(r.inn?'<div class="text-[9px] text-subtle font-mono">'+r.inn+' <button onclick="navigator.clipboard.writeText(\''+r.inn+'\');showToast(\'Nusxalandi\',\'success\')" class="bg-transparent border-none cursor-pointer text-subtle p-0 text-[9px]">📋</button></div>':''):'—';
-    h+=`<tr${expired?' class="opacity-50"':''}><td class="font-semibold text-xs">${nm}</td><td class="col-hide" class="text-[11px] text-muted">${firmaHtml}</td><td class="col-hide" class="text-[11px] text-muted">${r.mgr||'—'}</td><td class="text-r mono" class="text-[11px]">${fmt(r.mrr)}</td><td class="text-r mono" style="font-size:11px;font-weight:700;color:${dc}">${dl}</td></tr>`;
+    h+=`<tr${expired?' class="opacity-50"':''}><td class="font-semibold text-xs">${nm}</td><td class="col-hide text-[11px] text-muted">${firmaHtml}</td><td class="col-hide text-[11px] text-muted">${r.mgr||'—'}</td><td class="text-r mono text-[11px]">${fmt(r.mrr)}</td><td class="text-r mono" style="font-size:11px;font-weight:700;color:${dc}">${dl}</td></tr>`;
   });else h+=`<tr><td colspan="5" class="text-center text-subtle p-5">Yaqinda tugaydigan shartnoma yo'q ✅</td></tr>`;
   h+=`</tbody></table></div></div></div>`;
 }else{
@@ -823,7 +823,7 @@ if(view==='muddatlar'){
 const k=r.Client+'|'+r.raqami;const qExtra=qm[k]||0;const totalSum=r._sUSD+qExtra;
 const p=pm[k]||{total:0};const qarz=Math.round(totalSum-p.total)||0;const qarzD=Math.abs(qarz)<=1?0:qarz;
 const qC=qarzD>0?'var(--red)':qarzD<0?'var(--amber)':'var(--green)';const qW=qarzD>0?'600':'400';
-return`<tr><td class="mono" class="text-[10px] text-subtle">${r.raqami||'—'}</td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(totalSum)}${qExtra?'<span style="font-size:9px;color:var(--teal)"> +'+fmt(qExtra)+'</span>':''}</td>${hasPay?'<td class="text-r mono" style="color:var(--green)">'+(p.total?fmt(p.total):'—')+'</td><td class="text-r mono" style="color:'+qC+';font-weight:'+qW+'">'+(totalSum?fmt(qarzD):'—')+'</td>':''}<td>${sb(r.status)}</td></tr>`}).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`;
+return`<tr><td class="mono text-[10px] text-subtle">${r.raqami||'—'}</td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${fmt(r._mUSD)}</td><td class="text-r mono">${fmt(totalSum)}${qExtra?'<span style="font-size:9px;color:var(--teal)"> +'+fmt(qExtra)+'</span>':''}</td>${hasPay?'<td class="text-r mono" style="color:var(--green)">'+(p.total?fmt(p.total):'—')+'</td><td class="text-r mono" style="color:'+qC+';font-weight:'+qW+'">'+(totalSum?fmt(qarzD):'—')+'</td>':''}<td>${sb(r.status)}</td></tr>`}).join('')}</tbody></table></div></div>${pag(S.cP,pg,t,S.cN,'cP')}`;
 }
 return h;
 }
@@ -834,15 +834,15 @@ let d=[...S.rows];
 if(S.cQ){const q=S.cQ.toLowerCase();d=d.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q)||(r.INN||'').includes(q))}
 if(S.cS)d=d.filter(r=>sc(r.status)===S.cS);if(S.cM)d=d.filter(r=>r.Manager===S.cM);if(S.cR)d=d.filter(r=>r.Hudud===S.cR);
 const t=d.length;
-let h=`<div class="page-header"><div><div class="page-title">Shartnomalar</div><div class="page-sub">${t} ta</div></div><button class="btn-outline" class="py-[7px] px-[11px]" onclick="showDlMenu(this,'contracts')" title="Yuklab olish">${_dlSvg}</button></div>`;
+let h=`<div class="page-header"><div><div class="page-title">Shartnomalar</div><div class="page-sub">${t} ta</div></div><button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'contracts')" title="Yuklab olish">${_dlSvg}</button></div>`;
 return h+_rCBody();
 }
 
 // === MRR SUB-VIEW HELPERS ===
 function _mrrToolbar(yr){
-  return`<div class="toolbar" class="mb-3 gap-2.5">
+  return`<div class="toolbar mb-3 gap-2.5">
   <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, menejer, hudud..." value="${S.mrrQ||''}" oninput="onSearch('mrrQ',this.value)"><button class="search-clear" onclick="onSearch('mrrQ','');render()" type="button">&times;</button></div>
-  <div class="flex gap-1">${[yr-1,yr,yr+1].map(y=>`<button class="btn${y===yr?' btn-primary':''}" class="py-[7px] px-4 text-[13px] font-semibold" onclick="S.mrrYear=${y};clearCache();render()">${y}</button>`).join('')}</div>
+  <div class="flex gap-1">${[yr-1,yr,yr+1].map(y=>`<button class="btn${y===yr?' btn-primary':''} py-[7px] px-4 text-[13px] font-semibold" onclick="S.mrrYear=${y};clearCache();render()">${y}</button>`).join('')}</div>
   </div>`;
 }
 
@@ -861,18 +861,18 @@ const setPanel=S.mrrSet?`<div class="mrr-set">${colDefs.map(c=>`<label><input ty
 const exCols=(cc.mgr?1:0)+(cc.hudud?1:0)+(cc.mrr?1:0)+(cc.deal?1:0)+(cc.end?1:0);
 
 return`<div id="mrrContainer"${S.mrrFs?' class="mrr-fs-active"':''}>
-<div class="toolbar" class="mb-3 gap-2.5">
+<div class="toolbar mb-3 gap-2.5">
 <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, menejer, hudud..." value="${S.mrrQ||''}" oninput="onSearch('mrrQ',this.value)"><button class="search-clear" onclick="onSearch('mrrQ','');render()" type="button">&times;</button></div>
 <div class="flex gap-1 items-center">
-${[yr-1,yr,yr+1].map(y=>`<button class="btn${y===yr?' btn-primary':''}" class="py-[7px] px-4 text-[13px] font-semibold" onclick="S.mrrYear=${y};clearCache();const sp=document.querySelector('.tbl-scroll');const sy=sp?sp.scrollTop:0;render();requestAnimationFrame(()=>{const s=document.querySelector('.tbl-scroll');if(s)s.scrollTop=sy;})"> ${y}</button>`).join('')}
+${[yr-1,yr,yr+1].map(y=>`<button class="btn${y===yr?' btn-primary':''} py-[7px] px-4 text-[13px] font-semibold" onclick="S.mrrYear=${y};clearCache();const sp=document.querySelector('.tbl-scroll');const sy=sp?sp.scrollTop:0;render();requestAnimationFrame(()=>{const s=document.querySelector('.tbl-scroll');if(s)s.scrollTop=sy;})"> ${y}</button>`).join('')}
 </div>
 <div class="ml-auto flex gap-1.5 items-center relative">
-<button class="btn${S.mrrFs?' btn-primary':''}" class="py-2 px-3" onclick="toggleMrrFullscreen()" title="${S.mrrFs?'Kichraytirish':'To\'liq ekran'}" id="mrrFsBtn">${S.mrrFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>'}</button>
-<button class="btn${S.mrrSet?' btn-primary':''}" class="py-2 px-3" onclick="S.mrrSet=!S.mrrSet;render()" title="Ustunlar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/><circle cx="12" cy="12" r="3"/></svg></button>${S.mrrSet?`<div style="position:fixed;inset:0;z-index:19" onclick="S.mrrSet=false;render()"></div>`:''} ${setPanel}</div>
+<button class="btn${S.mrrFs?' btn-primary':''} py-2 px-3" onclick="toggleMrrFullscreen()" title="${S.mrrFs?'Kichraytirish':'To\'liq ekran'}" id="mrrFsBtn">${S.mrrFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>'}</button>
+<button class="btn${S.mrrSet?' btn-primary':''} py-2 px-3" onclick="S.mrrSet=!S.mrrSet;render()" title="Ustunlar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/><circle cx="12" cy="12" r="3"/></svg></button>${S.mrrSet?`<div style="position:fixed;inset:0;z-index:19" onclick="S.mrrSet=false;render()"></div>`:''} ${setPanel}</div>
 </div>
 
-<div class="card" class="shadow-lg"><div class="card-body" class="p-0">
-<div class="tbl-scroll" class="max-h-[calc(100vh-160px)] pb-[120px]">
+<div class="card shadow-lg"><div class="card-body p-0">
+<div class="tbl-scroll pb-8">
 <table class="mrr-tbl"><thead><tr>
 <th class="sticky-col col-name">Mijoz nomi</th>
 ${cc.mgr?`<th>Menejer</th>`:''}
@@ -882,17 +882,17 @@ ${cc.deal?`<th class="text-c">Boshi</th>`:''}
 ${cc.end?`<th class="text-c">Tugashi</th>`:''}
 ${mos.map(m=>`<th class="mcell">${m}</th>`).join('')}
 </tr></thead><tbody>
-<tr class="summary-row row-mom"><td class="sticky-col col-name" class="text-[10.5px] text-subtle">Month-over-Month %</td>${Array(exCols).fill('<td></td>').join('')}${d.mom.map(v=>{const c=v>0?'var(--green)':v<0?'var(--red)':'var(--text3)';return`<td class="mcell" style="color:${c}">${v?(v>0?'+':'')+v.toFixed(1)+'%':'—'}</td>`}).join('')}</tr>
-<tr class="summary-row row-total"><td class="sticky-col col-name">Davr yig'indisi (JAMI)</td>${Array(exCols).fill('<td></td>').join('')}${d.totals.map(v=>`<td class="mcell" class="text-primary">${v?fmt(v):'—'}</td>`).join('')}</tr>
+<tr class="summary-row row-mom"><td class="sticky-col col-name text-[10.5px] text-subtle">Month-over-Month %</td>${Array(exCols).fill('<td></td>').join('')}${d.mom.map(v=>{const c=v>0?'var(--green)':v<0?'var(--red)':'var(--text3)';return`<td class="mcell" style="color:${c}">${v?(v>0?'+':'')+v.toFixed(1)+'%':'—'}</td>`}).join('')}</tr>
+<tr class="summary-row row-total"><td class="sticky-col col-name">Davr yig'indisi (JAMI)</td>${Array(exCols).fill('<td></td>').join('')}${d.totals.map(v=>`<td class="mcell text-primary">${v?fmt(v):'—'}</td>`).join('')}</tr>
 ${filtered.map(c=>{
 const ce=cumExp[c.name];const paid=clPay[c.name]||0;
 return`<tr>
 <td class="sticky-col col-name">${cl(c.name)}</td>
 ${cc.mgr?`<td class="text-xs text-muted">${c.mgr||'—'}</td>`:''}
 ${cc.hudud?`<td class="text-xs text-muted">${c.hudud||'—'}</td>`:''}
-${cc.mrr?`<td class="mono text-r" class="font-semibold">${c.mrr?fmt(c.mrr):'—'}</td>`:''}
-${cc.deal?`<td class="mono text-c" class="text-subtle text-[11px]">${c.dealStart||'—'}</td>`:''}
-${cc.end?`<td class="mono text-c" class="text-subtle text-[11px]">${c.dealEnd||'—'}</td>`:''}
+${cc.mrr?`<td class="mono text-r font-semibold">${c.mrr?fmt(c.mrr):'—'}</td>`:''}
+${cc.deal?`<td class="mono text-c text-subtle text-[11px]">${c.dealStart||'—'}</td>`:''}
+${cc.end?`<td class="mono text-c text-subtle text-[11px]">${c.dealEnd||'—'}</td>`:''}
 ${c.monthly.map((v,m)=>{
 if(!v)return'<td class="mcell mcell-0">—</td>';
 let cls='mcell',tip='';
@@ -917,17 +917,17 @@ function rM(){
 
   if(view==='reyting'){
     const mb=calcManagerBoard();
-    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-accent2"></span>MRR Harakati Reytingi <span class="text-[10px] text-subtle font-normal ml-1.5">· tanlangan davr</span></span></div>
-    <div class="card-body dash-new-full" class="p-0"><div class="tbl-scroll" class="max-h-[calc(100vh-220px)]"><table><thead><tr><th>#</th><th>Menejer</th><th class="text-r" title="Yangi mijozlardan kelgan MRR">Yangi</th><th class="text-r col-hide" title="Ketgan mijozlardan yo'qotilgan MRR">Churn</th><th class="text-r col-hide" title="Kengaygan shartnomalardan qo'shimcha MRR">Exp</th><th class="text-r col-hide" title="Qisqargan shartnomalardan kamaygan MRR">Con</th><th class="text-r" title="Yangi + Exp − Churn − Con">Sof MRR</th></tr></thead><tbody>`;
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent2"></span>MRR Harakati Reytingi <span class="text-[10px] text-subtle font-normal ml-1.5">· tanlangan davr</span></span></div>
+    <div class="card-body dash-new-full p-0"><div class="tbl-scroll max-h-[calc(100vh-220px)]"><table><thead><tr><th>#</th><th>Menejer</th><th class="text-r" title="Yangi mijozlardan kelgan MRR">Yangi</th><th class="text-r col-hide" title="Ketgan mijozlardan yo'qotilgan MRR">Churn</th><th class="text-r col-hide" title="Kengaygan shartnomalardan qo'shimcha MRR">Exp</th><th class="text-r col-hide" title="Qisqargan shartnomalardan kamaygan MRR">Con</th><th class="text-r" title="Yangi + Exp − Churn − Con">Sof MRR</th></tr></thead><tbody>`;
     mb.forEach((m,i)=>{
       const nc=m.netMRR>=0?'var(--green)':'var(--red)';
-      h+=`<tr><td style="font-weight:700;color:var(--text3)">${i+1}</td><td class="font-semibold text-xs"><span class="mgr-link" onclick="showMgrStats('${m.name.replace(/'/g,"\\'")}')">${m.name}</span></td><td class="text-r"><span class="up mono" class="text-[11px]">+${fmt(m.newMRR)}</span> <span style="font-size:9px;color:var(--text3)">(${m.newCount})</span></td><td class="text-r col-hide"><span class="dn mono" class="text-[11px]">-${fmt(m.churnMRR)}</span> <span style="font-size:9px;color:var(--text3)">(${m.churnCount})</span></td><td class="text-r col-hide mono" style="font-size:11px;color:var(--green)">${m.expMRR>0?'+'+fmt(m.expMRR):'—'}</td><td class="text-r col-hide mono" style="font-size:11px;color:${m.conMRR>0?'var(--amber)':'var(--text3)'}">${m.conMRR>0?'-'+fmt(m.conMRR):'—'}</td><td class="text-r mono" style="font-weight:700;color:${nc}">${m.netMRR>=0?'+':''}${fmt(m.netMRR)}</td></tr>`;
+      h+=`<tr><td style="font-weight:700;color:var(--text3)">${i+1}</td><td class="font-semibold text-xs"><span class="mgr-link" onclick="showMgrStats('${m.name.replace(/'/g,"\\'")}')">${m.name}</span></td><td class="text-r"><span class="up mono text-[11px]">+${fmt(m.newMRR)}</span> <span style="font-size:9px;color:var(--text3)">(${m.newCount})</span></td><td class="text-r col-hide"><span class="dn mono text-[11px]">-${fmt(m.churnMRR)}</span> <span style="font-size:9px;color:var(--text3)">(${m.churnCount})</span></td><td class="text-r col-hide mono" style="font-size:11px;color:var(--green)">${m.expMRR>0?'+'+fmt(m.expMRR):'—'}</td><td class="text-r col-hide mono" style="font-size:11px;color:${m.conMRR>0?'var(--amber)':'var(--text3)'}">${m.conMRR>0?'-'+fmt(m.conMRR):'—'}</td><td class="text-r mono" style="font-weight:700;color:${nc}">${m.netMRR>=0?'+':''}${fmt(m.netMRR)}</td></tr>`;
     });
     h+=`</tbody></table></div></div></div>`;
   }else{
-    h+=`<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-accent"></span>Olib kelingan MRR ($)</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMM"></canvas></div></div></div>
-    <div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-success"></span>Mijozlar soni</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMC"></canvas></div></div></div></div>
-    <div class="tbl-wrap" class="mt-3.5"><table><thead><tr><th>Menejer</th><th class="text-r">Mijozlar</th><th class="text-r">Olib kelgan MRR ($)</th><th class="text-r">O'rtacha</th><th>Ulush</th></tr></thead><tbody>${mg.map((x,i)=>{const p=tM?Math.round(x.initialMRR/tM*100):0;const av=x.clients?Math.round(x.initialMRR/x.clients):0;return`<tr><td class="font-semibold"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${co[i%co.length]};margin-right:7px;vertical-align:middle"></span><span class="mgr-link" onclick="showMgrStats('${x.name.replace(/'/g,"\\'")}')">${x.name}</span></td><td class="text-r mono">${x.clients}</td><td class="text-r mono" class="font-semibold">${fmt(x.initialMRR)}</td><td class="text-r mono">${fmt(av)}</td><td><div class="flex items-center gap-1.5"><div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:${co[i%co.length]};border-radius:3px;transition:width .5s ease"></div></div><span class="mono" style="font-size:10px;color:var(--text3);min-width:28px;text-align:right">${p}%</span></div></td></tr>`}).join('')}</tbody></table></div>`;
+    h+=`<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Olib kelingan MRR ($)</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMM"></canvas></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>Mijozlar soni</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMC"></canvas></div></div></div></div>
+    <div class="tbl-wrap mt-3.5"><table><thead><tr><th>Menejer</th><th class="text-r">Mijozlar</th><th class="text-r">Olib kelgan MRR ($)</th><th class="text-r">O'rtacha</th><th>Ulush</th></tr></thead><tbody>${mg.map((x,i)=>{const p=tM?Math.round(x.initialMRR/tM*100):0;const av=x.clients?Math.round(x.initialMRR/x.clients):0;return`<tr><td class="font-semibold"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${co[i%co.length]};margin-right:7px;vertical-align:middle"></span><span class="mgr-link" onclick="showMgrStats('${x.name.replace(/'/g,"\\'")}')">${x.name}</span></td><td class="text-r mono">${x.clients}</td><td class="text-r mono font-semibold">${fmt(x.initialMRR)}</td><td class="text-r mono">${fmt(av)}</td><td><div class="flex items-center gap-1.5"><div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:${co[i%co.length]};border-radius:3px;transition:width .5s ease"></div></div><span class="mono" style="font-size:10px;color:var(--text3);min-width:28px;text-align:right">${p}%</span></div></td></tr>`}).join('')}</tbody></table></div>`;
   }
   return h;
 }
@@ -948,12 +948,12 @@ if(view==='tahlil'){
   const logoC=Math.round((dr.logoChurnRate||0)*10)/10;
   const revC=Math.round((dr.revenueChurnRate||0)*10)/10;
   h+=`<div class="grid-2">
-  <div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-tw-teal"></span>Hudud bo'yicha tahlil</span></div>
-  <div class="card-body dash-new-full" class="p-0 max-h-[400px] overflow-y-auto"><table><thead><tr><th>Hudud</th><th class="text-r">MRR</th><th></th><th class="text-r">Mijozlar</th></tr></thead><tbody>`;
-  rg.forEach(r=>{const w=Math.round(r.mrr/maxMRR*100);const hn=JSON.stringify(r.name).replace(/"/g,'&quot;');h+=`<tr style="cursor:pointer" onclick="showRegionModal(${hn})" title="${r.name} mijozlarini ko'rish"><td class="font-semibold text-xs">${r.name}</td><td class="text-r mono" class="text-[11px]">${fmt(r.mrr)}</td><td><div style="background:var(--bg3);border-radius:3px;height:12px;overflow:hidden"><div style="width:${w}%;height:100%;background:var(--teal);border-radius:3px"></div></div></td><td class="text-r" class="font-semibold">${r.count}</td></tr>`;});
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-teal"></span>Hudud bo'yicha tahlil</span></div>
+  <div class="card-body dash-new-full p-0 max-h-[400px] overflow-y-auto"><table><thead><tr><th>Hudud</th><th class="text-r">MRR</th><th></th><th class="text-r">Mijozlar</th></tr></thead><tbody>`;
+  rg.forEach(r=>{const w=Math.round(r.mrr/maxMRR*100);const hn=JSON.stringify(r.name).replace(/"/g,'&quot;');h+=`<tr style="cursor:pointer" onclick="showRegionModal(${hn})" title="${r.name} mijozlarini ko'rish"><td class="font-semibold text-xs">${r.name}</td><td class="text-r mono text-[11px]">${fmt(r.mrr)}</td><td><div style="background:var(--bg3);border-radius:3px;height:12px;overflow:hidden"><div style="width:${w}%;height:100%;background:var(--teal);border-radius:3px"></div></div></td><td class="text-r font-semibold">${r.count}</td></tr>`;});
   h+=`</tbody></table></div></div>
-  <div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-tw-purple"></span>Mijozlar sadoqati (Retention)</span></div>
-  <div class="card-body" class="p-5">
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-purple"></span>Mijozlar sadoqati (Retention)</span></div>
+  <div class="card-body p-5">
     <div class="flex justify-between items-center mb-5">
       <div><div class="text-[11px] text-subtle mb-1">LOGO CHURN</div><div style="font-size:24px;font-weight:700;color:${logoC>5?'var(--red)':'var(--green)'}">${logoC}%</div></div>
       <div><div class="text-[11px] text-subtle mb-1">REV CHURN</div><div style="font-size:24px;font-weight:700;color:${revC>5?'var(--red)':'var(--green)'}">${revC}%</div></div>
@@ -963,8 +963,8 @@ if(view==='tahlil'){
     <div class="text-[11.5px] text-muted leading-normal p-3 bg-card rounded-lg">Mijozlar soni va daromad yo'qotish ko'rsatkichlari. LTV (Lifetime Value) - bir mijozdan kutiladigan jami daromad.</div>
   </div></div></div>`;
   if(cq.length){
-    h+=`<div class="card" class="mt-4"><div class="card-head"><span class="card-label"><span class="dot" class="bg-accent"></span>Mijozlar sadoqati (Cohort Heatmap)</span></div>
-    <div class="overflow-x-auto pb-2.5"><table class="u-table" class="text-[11.5px] min-w-[800px] text-center">
+    h+=`<div class="card mt-4"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Mijozlar sadoqati (Cohort Heatmap)</span></div>
+    <div class="overflow-x-auto pb-2.5"><table class="u-table text-[11.5px] min-w-[800px] text-center">
     <thead><tr><th class="text-left w-[120px]">Kogort (Ulangan oyi)</th><th class="w-20">Mijozlar</th>`;
     let maxM=0;cq.forEach(d=>maxM=Math.max(maxM,d.months.length));
     for(let i=0;i<maxM;i++)h+=`<th>Oy ${i}</th>`;
@@ -992,15 +992,15 @@ const view=S.topView||'metrka';
 let h=`<div class="page-header"><div><div class="page-title">Top MRR</div><div class="page-sub">Eng yirik aktiv shartnomalar</div></div></div>`;
 h+=_pageTabs([{v:'metrka',l:'Ko\'rsatkichlar'},{v:'jadval',l:"Ro'yxat"}],view,'topView');
 if(view==='jadval'){
-  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono" class="text-[11px] text-muted">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px;transition:width .5s ease"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`;
+  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono text-[11px] text-muted">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px;transition:width .5s ease"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`;
 }else{
-  h+=`<div class="metrics" class="grid-cols-4">
+  h+=`<div class="metrics grid-cols-4">
   <div class="metric c5"><div class="metric-lbl">Top 5</div><div class="metric-val">${tM?Math.round(t5/tM*100):0}%</div><div class="metric-foot">${fmt(t5)} $</div></div>
   <div class="metric c1"><div class="metric-lbl">Top 10</div><div class="metric-val">${tM?Math.round(t10/tM*100):0}%</div><div class="metric-foot">${fmt(t10)} $</div></div>
   <div class="metric c2"><div class="metric-lbl">Top 20</div><div class="metric-val">${tM?Math.round(t20/tM*100):0}%</div><div class="metric-foot">${fmt(t20)} $</div></div>
   <div class="metric c3"><div class="metric-lbl">O'rtacha</div><div class="metric-val">${fmt(act.length?Math.round(tM/act.length):0)}</div><div class="metric-foot">per shartnoma</div></div></div>
-  <div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-accent"></span>Top 10</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chT"></canvas></div></div></div>
-  <div class="card"><div class="card-head"><span class="card-label"><span class="dot" class="bg-tw-purple"></span>Konsentratsiya</span></div><div class="card-body"><div class="chart-wrap" class="h-[220px]"><canvas id="chK"></canvas></div></div></div></div>`;
+  <div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Top 10</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chT"></canvas></div></div></div>
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-purple"></span>Konsentratsiya</span></div><div class="card-body"><div class="chart-wrap h-[220px]"><canvas id="chK"></canvas></div></div></div></div>`;
 }
 return h;
 }
@@ -1020,8 +1020,8 @@ const view=S.debtView||'umumiy';
 
 let h=`<div class="page-header"><div><div class="page-title">Qarzdorlik</div><div class="page-sub">${repLabel} oy oxiriga · ${dt.length} ta mijoz</div></div>
 <div class="flex gap-1.5 items-center">
-<input type="date" class="flt" class="text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=new Date(this.value);clearCache();render()">
-<button class="btn-outline" class="py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
+<input type="date" class="flt text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=new Date(this.value);clearCache();render()">
+<button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
 </div></div>`;
 h+=_pageTabs([{v:'umumiy',l:"Ko'rsatkichlar"},{v:'jadval',l:'Qarz jadvali'}],view,'debtView');
 
@@ -1035,9 +1035,9 @@ if(view==='jadval'){
   if(isM){const tabs=[{k:'sh',l:'Sh. qoldiq'},{k:'oy',l:'Oy oxiri'},{k:'kel',l:'Kelishuv'},{k:'lp',l:"Oxirgi to'lov"}];mobTabs='<div style="display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px">'+tabs.map(t=>`<button class="btn" style="flex-shrink:0;${S.debtMobCol===t.k?'background:var(--accent);color:#fff;border-color:var(--accent)':''}" onclick="switchDMC('${t.k}')">${t.l}</button>`).join('')+'</div>';}
   const fsIcon=S.debtFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
   h+=`<div id="debtContainer"${S.debtFs?' class="debt-fs-active"':''}>`;
-  h+=`<div class="toolbar" class="mb-3 gap-2.5">
+  h+=`<div class="toolbar mb-3 gap-2.5">
 <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz nomi..." value="${S.debtQ||''}" oninput="onSearch('debtQ',this.value)"><button class="search-clear" onclick="onSearch('debtQ','');render()" type="button">&times;</button></div>
-<div style="margin-left:auto"><button class="btn${S.debtFs?' btn-primary':''}" class="py-2 px-3" onclick="toggleDebtFs()" title="${S.debtFs?'Kichraytirish':'To\'liq ekran'}">${fsIcon}</button></div>
+<div style="margin-left:auto"><button class="btn${S.debtFs?' btn-primary':''} py-2 px-3" onclick="toggleDebtFs()" title="${S.debtFs?'Kichraytirish':'To\'liq ekran'}">${fsIcon}</button></div>
 </div>`;
   h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'72':'220'}px)"><table><thead><tr><th>Mijoz</th>
 ${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq</th>`:''}
@@ -1047,7 +1047,7 @@ ${(!isM||S.debtMobCol==='lp')?`<th class="text-r">Oxirgi to'lov</th>`:''}
 </tr></thead><tbody>${filtered.length?filtered.map(r=>{
 const oyC=r.oyQarz>0?'var(--amber)':'var(--green)';const kelC=r.kelQarz>0?'var(--red)':'var(--green)';
 const lp=r.lastPay;
-let lpCell='<td class="text-r" class="text-[11px] text-subtle">—</td>';
+let lpCell='<td class="text-r text-[11px] text-subtle">—</td>';
 if(lp){
   const ds=fmtD(lp.date);
   const tips=lp.allOnDate.map(p=>{
@@ -1064,18 +1064,18 @@ if(lp){
   lpCell='<td class="text-r has-tip" data-tip="'+(tips||ds)+'" style="font-size:11px;color:var(--accent);cursor:default">'+ds+'</td>';
 }
 return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
-((!isM||S.debtMobCol==='sh')?`<td class="text-r mono" class="text-[11px] text-subtle">${r.qoldiq>0?fmt(r.qoldiq):'—'}</td>`:'')+
+((!isM||S.debtMobCol==='sh')?`<td class="text-r mono text-[11px] text-subtle">${r.qoldiq>0?fmt(r.qoldiq):'—'}</td>`:'')+
 ((!isM||S.debtMobCol==='oy')?`<td class="text-r mono" style="font-size:11px;color:${oyC};font-weight:${r.oyQarz>0?'600':'400'}">${r.oyQarz>0?fmt(r.oyQarz):'—'}</td>`:'')+
 ((!isM||S.debtMobCol==='kel')?`<td class="text-r mono" style="font-size:11px;color:${kelC};font-weight:${r.kelQarz>0?'700':'400'}">${r.kelQarz>0?fmt(r.kelQarz):'—'}</td>`:'')+
 ((!isM||S.debtMobCol==='lp')?lpCell:'')+'</tr>'}).join(''):`<tr><td colspan="${isM?2:5}" class="text-center text-subtle p-5">—</td></tr>`}</tbody></table></div></div>`;
   h+=`</div>`;
 }else{
-  h+=`<div class="metrics" class="grid-cols-4">
+  h+=`<div class="metrics grid-cols-4">
   <div class="metric c6"><div class="metric-lbl">To'lov muddati (DSO)</div><div class="metric-val" style="color:${dsoColor}">${dsoVal} <span class="text-sm">kun</span></div></div>
   <div class="metric c2"><div class="metric-lbl">Konsentratsiya (Top 5)</div><div class="metric-val" style="color:${concColor}">${conc5}%</div></div>
   <div class="metric c4"><div class="metric-lbl">Oy oxiri qarzi</div><div class="metric-val">${fmt(totalOy)}</div></div>
   <div class="metric c4"><div class="metric-lbl">Kelishuv qarzi</div><div class="metric-val">${fmt(totalKel)}</div></div></div>
-  <div class="card" class="mt-4"><div class="card-head"><span class="card-label">Qarz taqsimoti</span></div>
+  <div class="card mt-4"><div class="card-head"><span class="card-label">Qarz taqsimoti</span></div>
   <div class="card-body">
     ${dt.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div><div class="text-[11px] text-subtle mb-2">Oy oxiri qarz bo'yicha TOP 5</div>
@@ -1116,12 +1116,12 @@ function rMoliya(){
       <td class="font-medium">${cl(c.name)}</td>
       <td><span class="badge" style="background:${c.color}20;color:${c.color};border:1px solid ${c.color}40">${c.bucket}</span></td>
       <td class="text-r mono" style="color:var(--red);font-weight:600">${fmt(c.qarz)}</td>
-      <td class="text-r mono" class="text-[11px] text-subtle">${c.kelQarz>0?fmt(c.kelQarz):'—'}</td>
-      <td class="text-r" class="text-xs">${c.days<999?c.days+' kun':'—'}</td>
+      <td class="text-r mono text-[11px] text-subtle">${c.kelQarz>0?fmt(c.kelQarz):'—'}</td>
+      <td class="text-r text-xs">${c.days<999?c.days+' kun':'—'}</td>
       <td class="text-[11px] text-subtle">${c.lastPayDate}</td>
     </tr>`;
   });
-  const agingSection=`<div class="card" class="mb-4">
+  const agingSection=`<div class="card mb-4">
     <div class="card-head">
       <span class="card-label">AR Aging — Qarz yoshi bo'yicha tahlil${af.length?` · <span style="color:var(--accent)">${af.join(', ')}</span>`:''}</span>
       <div class="flex gap-1.5 items-center">
@@ -1151,8 +1151,8 @@ function rMoliya(){
     const deltaCol=c.delta>=0?'var(--green)':'var(--red)';
     crRows+=`<tr>
       <td class="font-medium">${cl(c.name)}</td>
-      <td class="text-r mono" class="text-[11px]">${fmt(c.expected)}</td>
-      <td class="text-r mono" class="text-[11px]">${fmt(c.paid)}</td>
+      <td class="text-r mono text-[11px]">${fmt(c.expected)}</td>
+      <td class="text-r mono text-[11px]">${fmt(c.paid)}</td>
       <td class="text-r mono" style="font-size:11px;color:${deltaCol};font-weight:600">${c.delta>=0?'+':''}${fmt(c.delta)}</td>
       <td class="min-w-[120px]">
         <div class="flex items-center gap-1.5">
@@ -1179,7 +1179,7 @@ function rMoliya(){
   const overPaid=cr.filter(c=>c.rate>100).length;
   const collPct=totalExpected>0?Math.round(totalPaidInk/totalExpected*100):0;
   const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
-  const inkMetrics=`<div class="metrics" class="grid-cols-6 mb-4">
+  const inkMetrics=`<div class="metrics grid-cols-6 mb-4">
     <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
     <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
     <div class="metric"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
@@ -1197,7 +1197,7 @@ function rMoliya(){
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'collection')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
-    <div class="card-body" class="p-0">
+    <div class="card-body p-0">
       ${cr.length?`<div style="padding:16px 16px 0">${inkMetrics}</div><div class="tbl-scroll"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
@@ -1223,7 +1223,7 @@ function rMoliya(){
       <td style="font-size:12px;max-width:300px">${a.detail}</td>
     </tr>`;
   });
-  const auditSection=`<div class="card" class="mb-4">
+  const auditSection=`<div class="card mb-4">
     <div class="card-head">
       <span class="card-label">Ma'lumotlar tahlili · ${audit.length} ta xatolik</span>
       <div class="flex gap-1.5 items-center">

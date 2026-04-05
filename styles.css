@@ -239,13 +239,12 @@ body{
 .metric{
   background:var(--bg2);border:1px solid var(--border);
   border-radius:var(--rlg);padding:16px 18px;
-  box-shadow:var(--shadow);position:relative;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
   transition:transform var(--transition-fast),box-shadow var(--transition-fast);
 }
 .metric:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
 .metric::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
-  border-radius:var(--rlg) var(--rlg) 0 0;
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
 }
 .metric.c1::after{background:linear-gradient(90deg,var(--accent),var(--accent2))}
 .metric.c2::after{background:linear-gradient(90deg,var(--green),#2ecc94)}
@@ -269,6 +268,7 @@ body{
   background:var(--bg2);box-shadow:var(--shadow);overflow:hidden;
 }
 .tbl-scroll{overflow-x:auto;max-height:600px;overflow-y:auto}
+#mrrContainer .tbl-scroll{max-height:calc(100vh - 200px)}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 thead{position:sticky;top:0;z-index:2}
 th{
