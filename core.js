@@ -25,7 +25,7 @@ initTheme();
 
 // === GLOBAL KEYBOARD HANDLER ===
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){const ov=document.querySelector('.overlay');if(ov)ov.remove()}
+  if(e.key==='Escape'){const ovs=document.querySelectorAll('.overlay');if(ovs.length)ovs[ovs.length-1].remove()}
 });
 
 // === MOBILE SIDEBAR ===

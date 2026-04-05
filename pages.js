@@ -260,8 +260,8 @@ function showClientCard(name,cur){
   const arpa=tenureM>0?Math.round(totalPaid/tenureM):0;
   // Currency toggle HTML
   const curToggle='<div style="display:flex;gap:2px;background:var(--bg3);border-radius:6px;padding:2px;margin-left:8px">'
-    +'<button class="btn'+(isUZS?'':' btn-primary')+'" style="padding:2px 8px;font-size:11px" onclick="document.querySelector(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'usd\')">$</button>'
-    +'<button class="btn'+(isUZS?' btn-primary':'')+'" style="padding:2px 8px;font-size:11px" onclick="document.querySelector(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'uzs\')">so\'m</button>'
+    +'<button class="btn'+(isUZS?'':' btn-primary')+'" style="padding:2px 8px;font-size:11px" onclick="var sc=this.closest(\'.modal\').querySelector(\'.client-card-scroll\');S._cardScroll=sc?sc.scrollTop:0;this.closest(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'usd\')">$</button>'
+    +'<button class="btn'+(isUZS?' btn-primary':'')+'" style="padding:2px 8px;font-size:11px" onclick="var sc=this.closest(\'.modal\').querySelector(\'.client-card-scroll\');S._cardScroll=sc?sc.scrollTop:0;this.closest(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'uzs\')">so\'m</button>'
     +'</div>';
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   o.innerHTML='<div class="modal" style="padding:0;width:min(98vw,1160px);max-height:96vh;display:flex;flex-direction:column">'
@@ -279,7 +279,7 @@ function showClientCard(name,cur){
     +'</div>')
     +'</div>'
     // Body
-    +'<div style="overflow-y:auto;flex:1;padding:18px;padding-left:'+(_isM?'12px':'24px')+';padding-right:'+(_isM?'12px':'24px')+'">'
+    +'<div class="client-card-scroll" style="overflow-y:auto;flex:1;padding:18px;padding-left:'+(_isM?'12px':'24px')+';padding-right:'+(_isM?'12px':'24px')+'">'
     // Row 1: 4 main metric cards
     +'<div class="client-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'
     +'<div style="background:var(--accent-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--accent)">'
@@ -372,6 +372,8 @@ function showClientCard(name,cur){
     +'</div>'
     +'</div></div>';
   document.body.appendChild(o);
+  // Restore scroll position on currency toggle
+  if(S._cardScroll){const sc=o.querySelector('.client-card-scroll');if(sc)sc.scrollTop=S._cardScroll;S._cardScroll=0;}
   // Initialize charts
   requestAnimationFrame(()=>{
     const isDark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -412,6 +414,11 @@ function toggleMrrFullscreen(){
   window._mrrFsKeyBound=true;
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'&&S.mrrFs){S.mrrFs=false;clearCache();render();}
+    if(e.key==='f'&&S.sec==='mrrtable'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      const tag=document.activeElement?.tagName;
+      if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+      e.preventDefault();toggleMrrFullscreen();
+    }
   });
 })();
 
@@ -870,7 +877,7 @@ ${[yr-1,yr,yr+1].map(y=>`<button class="btn${y===yr?' btn-primary':''}" style="p
 </div>
 
 <div class="card" style="box-shadow:var(--shadow-lg)"><div class="card-body" style="padding:0">
-<div class="tbl-scroll" style="max-height:calc(100vh - 160px)">
+<div class="tbl-scroll" style="max-height:calc(100vh - 160px);padding-bottom:120px">
 <table class="mrr-tbl"><thead><tr>
 <th class="sticky-col col-name">Mijoz nomi</th>
 ${cc.mgr?`<th>Menejer</th>`:''}

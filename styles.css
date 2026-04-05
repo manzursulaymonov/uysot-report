@@ -397,6 +397,7 @@ select.flt:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px r
 .skeleton-line.w60{width:60%}.skeleton-line.w80{width:80%}.skeleton-line.w40{width:40%}
 
 /* === OVERLAY / MODAL === */
+body:has(.overlay){overflow:hidden}
 .overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.4);
   display:flex;align-items:center;justify-content:center;z-index:1000;
