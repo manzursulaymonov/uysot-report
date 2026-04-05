@@ -872,7 +872,7 @@ ${[yr-1,yr,yr+1].map(y=>`<button class="btn${y===yr?' btn-primary':''} py-[7px] 
 </div>
 
 <div class="card shadow-lg"><div class="card-body p-0">
-<div class="tbl-scroll pb-8">
+<div class="tbl-scroll">
 <table class="mrr-tbl"><thead><tr>
 <th class="sticky-col col-name">Mijoz nomi</th>
 ${cc.mgr?`<th>Menejer</th>`:''}
