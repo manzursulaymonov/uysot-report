@@ -1102,7 +1102,7 @@ function rMoliya(){
   aging.forEach(b=>{
     const pct=agingTotal>0?Math.round(b.total/agingTotal*100):0;
     const isActive=af.includes(b.label);
-    agingCards+=`<div class="metric" style="border-top:3px solid ${b.color};cursor:pointer;${isActive?`box-shadow:0 0 0 2px ${b.color};background:var(--bg3)`:''}" onclick="toggleAgingFilter('${b.label}')" title="${b.label} bo'yicha filterlash">
+    agingCards+=`<div class="metric cursor-pointer" style="border-top:3px solid ${b.color};${isActive?`border-color:${b.color};background:var(--bg3)`:''}" onclick="toggleAgingFilter('${b.label}')" title="${b.label} bo'yicha filterlash">
       <div class="metric-lbl">${b.label}${isActive?' <span style="font-size:9px;color:var(--text3)">(aktiv)</span>':''}</div>
       <div class="metric-val mono" style="color:${b.color}">${fmt(b.total)}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:4px">${b.clients.length} ta mijoz · ${pct}%</div>
