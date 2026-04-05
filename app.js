@@ -1221,27 +1221,27 @@ function showMgrStats(mgrName) {
     o.className = 'overlay';
     o.onclick = e => { if (e.target === o) o.remove(); };
     
-    o.innerHTML = `<div class="modal" style="max-width:540px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-            <h3 style="margin:0;font-size:16px">${mgrName} — Mijozlar</h3>
-            <button class="btn-close" onclick="this.closest('.overlay').remove()" style="background:none;border:none;cursor:pointer;color:var(--text3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    o.innerHTML = `<div class="modal max-w-[540px]">
+        <div class="flex justify-between items-center mb-[15px]">
+            <h3 class="m-0 text-base">${mgrName} — Mijozlar</h3>
+            <button class="btn-close bg-transparent border-none cursor-pointer text-subtle" onclick="this.closest('.overlay').remove()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
         </div>
-        <div class="tbl-wrap" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
-            <table style="width:100%;border-collapse:collapse">
-                <thead style="position:sticky;top:0;background:var(--bg2);z-index:10;box-shadow:0 1px 0 var(--border)">
-                    <tr><th style="text-align:left;padding:10px">Mijoz</th><th style="padding:10px">Sana</th><th style="text-align:right;padding:10px">Olib kelgan MRR ($)</th></tr>
+        <div class="tbl-wrap max-h-[400px] overflow-y-auto border border-brd rounded-lg">
+            <table class="w-full border-collapse">
+                <thead class="sticky top-0 bg-card z-10 shadow-[0_1px_0_var(--border)]">
+                    <tr><th class="text-left p-2.5">Mijoz</th><th class="p-2.5">Sana</th><th class="text-right p-2.5">Olib kelgan MRR ($)</th></tr>
                 </thead>
                 <tbody>
                     ${cls.map(c => `<tr>
-                        <td style="padding:10px;font-weight:600;font-size:12px">${c.name}</td>
-                        <td style="padding:10px;text-align:center;font-size:11px" class="mono">${fmtD(c.date)}</td>
-                        <td style="padding:10px;text-align:right;font-size:11px" class="mono">${fmt(c.mrr)}</td>
+                        <td class="p-2.5 font-semibold text-xs">${c.name}</td>
+                        <td class="mono p-2.5 text-center text-[11px]">${fmtD(c.date)}</td>
+                        <td class="mono p-2.5 text-right text-[11px]">${fmt(c.mrr)}</td>
                     </tr>`).join('')}
                 </tbody>
             </table>
         </div>
-        ${cls.length === 0 ? '<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px">Mijozlar topilmadi</div>' : ''}
-        <div style="margin-top:20px;text-align:right">
+        ${cls.length === 0 ? '<div class="p-[30px] text-center text-subtle text-xs">Mijozlar topilmadi</div>' : ''}
+        <div class="mt-5 text-right">
             <button class="btn btn-primary" onclick="this.closest('.overlay').remove()">Yopish</button>
         </div>
     </div>`;

@@ -48,7 +48,7 @@ function showToast(msg,type='info'){
   while(c.children.length>=3)c.firstChild.remove();
   const t=document.createElement('div');t.className='toast toast-'+type;
   const icons={success:'✓',error:'✕',info:'ℹ'};
-  t.innerHTML='<span style="font-size:14px;font-weight:700">'+icons[type]+'</span> '+msg;
+  t.innerHTML='<span class="text-sm font-bold">'+icons[type]+'</span> '+msg;
   c.appendChild(t);setTimeout(()=>t.remove(),4000);
 }
 
@@ -350,7 +350,7 @@ function showDlMenu(btn,type){
   const r=btn.getBoundingClientRect();
   m.style.top=(r.bottom+4)+'px';m.style.right=(window.innerWidth-r.right)+'px';
   m.innerHTML=[{l:'📊 XLSX',f:`exportXLSX('${type}')`},{l:'🖨 PDF',f:`exportPDF('${type}')`}]
-    .map(o=>`<div onclick="${o.f};document.getElementById('_dlMenu')?.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;white-space:nowrap" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">${o.l}</div>`).join('');
+    .map(o=>`<div onclick="${o.f};document.getElementById('_dlMenu')?.remove()" class="py-2.5 px-4 cursor-pointer text-[13px] whitespace-nowrap hover:bg-hover">${o.l}</div>`).join('');
   document.body.appendChild(m);
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)&&e.target!==btn){m.remove();document.removeEventListener('click',h)}}),0);
 }

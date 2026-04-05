@@ -11,6 +11,55 @@
 <title>UYSOT — Shartnomalar Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: ['selector', '[data-theme="dark"]'],
+  theme: {
+    extend: {
+      colors: {
+        accent: 'var(--accent)',
+        accent2: 'var(--accent2)',
+        'accent-bg': 'var(--accent-bg)',
+        success: 'var(--green)',
+        'success-bg': 'var(--green-bg)',
+        danger: 'var(--red)',
+        'danger-bg': 'var(--red-bg)',
+        warn: 'var(--amber)',
+        'warn-bg': 'var(--amber-bg)',
+        'tw-purple': 'var(--purple)',
+        'purple-bg': 'var(--purple-bg)',
+        'tw-teal': 'var(--teal)',
+        'teal-bg': 'var(--teal-bg)',
+        surface: 'var(--bg2)',
+        muted: 'var(--text2)',
+        subtle: 'var(--text3)',
+        brd: 'var(--border)',
+        brd2: 'var(--border2)',
+      },
+      fontFamily: {
+        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
+      },
+      backgroundColor: {
+        page: 'var(--bg)',
+        card: 'var(--bg2)',
+        hover: 'var(--bg3)',
+        alt: 'var(--bg4)',
+      },
+      textColor: {
+        primary: 'var(--text)',
+        secondary: 'var(--text2)',
+        tertiary: 'var(--text3)',
+      },
+      borderColor: {
+        DEFAULT: 'var(--border)',
+        strong: 'var(--border2)',
+      }
+    }
+  }
+}
+</script>
 </head>
 <body>
 <div class="app">

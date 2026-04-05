@@ -136,46 +136,46 @@ const sheets=[
   {k:'menejerlar',l:'Menejerlar',d:'Menejer nomi va statusi (aktiv/ketgan)',n:S.mgrRows.length,ft:'mgr'}
 ];
 const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
-o.innerHTML=`<div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
-<h2 style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</h2>
+o.innerHTML=`<div class="modal" class="max-w-[520px] max-h-[90vh] overflow-y-auto">
+<h2 class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</h2>
 
-<div style="margin-bottom:16px">
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">Ma'lumot manbalari holati</div>
-<div style="display:flex;flex-direction:column;gap:4px">
+<div class="mb-4">
+<div class="text-xs font-semibold text-muted mb-2">Ma'lumot manbalari holati</div>
+<div class="flex flex-col gap-1">
 ${sheets.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:6px;font-size:12px">
-<div><span style="font-weight:600">${s.l}</span><span style="color:var(--text3);margin-left:6px;font-size:10.5px">${s.d}</span></div>
-<div style="display:flex;align-items:center;gap:8px">
+<div><span class="font-semibold">${s.l}</span><span style="color:var(--text3);margin-left:6px;font-size:10.5px">${s.d}</span></div>
+<div class="flex items-center gap-2">
 ${s.n?`<span style="color:var(--green);font-weight:600;font-size:11px">${s.n} qator</span>`:'<span style="color:var(--text3);font-size:11px">yuklanmagan</span>'}
-<label style="cursor:pointer;display:flex;align-items:center;padding:3px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--text2);white-space:nowrap">CSV<input type="file" accept=".csv" onchange="loadFile(this,'${s.ft}')" style="display:none"></label>
+<label style="cursor:pointer;display:flex;align-items:center;padding:3px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--text2);white-space:nowrap">CSV<input type="file" accept=".csv" onchange="loadFile(this,'${s.ft}')" class="hidden"></label>
 </div></div>`).join('')}
 </div></div>
 
-<div style="margin-bottom:16px">
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">JSON config bilan yuklash</div>
-<div style="display:flex;gap:8px">
-<label class="btn btn-primary" style="cursor:pointer;flex:1;justify-content:center;padding:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label>
-${hasSaved?`<button class="btn" style="padding:10px" onclick="if(S.config)loadFromConfig(S.config)">Qayta yuklash</button>`:''}
+<div class="mb-4">
+<div class="text-xs font-semibold text-muted mb-2">JSON config bilan yuklash</div>
+<div class="flex gap-2">
+<label class="btn btn-primary" class="cursor-pointer flex-1 justify-center p-2.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
+${hasSaved?`<button class="btn" class="p-2.5" onclick="if(S.config)loadFromConfig(S.config)">Qayta yuklash</button>`:''}
 </div>
-<div style="font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.5">5 ta sheet havolalari yozilgan <b>uysot_config.json</b> file yuklang.<br>
+<div class="text-[10.5px] text-subtle mt-1.5 leading-normal">5 ta sheet havolalari yozilgan <b>uysot_config.json</b> file yuklang.<br>
 Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b>.</div></div>
 
-<div style="margin-bottom:16px">
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">AI hisobot (ixtiyoriy)</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;gap:8px;align-items:center">
-<span style="font-size:11px;min-width:55px;color:var(--text3)">Claude:</span>
-<input type="password" class="flt" style="flex:1;font-size:11px;padding:6px 10px;font-family:var(--mono)" placeholder="sk-ant-api..." value="${S.apiKey||''}" onchange="S.apiKey=this.value;localStorage.setItem('uysot_apikey',this.value)">
+<div class="mb-4">
+<div class="text-xs font-semibold text-muted mb-2">AI hisobot (ixtiyoriy)</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex gap-2 items-center">
+<span class="text-[11px] min-w-[55px] text-subtle">Claude:</span>
+<input type="password" class="flt" class="flex-1 text-[11px] py-1.5 px-2.5 font-mono" placeholder="sk-ant-api..." value="${S.apiKey||''}" onchange="S.apiKey=this.value;localStorage.setItem('uysot_apikey',this.value)">
 </div>
-<div style="display:flex;gap:8px;align-items:center">
-<span style="font-size:11px;min-width:55px;color:var(--text3)">Gemini:</span>
-<input type="password" class="flt" style="flex:1;font-size:11px;padding:6px 10px;font-family:var(--mono)" placeholder="AIza..." value="${S.geminiKey||''}" onchange="S.geminiKey=this.value;localStorage.setItem('uysot_geminikey',this.value)">
+<div class="flex gap-2 items-center">
+<span class="text-[11px] min-w-[55px] text-subtle">Gemini:</span>
+<input type="password" class="flt" class="flex-1 text-[11px] py-1.5 px-2.5 font-mono" placeholder="AIza..." value="${S.geminiKey||''}" onchange="S.geminiKey=this.value;localStorage.setItem('uysot_geminikey',this.value)">
 </div></div>
-<div style="font-size:10.5px;color:var(--text3);margin-top:4px">Kalitlar: <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent2)">Claude</a> · <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent2)">Gemini</a>. AI ixtiyoriy — oddiy hisobot AI'siz ham ishlaydi.</div></div>
+<div class="text-[10.5px] text-subtle mt-1">Kalitlar: <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-accent2">Claude</a> · <a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent2">Gemini</a>. AI ixtiyoriy — oddiy hisobot AI'siz ham ishlaydi.</div></div>
 
 ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
-<div style="display:flex;gap:6px;flex-wrap:wrap">
-<button class="btn" style="color:var(--red);border-color:var(--red);font-size:11px" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
-<button class="btn" style="font-size:11px" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
+<div class="flex gap-1.5 flex-wrap">
+<button class="btn" class="text-danger border-danger text-[11px]" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn" class="text-[11px]" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
 </div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
 </div>`:`<div class="modal-btns"><button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button></div>`}
@@ -202,29 +202,29 @@ function showReportModal(){
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   const iDoc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
   const iSlide='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
-  o.innerHTML=`<div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto;padding:24px">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+  o.innerHTML=`<div class="modal" class="max-w-[540px] max-h-[90vh] overflow-y-auto p-6">
+<div class="flex items-center gap-2.5 mb-1">
   <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-  <h2 style="margin:0;font-size:17px">Hisobot tayyorlash</h2>
+  <h2 class="m-0 text-[17px]">Hisobot tayyorlash</h2>
 </div>
-<p style="font-size:12px;color:var(--text3);margin-bottom:20px">CFO/CEO darajasi · investorlar uchun tayyor format</p>
-<div style="font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Format</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+<p class="text-xs text-subtle mb-5">CFO/CEO darajasi · investorlar uchun tayyor format</p>
+<div class="text-[10.5px] font-bold text-subtle uppercase tracking-[0.7px] mb-2">Format</div>
+<div class="grid grid-cols-2 gap-2 mb-5">
 ${[{id:'_rfPDF',v:'pdf',ic:iDoc,t:'PDF Hisobot',s:"To'liq moliyaviy hujjat"},
-   {id:'_rfSlide',v:'slide',ic:iSlide,t:'Investor Slides',s:'16:9 taqdimot'}].map(x=>`<div id="${x.id}" onclick="S.repFmt='${x.v}';['_rfPDF','_rfSlide'].forEach(function(i){var el=document.getElementById(i);var act=el.id==this.id;el.style.borderColor=act?'var(--accent)':'var(--border)';el.style.background=act?'rgba(23,70,162,.08)':'var(--bg3)'},this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:${S.repFmt===x.v?'rgba(23,70,162,.08)':'var(--bg3)'};border-radius:10px;cursor:pointer;border:2px solid ${S.repFmt===x.v?'var(--accent)':'var(--border)'};transition:.15s">${x.ic}<div style="font-size:12px;font-weight:700">${x.t}</div><div style="font-size:10px;color:var(--text3)">${x.s}</div></div>`).join('')}
+   {id:'_rfSlide',v:'slide',ic:iSlide,t:'Investor Slides',s:'16:9 taqdimot'}].map(x=>`<div id="${x.id}" onclick="S.repFmt='${x.v}';['_rfPDF','_rfSlide'].forEach(function(i){var el=document.getElementById(i);var act=el.id==this.id;el.style.borderColor=act?'var(--accent)':'var(--border)';el.style.background=act?'rgba(23,70,162,.08)':'var(--bg3)'},this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:${S.repFmt===x.v?'rgba(23,70,162,.08)':'var(--bg3)'};border-radius:10px;cursor:pointer;border:2px solid ${S.repFmt===x.v?'var(--accent)':'var(--border)'};transition:.15s">${x.ic}<div style="font-size:12px;font-weight:700">${x.t}</div><div class="text-[10px] text-subtle">${x.s}</div></div>`).join('')}
 </div>
-<div style="font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Bo'limlar</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:20px">
-${secs.map(s=>`<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:7px;cursor:pointer"><input type="checkbox" ${S.repSec[s.k]!==false?'checked':''} onchange="S.repSec['${s.k}']=this.checked" style="accent-color:var(--accent);margin-top:1px;width:14px;height:14px;flex-shrink:0"><div><div style="font-size:11.5px;font-weight:600;line-height:1.3">${s.l}</div><div style="font-size:10px;color:var(--text3)">${s.d}</div></div></label>`).join('')}
+<div class="text-[10.5px] font-bold text-subtle uppercase tracking-[0.7px] mb-2">Bo'limlar</div>
+<div class="grid grid-cols-2 gap-1 mb-5">
+${secs.map(s=>`<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:7px;cursor:pointer"><input type="checkbox" ${S.repSec[s.k]!==false?'checked':''} onchange="S.repSec['${s.k}']=this.checked" style="accent-color:var(--accent);margin-top:1px;width:14px;height:14px;flex-shrink:0"><div><div style="font-size:11.5px;font-weight:600;line-height:1.3">${s.l}</div><div class="text-[10px] text-subtle">${s.d}</div></div></label>`).join('')}
 </div>
-<div style="font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">AI sharh <span style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text2)">ixtiyoriy</span></div>
-<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:20px">
+<div class="text-[10.5px] font-bold text-subtle uppercase tracking-[0.7px] mb-2">AI sharh <span class="bg-hover py-px px-1.5 rounded-[4px] font-normal normal-case tracking-normal text-[10px] text-muted">ixtiyoriy</span></div>
+<div class="flex flex-col gap-1 mb-5">
 ${[{v:'none',t:"AI'siz",s:'Tezkor, offlayn ishlaydi'},
    {v:'gemini',t:'Gemini AI',s:S.geminiKey?'Kalit ulangan ✓':"Kalit yo'q — sozlamalar"},
    {v:'claude',t:'Claude AI',s:S.apiKey?(S.geminiKey?'Kalit ulangan ✓ (Gemini zaxira)':'Kalit ulangan — tarmoq bloki xavfi'):"Kalit yo'q — sozlamalar"}]
 .map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border-radius:7px;cursor:pointer"><input type="radio" name="_airep" value="${x.v}" ${ai===x.v?'checked':''} onchange="S.aiProvider='${x.v}';localStorage.setItem('uysot_ai','${x.v}')" style="accent-color:var(--accent)"><div><div style="font-size:12px;font-weight:600">${x.t}</div><div style="font-size:10.5px;color:var(--text3)">${x.s}</div></div></label>`).join('')}
 </div>
-<div class="modal-btns" style="margin:0"><button class="btn" onclick="this.closest('.overlay').remove()">Bekor qilish</button><button class="btn btn-primary" onclick="var f=S.repFmt==='slide';this.closest('.overlay').remove();f?generateSlides():generateReport()">Yaratish</button></div>
+<div class="modal-btns" class="m-0"><button class="btn" onclick="this.closest('.overlay').remove()">Bekor qilish</button><button class="btn btn-primary" onclick="var f=S.repFmt==='slide';this.closest('.overlay').remove();f?generateSlides():generateReport()">Yaratish</button></div>
 </div>`;
   document.body.appendChild(o);
 }
@@ -250,69 +250,69 @@ function showDashSettingsModal(){
   if(!c.tHealth) c.tHealth={s:1};
   const up=(g,k,v)=>{if(!S.dashCards[g])S.dashCards[g]={};S.dashCards[g][k]=v;localStorage.setItem('uysot_cards',JSON.stringify(S.dashCards));if(window.render)render()};
   
-  o.innerHTML=`<div class="modal" style="max-width:560px; padding:0; overflow:hidden; border:none; background:var(--bg1); box-shadow:0 20px 50px rgba(0,0,0,0.3)">
-    <div style="padding:20px; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between">
-      <h3 style="margin:0; display:flex; align-items:center; gap:10px; font-size:17px; color:var(--text)">
+  o.innerHTML=`<div class="modal" class="max-w-[560px] p-0 overflow-hidden border-none bg-page shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+    <div class="p-5 bg-card border-b border-brd flex items-center justify-between">
+      <h3 class="m-0 flex items-center gap-2.5 text-[17px] text-primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
         Dashboard Sozlamalari
       </h3>
-      <button class="btn-close" onclick="this.closest('.overlay').remove()" style="background:none; border:none; color:var(--text3); cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      <button class="btn-close" onclick="this.closest('.overlay').remove()" class="bg-transparent border-none text-subtle cursor-pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     
-    <div style="padding:24px; max-height:75vh; overflow-y:auto; background:var(--bg1)">
+    <div class="p-6 max-h-[75vh] overflow-y-auto bg-page">
       <!-- KPI SECTION -->
-      <div style="margin-bottom:30px">
-        <div style="font-size:12px; text-transform:uppercase; color:var(--text); letter-spacing:1px; margin-bottom:15px; font-weight:800; display:flex; align-items:center; gap:10px">
-          <span style="background:var(--accent); width:4px; height:14px; border-radius:2px"></span>
+      <div class="mb-[30px]">
+        <div class="text-xs uppercase text-primary tracking-[1px] mb-[15px] font-extrabold flex items-center gap-2.5">
+          <span class="bg-accent w-1 h-3.5 rounded-sm"></span>
           1. KPI KARTALARI (TOP)
         </div>
-        <div style="display:grid; grid-template-columns:1fr; gap:12px">
+        <div class="grid grid-cols-1 gap-3">
           
           <!-- MRR CARD -->
-          <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden">
-            <div style="padding:12px 15px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px">
-              <input type="checkbox" ${c.mrr?.s?'checked':''} onchange="(${up.toString()})('mrr','s',this.checked)" style="width:16px; height:16px">
-              <span style="font-weight:700; font-size:14px">MRR (Monthly Recurring Revenue)</span>
+          <div class="bg-card border border-brd rounded-xl overflow-hidden">
+            <div class="py-3 px-[15px] bg-[rgba(255,255,255,0.03)] border-b border-brd flex items-center gap-2.5">
+              <input type="checkbox" ${c.mrr?.s?'checked':''} onchange="(${up.toString()})('mrr','s',this.checked)" class="w-4 h-4">
+              <span class="font-bold text-sm">MRR (Monthly Recurring Revenue)</span>
             </div>
             <div style="padding:12px 15px; display:flex; gap:20px; font-size:12px; opacity:${c.mrr?.s?1:0.5}; pointer-events:${c.mrr?.s?'auto':'none'}">
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.mrr?.g?'checked':''} onchange="(${up.toString()})('mrr','g',this.checked)"> O'sish (Growth %)</label>
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.mrr?.arr?'checked':''} onchange="(${up.toString()})('mrr','arr',this.checked)"> ARR (Yillik)</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.mrr?.g?'checked':''} onchange="(${up.toString()})('mrr','g',this.checked)"> O'sish (Growth %)</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.mrr?.arr?'checked':''} onchange="(${up.toString()})('mrr','arr',this.checked)"> ARR (Yillik)</label>
             </div>
           </div>
 
           <!-- NRR CARD -->
-          <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden">
-            <div style="padding:12px 15px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px">
-              <input type="checkbox" ${c.nrr?.s?'checked':''} onchange="(${up.toString()})('nrr','s',this.checked)" style="width:16px; height:16px">
-              <span style="font-weight:700; font-size:14px">NRR (Net Revenue Retention)</span>
+          <div class="bg-card border border-brd rounded-xl overflow-hidden">
+            <div class="py-3 px-[15px] bg-[rgba(255,255,255,0.03)] border-b border-brd flex items-center gap-2.5">
+              <input type="checkbox" ${c.nrr?.s?'checked':''} onchange="(${up.toString()})('nrr','s',this.checked)" class="w-4 h-4">
+              <span class="font-bold text-sm">NRR (Net Revenue Retention)</span>
             </div>
             <div style="padding:12px 15px; display:flex; flex-wrap:wrap; gap:15px; font-size:12px; opacity:${c.nrr?.s?1:0.5}; pointer-events:${c.nrr?.s?'auto':'none'}">
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.nrr?.n?'checked':''} onchange="(${up.toString()})('nrr','n',this.checked)"> New/Reactivated</label>
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.nrr?.e?'checked':''} onchange="(${up.toString()})('nrr','e',this.checked)"> Net Expansion</label>
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.nrr?.c?'checked':''} onchange="(${up.toString()})('nrr','c',this.checked)"> Churn (Yo'qotish)</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.nrr?.n?'checked':''} onchange="(${up.toString()})('nrr','n',this.checked)"> New/Reactivated</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.nrr?.e?'checked':''} onchange="(${up.toString()})('nrr','e',this.checked)"> Net Expansion</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.nrr?.c?'checked':''} onchange="(${up.toString()})('nrr','c',this.checked)"> Churn (Yo'qotish)</label>
             </div>
           </div>
 
           <!-- Active Customers CARD -->
-          <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden">
-            <div style="padding:12px 15px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px">
-              <input type="checkbox" ${c.cust?.s?'checked':''} onchange="(${up.toString()})('cust','s',this.checked)" style="width:16px; height:16px">
-              <span style="font-weight:700; font-size:14px">Active Customers</span>
+          <div class="bg-card border border-brd rounded-xl overflow-hidden">
+            <div class="py-3 px-[15px] bg-[rgba(255,255,255,0.03)] border-b border-brd flex items-center gap-2.5">
+              <input type="checkbox" ${c.cust?.s?'checked':''} onchange="(${up.toString()})('cust','s',this.checked)" class="w-4 h-4">
+              <span class="font-bold text-sm">Active Customers</span>
             </div>
             <div style="padding:12px 15px; display:flex; gap:20px; font-size:12px; opacity:${c.cust?.s?1:0.5}; pointer-events:${c.cust?.s?'auto':'none'}">
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.cust?.g?'checked':''} onchange="(${up.toString()})('cust','g',this.checked)"> Sof o'sish</label>
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.cust?.ch?'checked':''} onchange="(${up.toString()})('cust','ch',this.checked)"> Churn Rate (%)</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.cust?.g?'checked':''} onchange="(${up.toString()})('cust','g',this.checked)"> Sof o'sish</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.cust?.ch?'checked':''} onchange="(${up.toString()})('cust','ch',this.checked)"> Churn Rate (%)</label>
             </div>
           </div>
 
           <!-- ARPA CARD -->
-          <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden">
-            <div style="padding:12px 15px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px">
-              <input type="checkbox" ${c.arpa?.s?'checked':''} onchange="(${up.toString()})('arpa','s',this.checked)" style="width:16px; height:16px">
-              <span style="font-weight:700; font-size:14px">ARPA (Average Revenue Per Account)</span>
+          <div class="bg-card border border-brd rounded-xl overflow-hidden">
+            <div class="py-3 px-[15px] bg-[rgba(255,255,255,0.03)] border-b border-brd flex items-center gap-2.5">
+              <input type="checkbox" ${c.arpa?.s?'checked':''} onchange="(${up.toString()})('arpa','s',this.checked)" class="w-4 h-4">
+              <span class="font-bold text-sm">ARPA (Average Revenue Per Account)</span>
             </div>
             <div style="padding:12px 15px; display:flex; gap:20px; font-size:12px; opacity:${c.arpa?.s?1:0.5}; pointer-events:${c.arpa?.s?'auto':'none'}">
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer"><input type="checkbox" ${c.arpa?.g?'checked':''} onchange="(${up.toString()})('arpa','g',this.checked)"> O'sish dinamikasi</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${c.arpa?.g?'checked':''} onchange="(${up.toString()})('arpa','g',this.checked)"> O'sish dinamikasi</label>
             </div>
           </div>
 
@@ -333,12 +333,12 @@ function showDashSettingsModal(){
       </div>
 
       <!-- CHARTS SECTION -->
-      <div style="margin-bottom:30px">
-        <div style="font-size:12px; text-transform:uppercase; color:var(--text); letter-spacing:1px; margin-bottom:15px; font-weight:800; display:flex; align-items:center; gap:10px">
-          <span style="background:var(--amber); width:4px; height:14px; border-radius:2px"></span>
+      <div class="mb-[30px]">
+        <div class="text-xs uppercase text-primary tracking-[1px] mb-[15px] font-extrabold flex items-center gap-2.5">
+          <span class="bg-warn w-1 h-3.5 rounded-sm"></span>
           2. GRAFIK VA DIAGRAMMALAR
         </div>
-        <div style="display:grid; grid-template-columns:1fr; gap:10px">
+        <div class="grid grid-cols-1 gap-2.5">
           ${renderSetCard('chTrend', 'Total MRR Trend (Line Chart)', c.chTrend?.s !== false, up)}
           ${renderSetCard('chComp', 'MRR Components (Bar Chart)', c.chComp?.s !== false, up)}
           ${renderSetCard('cMrrGr', 'MRR Growth Rate (Sparkline)', c.cMrrGr?.s !== false, up)}
@@ -348,11 +348,11 @@ function showDashSettingsModal(){
 
       <!-- TABLES SECTION -->
       <div>
-        <div style="font-size:12px; text-transform:uppercase; color:var(--text); letter-spacing:1px; margin-bottom:15px; font-weight:800; display:flex; align-items:center; gap:10px">
-          <span style="background:var(--green); width:4px; height:14px; border-radius:2px"></span>
+        <div class="text-xs uppercase text-primary tracking-[1px] mb-[15px] font-extrabold flex items-center gap-2.5">
+          <span class="bg-success w-1 h-3.5 rounded-sm"></span>
           3. BATAFSIL JADVALLAR
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+        <div class="grid grid-cols-2 gap-2.5">
           ${renderSetCard('tNew', 'Yangi mijozlar', c.tNew?.s !== false, up)}
           ${renderSetCard('tChurn', 'Yo\'qotilganlar', c.tChurn?.s !== false, up)}
           ${renderSetCard('tExp', 'Kengayishlar', c.tExp?.s !== false, up)}
@@ -366,17 +366,17 @@ function showDashSettingsModal(){
 
     </div>
 
-    <div style="padding:15px 24px; background:var(--bg2); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px">
-      <button class="btn btn-primary" style="padding:10px 30px; font-weight:600" onclick="this.closest('.overlay').remove()">Tayyor</button>
+    <div class="py-[15px] px-6 bg-card border-t border-brd flex justify-end gap-2.5">
+      <button class="btn btn-primary" class="py-2.5 px-[30px] font-semibold" onclick="this.closest('.overlay').remove()">Tayyor</button>
     </div>
   </div>`;
   document.body.appendChild(o);
 }
 
 function renderSetCard(key, label, val, upFn) {
-  return `<label style="background:var(--bg2); padding:15px; border-radius:12px; border:1px solid var(--border); font-size:14px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.2s" class="set-item">
-    <input type="checkbox" ${val?'checked':''} onchange="(${upFn.toString()})('${key}','s',this.checked)" style="width:16px; height:16px">
-    <span style="font-weight:600">${label}</span>
+  return `<label class="bg-card p-[15px] rounded-xl border border-brd text-sm flex items-center gap-3 cursor-pointer transition-all duration-200" class="set-item">
+    <input type="checkbox" ${val?'checked':''} onchange="(${upFn.toString()})('${key}','s',this.checked)" class="w-4 h-4">
+    <span class="font-semibold">${label}</span>
   </label>`;
 }
 // === SMART LOADING SCREEN ===
@@ -406,22 +406,22 @@ function showSmartLoader(){
   _ldTips=pool;_ldTip=0;
   const el=document.createElement('div');el.id='smart-loader';
   el.style.cssText='position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:0';
-  el.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">'
-    +'<div style="width:36px;height:36px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px">U</div>'
-    +'<div style="font-weight:700;font-size:17px;color:var(--text)">UYSOT <span style="color:var(--text3);font-weight:400;font-size:13px">CRM</span></div>'
+  el.innerHTML='<div class="flex items-center gap-2.5 mb-7">'
+    +'<div class="w-9 h-9 bg-accent rounded-[9px] flex items-center justify-center text-white font-extrabold text-lg">U</div>'
+    +'<div class="font-bold text-[17px] text-primary">UYSOT <span class="text-subtle font-normal text-[13px]">CRM</span></div>'
     +'</div>'
     +'<div style="width:min(460px,92vw)">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'
-    +'<div id="sl-lbl" style="font-size:12px;color:var(--text3)">Tayyorlanmoqda…</div>'
-    +'<div id="sl-pct" style="font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)">0%</div>'
+    +'<div class="flex justify-between items-center mb-[7px]">'
+    +'<div id="sl-lbl" class="text-xs text-subtle">Tayyorlanmoqda…</div>'
+    +'<div id="sl-pct" class="text-[13px] font-bold text-accent font-mono">0%</div>'
     +'</div>'
-    +'<div style="height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px">'
+    +'<div class="h-[7px] bg-brd rounded-[4px] overflow-hidden mb-2.5">'
     +'<div id="sl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#20c997);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)"></div>'
     +'</div>'
-    +'<div style="margin-bottom:22px"></div>'
+    +'<div class="mb-[22px]"></div>'
     +'</div>'
     +'<div id="sl-tip" style="width:min(460px,92vw);background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px 24px;min-height:100px;transition:opacity .3s ease"></div>'
-    +'<div id="sl-dots" style="display:flex;gap:5px;margin-top:14px"></div>';
+    +'<div id="sl-dots" class="flex gap-[5px] mt-3.5"></div>';
   document.body.appendChild(el);_ldEl=el;
   _renderLdTip(true);
   // Rotate through the 3 tips: each shown for 15s
@@ -439,7 +439,7 @@ function _renderLdTip(instant){
   if(!te)return;
   if(!instant)te.style.opacity='0';
   setTimeout(()=>{
-    te.innerHTML='<div style="display:flex;align-items:flex-start;gap:16px">'
+    te.innerHTML='<div class="flex items-start gap-4">'
       +'<div style="font-size:30px;line-height:1;flex-shrink:0;margin-top:2px">'+tip.e+'</div>'
       +'<div><div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:7px">'+tip.t+'</div>'
       +'<div style="font-size:13px;color:var(--text2);line-height:1.65">'+tip.b+'</div></div></div>';
@@ -518,14 +518,14 @@ function loadCache(){try{const raw=localStorage.getItem('uysot_data');if(!raw)re
 function loadJsonConfig(input){const f=input.files[0];if(!f)return;
 const r=new FileReader();r.onload=e=>{try{const config=JSON.parse(e.target.result);if(!config.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');localStorage.setItem('uysot_config',e.target.result);S.config=config;loadFromConfig(config)}catch(e){alert('JSON xatolik: '+e.message)}};r.readAsText(f)}
 
-function errPage(title,detail){return`<div class="loading" style="gap:12px">
+function errPage(title,detail){return`<div class="loading" class="gap-3">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
 <div style="font-weight:600;color:var(--red);font-size:16px">${title}</div>
 <div style="color:var(--text2);font-size:12px;text-align:left;max-width:520px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;line-height:1.7">${detail}</div>
-<div style="display:flex;gap:6px;margin-top:4px">
-<label class="btn btn-primary" style="cursor:pointer">JSON config<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label>
-<label class="btn" style="cursor:pointer">Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" style="display:none"></label>
-<label class="btn" style="cursor:pointer">Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" style="display:none"></label>
+<div class="flex gap-1.5 mt-1">
+<label class="btn btn-primary" class="cursor-pointer">JSON config<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
+<label class="btn" class="cursor-pointer">Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" class="hidden"></label>
+<label class="btn" class="cursor-pointer">Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" class="hidden"></label>
 </div><button class="btn" onclick="showConfig()">Sozlamalar</button></div>`}
 
 function loadFile(i,type){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{
@@ -541,7 +541,7 @@ showToast(S[key].length+' ta qator yuklandi','success');
 showConfig();render()
 }catch(e){alert('Xatolik: '+e.message)}};r.readAsText(f)}
 
-function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark" style="width:52px;height:52px;font-size:20px;border-radius:12px">U</div><h2 style="font-size:20px;font-weight:700;margin-top:4px">UYSOT Shartnomalar</h2><p style="color:var(--text2);text-align:center;max-width:400px;font-size:13px;line-height:1.7">Google Sheets ma'lumotlarini <b>uysot_config.json</b> file orqali ulang.<br>JSON ichida shartnomalar va qo'shimcha CSV havolalari bo'ladi.</p><div style="display:flex;gap:10px;margin-top:16px"><label class="btn btn-primary" style="padding:10px 22px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" style="display:none"></label><button class="btn" onclick="showConfig()" style="padding:10px 22px">Boshqa usullar</button></div></div>`}
+function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark" class="w-[52px] h-[52px] text-xl rounded-xl">U</div><h2 class="text-xl font-bold mt-1">UYSOT Shartnomalar</h2><p class="text-muted text-center max-w-[400px] text-[13px] leading-[1.7]">Google Sheets ma'lumotlarini <b>uysot_config.json</b> file orqali ulang.<br>JSON ichida shartnomalar va qo'shimcha CSV havolalari bo'ladi.</p><div class="flex gap-2.5 mt-4"><label class="btn btn-primary" class="py-2.5 px-[22px] cursor-pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label><button class="btn" onclick="showConfig()" class="py-2.5 px-[22px]">Boshqa usullar</button></div></div>`}
 
 // === REPORT & SLIDES ENGINE ===
 
@@ -759,7 +759,7 @@ async function generateReport(){
     body+='<div class="kg">';
     ar.forEach(function(b,i){body+=kpi(b.label,'$'+fk(b.total),b.clients.length+' ta mijoz',i===0?'neu':'dn')});
     body+='</div>';
-    body+='<p>AR Aging \u2014 debitorlik qarzi yoshi tasnifi. 90+ kun guruhi <b style="color:#c42b1c">yuqori xavf</b> \u2014 ular uchun alohida inkasso chora ko\'rilishi kerak.</p>';
+    body+='<p>AR Aging \u2014 debitorlik qarzi yoshi tasnifi. 90+ kun guruhi <b class="text-danger">yuqori xavf</b> \u2014 ular uchun alohida inkasso chora ko\'rilishi kerak.</p>';
     body+='<table>'+th(['Muddat','Mijoz','Oy qarzi','Kelishuv qarzi','Kechikish','Oxirgi to\'lov'])+'<tbody>';
     ar.forEach(function(b){b.clients.forEach(function(c){var dc=c.days>90?'dn':c.days>30?'neu':'';body+=tr(['<span class="'+(c.days>90?'dn':c.days>60?'dn':c.days>30?'neu':'')+'">'+xe(b.label)+'</span>',xe(c.name),'<span class="dn mono">$'+fmt(c.qarz)+'</span>','<span class="mono">$'+fmt(c.kelQarz||0)+'</span>','<span class="'+dc+'">'+(c.days<999?c.days+' kun':'\u2014')+'</span>',xe(c.lastPayDate||'\u2014')])})});
     body+='</tbody></table></div>';
@@ -812,7 +812,7 @@ async function generateReport(){
     body+='</div>';
   }
 
-  var fullHtml='<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8"><title>UYSOT Hisobot \u2014 '+xe(periodLabel)+'<\/title><style>'+css+'<\/style><\/head><body>'+body+'<div class="noprint" style="position:fixed;bottom:16px;right:16px;display:flex;gap:8px;z-index:999"><button onclick="window.print()" style="background:#1746a2;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;cursor:pointer;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.15)">\uD83D\uDDB6 PDF saqlash<\/button><button onclick="window.close()" style="background:#f0efeb;color:#333;border:1px solid #ccc;border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer">Yopish<\/button><\/div><\/body><\/html>';
+  var fullHtml='<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8"><title>UYSOT Hisobot \u2014 '+xe(periodLabel)+'<\/title><style>'+css+'<\/style><\/head><body>'+body+'<div class="noprint" class="fixed bottom-4 right-4 flex gap-2 z-[999]"><button onclick="window.print()" style="background:#1746a2;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;cursor:pointer;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.15)">\uD83D\uDDB6 PDF saqlash<\/button><button onclick="window.close()" style="background:#f0efeb;color:#333;border:1px solid #ccc;border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer">Yopish<\/button><\/div><\/body><\/html>';
   var w=window.open('','_blank');
   if(!w){showToast('Popup bloklangan \u2014 brauzer ruxsat bering','error');return}
   w.document.write(fullHtml);w.document.close();w.focus();
@@ -847,38 +847,38 @@ async function generateSlides(){
   var sls=[];
 
   // Slide 1: Cover
-  sls.push('<div class="sl sl-cover on"><div style="flex:1;display:flex;flex-direction:column;justify-content:center"><div style="width:56px;height:56px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin-bottom:28px">U</div><div class="sl-label">UYSOT Shartnomalar</div><div class="sl-title">Moliyaviy Faoliyat<br><span>Hisoboti</span></div><div class="sl-sub">'+xe(periodLabel)+' \xb7 '+fmtD(new Date())+'<br>'+curClients+' ta aktiv mijoz \xb7 $'+fk(arr)+' ARR</div></div></div>');
+  sls.push('<div class="sl sl-cover on"><div class="flex-1 flex flex-col justify-center"><div style="width:56px;height:56px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin-bottom:28px">U</div><div class="sl-label">UYSOT Shartnomalar</div><div class="sl-title">Moliyaviy Faoliyat<br><span>Hisoboti</span></div><div class="sl-sub">'+xe(periodLabel)+' \xb7 '+fmtD(new Date())+'<br>'+curClients+' ta aktiv mijoz \xb7 $'+fk(arr)+' ARR</div></div></div>');
 
   // Slide 2: KPIs
   sls.push('<div class="sl"><div class="sl-label">Ijroiya Xulosasi</div><div class="sl-title">Asosiy Ko\'rsatkichlar</div>'+(an.s1?'<div class="sl-sub">'+xe(an.s1)+'</div>':'')+'<div class="skg">'+kc('Joriy MRR','$'+fk(curMRR),(mrrGrowthPct>=0?'+':'')+mrrGrowthPct+'%',mrrGrowthPct>=0?'g':'r')+kc('ARR','$'+fk(arr),'Yillik daromad','b')+kc('Aktiv mijozlar',''+curClients,(curClients-dr.baseClients>=0?'+':'')+(curClients-dr.baseClients)+' netto',curClients>=dr.baseClients?'g':'r')+kc('NRR',''+nrr+'%',nrr>=100?'Mukammal':nrr>=80?'Yaxshi':'Xavf',nrr>=100?'g':nrr>=80?'a':'r')+kc('Quick Ratio',dr.quickRatio.toFixed(2)+'x',dr.quickRatio>=2?'A\'lo':dr.quickRatio>=1?'Normada':'Xavf',dr.quickRatio>=2?'g':dr.quickRatio>=1?'a':'r')+kc('GRR',''+dr.grr+'%','Gross Retention',dr.grr>=85?'g':dr.grr>=70?'a':'r')+kc('ARPA','$'+fmt(arpa),'Har bir mijoz','w')+kc('DSO',Math.round(dr.dso)+' kun','Debitorlik',dr.dso<=45?'g':dr.dso<=90?'a':'r')+'</div></div>');
 
   // Slide 3: Waterfall
-  sls.push('<div class="sl"><div class="sl-label">MRR Waterfall</div><div class="sl-title">Netto Harakatlar: <span>'+(nm.net>=0?'+':'\u2212')+'$'+fk(Math.abs(nm.net))+'</span></div>'+(an.s3?'<div class="sl-sub">'+xe(an.s3)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Komponentlar</div>'+wfb('+ Yangi MRR',nm.newMRR,'#34d399')+wfb('+ Kengayish',nm.expMRR,'#10b981')+wfb('\u2212 Qisqarish',nm.conMRR,'#f59e0b')+wfb('\u2212 Churn MRR',nm.churnMRR,'#f87171')+'</div><div class="sbox"><div class="sbox-t">Retention metrikalari</div><table class="stbl"><tbody><tr><td>NRR</td><td class="tr '+(nrr>=100?'g':nrr>=80?'a':'r')+'" style="font-weight:700">'+nrr+'%</td></tr><tr><td>GRR</td><td class="tr '+(dr.grr>=85?'g':dr.grr>=70?'a':'r')+'" style="font-weight:700">'+dr.grr+'%</td></tr><tr><td>Quick Ratio</td><td class="tr '+(dr.quickRatio>=1?'g':'r')+'" style="font-weight:700">'+dr.quickRatio.toFixed(2)+'x</td></tr><tr><td>Logo Churn</td><td class="tr '+(dr.logoChurnRate<=5?'g':dr.logoChurnRate<=15?'a':'r')+'">'+Math.round(dr.logoChurnRate*10)/10+'%</td></tr></tbody></table></div></div></div>');
+  sls.push('<div class="sl"><div class="sl-label">MRR Waterfall</div><div class="sl-title">Netto Harakatlar: <span>'+(nm.net>=0?'+':'\u2212')+'$'+fk(Math.abs(nm.net))+'</span></div>'+(an.s3?'<div class="sl-sub">'+xe(an.s3)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Komponentlar</div>'+wfb('+ Yangi MRR',nm.newMRR,'#34d399')+wfb('+ Kengayish',nm.expMRR,'#10b981')+wfb('\u2212 Qisqarish',nm.conMRR,'#f59e0b')+wfb('\u2212 Churn MRR',nm.churnMRR,'#f87171')+'</div><div class="sbox"><div class="sbox-t">Retention metrikalari</div><table class="stbl"><tbody><tr><td>NRR</td><td class="tr '+(nrr>=100?'g':nrr>=80?'a':'r')+'" class="font-bold">'+nrr+'%</td></tr><tr><td>GRR</td><td class="tr '+(dr.grr>=85?'g':dr.grr>=70?'a':'r')+'" class="font-bold">'+dr.grr+'%</td></tr><tr><td>Quick Ratio</td><td class="tr '+(dr.quickRatio>=1?'g':'r')+'" class="font-bold">'+dr.quickRatio.toFixed(2)+'x</td></tr><tr><td>Logo Churn</td><td class="tr '+(dr.logoChurnRate<=5?'g':dr.logoChurnRate<=15?'a':'r')+'">'+Math.round(dr.logoChurnRate*10)/10+'%</td></tr></tbody></table></div></div></div>');
 
   // Slide 5: Customer Movements
-  sls.push('<div class="sl"><div class="sl-label">Mijozlar Harakati</div><div class="sl-title"><span class="g">+'+dr.newClients.length+'</span> yangi \xb7 <span class="r">\u2212'+dr.churnClients.length+'</span> churn</div>'+(an.s4?'<div class="sl-sub">'+xe(an.s4)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Yangi mijozlar (top 8)</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">MRR</th><th>Menejer</th></tr></thead><tbody>'+dr.newClients.slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr g" style="font-family:monospace">+$'+fmt(c.mrr)+'</td><td style="color:rgba(255,255,255,.6)">'+xe(c.mgr||'\u2014')+'</td></tr>'}).join('')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Churn bo\'lganlar (top 8)</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">MRR</th><th>Sana</th></tr></thead><tbody>'+( dr.churnClients.length?dr.churnClients.slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr r" style="font-family:monospace">\u2212$'+fmt(c.mrr)+'</td><td style="color:rgba(255,255,255,.6)">'+(c.date?fmtD(c.date):'\u2014')+'</td></tr>'}).join(''):'<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Churn yo\'q \u2713</td></tr>')+'</tbody></table></div></div></div>');
+  sls.push('<div class="sl"><div class="sl-label">Mijozlar Harakati</div><div class="sl-title"><span class="g">+'+dr.newClients.length+'</span> yangi \xb7 <span class="r">\u2212'+dr.churnClients.length+'</span> churn</div>'+(an.s4?'<div class="sl-sub">'+xe(an.s4)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Yangi mijozlar (top 8)</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">MRR</th><th>Menejer</th></tr></thead><tbody>'+dr.newClients.slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr g" class="font-mono">+$'+fmt(c.mrr)+'</td><td class="text-[rgba(255,255,255,0.6)]">'+xe(c.mgr||'\u2014')+'</td></tr>'}).join('')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Churn bo\'lganlar (top 8)</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">MRR</th><th>Sana</th></tr></thead><tbody>'+( dr.churnClients.length?dr.churnClients.slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr r" class="font-mono">\u2212$'+fmt(c.mrr)+'</td><td class="text-[rgba(255,255,255,0.6)]">'+(c.date?fmtD(c.date):'\u2014')+'</td></tr>'}).join(''):'<tr><td colspan="3" class="text-center text-[rgba(255,255,255,0.3)] p-5">Churn yo\'q \u2713</td></tr>')+'</tbody></table></div></div></div>');
 
   // Slide 6: Unit Economics
   sls.push('<div class="sl"><div class="sl-label">Unit Economics</div><div class="sl-title">Mijoz Qiymati <span>Tahlili</span></div>'+(an.s5?'<div class="sl-sub">'+xe(an.s5)+'</div>':'')+'<div class="skg">'+kc('ARPA','$'+fmt(arpa),'Har bir mijoz/oy','b')+kc('LTV','$'+fk(dr.ltv),'Mijoz umr bo\'yi','g')+kc('CAC',dr.cac>0?'$'+fmt(Math.round(dr.cac)):'N/A',dr.ltvCac>0?'LTV:CAC='+dr.ltvCac.toFixed(1)+'x':'Marketing ma\'lumot yo\'q','w')+kc('Logo Churn',Math.round(dr.logoChurnRate*10)/10+'%/davr','Ketish ulushi',dr.logoChurnRate<=5?'g':dr.logoChurnRate<=15?'a':'r')+'</div><div class="sc2" style="margin-top:16px"><div class="sbox"><div class="sbox-t">LTV hisob-kitobi</div><p style="color:rgba(255,255,255,.7);font-size:13px;margin-top:8px;line-height:1.8">LTV = ARPA / Oylik Churn Rate<br>= $'+fmt(arpa)+' / '+Math.round(dr.logoChurnRate*100)/100+'%<br>= <b style="color:#60a5fa;font-size:18px">$'+fk(dr.ltv)+'</b></p></div><div class="sbox"><div class="sbox-t">Sog\'liqli biznes mezonlari</div><p style="color:rgba(255,255,255,.7);font-size:12px;line-height:1.9">LTV:CAC \u2265 3x \u2014 Barqaror<br>LTV:CAC \u2265 5x \u2014 A\'lo<br>Quick Ratio \u2265 4x \u2014 Yuqori o\'sish<br>NRR \u2265 120% \u2014 Kengayish hududi</p></div></div></div>');
 
   // Slide 7: Cash & Collections
   var cb=dr.cashInBreak;
-  sls.push('<div class="sl"><div class="sl-label">Kassa & Inkasso</div><div class="sl-title"><span>$'+fk(dr.cashIn)+'</span> Kassa Tushumi</div>'+(an.s6?'<div class="sl-sub">'+xe(an.s6)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">To\'lov turlari</div><table class="stbl"><tbody><tr><td>Naqd</td><td class="tr" style="font-family:monospace">$'+fmt(cb.naqd)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.naqd/dr.cashIn*100:0)+'%</td></tr><tr><td>Karta</td><td class="tr" style="font-family:monospace">$'+fmt(cb.karta)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.karta/dr.cashIn*100:0)+'%</td></tr><tr><td>Bank</td><td class="tr" style="font-family:monospace">$'+fmt(cb.bank)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.bank/dr.cashIn*100:0)+'%</td></tr></tbody></table><div style="margin-top:14px"><div class="sbox-t">DSO</div><div style="font-size:40px;font-weight:800;font-family:monospace;color:'+(dr.dso<=45?'#34d399':dr.dso<=90?'#fbbf24':'#f87171')+'">'+Math.round(dr.dso)+' kun</div></div></div><div class="sbox"><div class="sbox-t">AR Aging (qarzdorlik yoshi)</div><table class="stbl"><tbody>'+ar.map(function(b){return'<tr><td>'+xe(b.label)+'</td><td class="tr r" style="font-family:monospace">$'+fmt(b.total)+'</td><td class="tr" style="color:rgba(255,255,255,.5)">'+b.clients.length+' ta</td></tr>'}).join('')+'<tr><td><b>Jami qarz</b></td><td class="tr r" style="font-family:monospace;font-weight:700"><b>$'+fmt(totalDebt)+'</b></td><td></td></tr></tbody></table></div></div></div>');
+  sls.push('<div class="sl"><div class="sl-label">Kassa & Inkasso</div><div class="sl-title"><span>$'+fk(dr.cashIn)+'</span> Kassa Tushumi</div>'+(an.s6?'<div class="sl-sub">'+xe(an.s6)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">To\'lov turlari</div><table class="stbl"><tbody><tr><td>Naqd</td><td class="tr" class="font-mono">$'+fmt(cb.naqd)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.naqd/dr.cashIn*100:0)+'%</td></tr><tr><td>Karta</td><td class="tr" class="font-mono">$'+fmt(cb.karta)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.karta/dr.cashIn*100:0)+'%</td></tr><tr><td>Bank</td><td class="tr" class="font-mono">$'+fmt(cb.bank)+'</td><td class="tr">'+Math.round(dr.cashIn?cb.bank/dr.cashIn*100:0)+'%</td></tr></tbody></table><div style="margin-top:14px"><div class="sbox-t">DSO</div><div style="font-size:40px;font-weight:800;font-family:monospace;color:'+(dr.dso<=45?'#34d399':dr.dso<=90?'#fbbf24':'#f87171')+'">'+Math.round(dr.dso)+' kun</div></div></div><div class="sbox"><div class="sbox-t">AR Aging (qarzdorlik yoshi)</div><table class="stbl"><tbody>'+ar.map(function(b){return'<tr><td>'+xe(b.label)+'</td><td class="tr r" class="font-mono">$'+fmt(b.total)+'</td><td class="tr" style="color:rgba(255,255,255,.5)">'+b.clients.length+' ta</td></tr>'}).join('')+'<tr><td><b>Jami qarz</b></td><td class="tr r" class="font-mono font-bold"><b>$'+fmt(totalDebt)+'</b></td><td></td></tr></tbody></table></div></div></div>');
 
   // Slide 8: Regions & Managers
   var totRP=rp.reduce(function(s,r){return s+r.mrr},0)||1;
-  sls.push('<div class="sl"><div class="sl-label">Hudud & Menejerlar</div><div class="sl-title">Kuch <span>Manbalari</span></div>'+(an.s7?'<div class="sl-sub">'+xe(an.s7)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Hududlar (MRR)</div><table class="stbl"><thead><tr><th>Hudud</th><th class="tr">MRR</th><th class="tr">%</th></tr></thead><tbody>'+rp.slice(0,7).map(function(r){return'<tr><td>'+xe(r.name)+'</td><td class="tr b" style="font-family:monospace">$'+fmt(r.mrr)+'</td><td class="tr">'+Math.round(r.mrr/totRP*100)+'%</td></tr>'}).join('')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Menejerlar (Netto MRR)</div><table class="stbl"><thead><tr><th>Menejer</th><th class="tr">Yangi</th><th class="tr">Netto MRR</th></tr></thead><tbody>'+mb.slice(0,7).map(function(m){var n=m.netMRR||0;return'<tr><td>'+xe(m.name)+'</td><td class="tr g">'+( m.newCount||0)+'</td><td class="tr '+(n>=0?'g':'r')+'" style="font-family:monospace;font-weight:700">'+(n>=0?'+':'\u2212')+'$'+fmt(Math.abs(Math.round(n)))+'</td></tr>'}).join('')+'</tbody></table></div></div></div>');
+  sls.push('<div class="sl"><div class="sl-label">Hudud & Menejerlar</div><div class="sl-title">Kuch <span>Manbalari</span></div>'+(an.s7?'<div class="sl-sub">'+xe(an.s7)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Hududlar (MRR)</div><table class="stbl"><thead><tr><th>Hudud</th><th class="tr">MRR</th><th class="tr">%</th></tr></thead><tbody>'+rp.slice(0,7).map(function(r){return'<tr><td>'+xe(r.name)+'</td><td class="tr b" class="font-mono">$'+fmt(r.mrr)+'</td><td class="tr">'+Math.round(r.mrr/totRP*100)+'%</td></tr>'}).join('')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Menejerlar (Netto MRR)</div><table class="stbl"><thead><tr><th>Menejer</th><th class="tr">Yangi</th><th class="tr">Netto MRR</th></tr></thead><tbody>'+mb.slice(0,7).map(function(m){var n=m.netMRR||0;return'<tr><td>'+xe(m.name)+'</td><td class="tr g">'+( m.newCount||0)+'</td><td class="tr '+(n>=0?'g':'r')+'" class="font-mono font-bold">'+(n>=0?'+':'\u2212')+'$'+fmt(Math.abs(Math.round(n)))+'</td></tr>'}).join('')+'</tbody></table></div></div></div>');
 
   // Slide 9: Health
   var htot=ch.length||1;
-  sls.push('<div class="sl"><div class="sl-label">Portfolio Salomatligi</div><div class="sl-title"><span class="g">'+healthy+'</span> sog\'lom \xb7 <span class="a">'+warning+'</span> xavf \xb7 <span class="r">'+critical+'</span> kritik</div>'+(an.s8?'<div class="sl-sub">'+xe(an.s8)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Kritik mijozlar</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">Score</th><th class="tr">Qarz</th></tr></thead><tbody>'+( ch.filter(function(c){return c.status==='critical'}).length?ch.filter(function(c){return c.status==='critical'}).slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr r">'+c.score+'</td><td class="tr r" style="font-family:monospace">$'+fmt(c.debt)+'</td></tr>'}).join(''):'<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Kritik mijoz yo\'q \u2713</td></tr>')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Taqsimot</div><div style="display:flex;flex-direction:column;gap:14px;margin-top:10px">'+[{l:'Sog\'lom',n:healthy,c:'#34d399'},{l:'Xavf',n:warning,c:'#fbbf24'},{l:'Kritik',n:critical,c:'#f87171'}].map(function(x){return'<div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:'+x.c+'">'+x.l+'</span><span style="font-family:monospace">'+x.n+' ('+Math.round(x.n/htot*100)+'%)</span></div><div style="height:8px;background:rgba(255,255,255,.1);border-radius:4px"><div style="width:'+Math.round(x.n/htot*100)+'%;height:100%;background:'+x.c+';border-radius:4px"></div></div></div>'}).join('')+'</div></div></div></div>');
+  sls.push('<div class="sl"><div class="sl-label">Portfolio Salomatligi</div><div class="sl-title"><span class="g">'+healthy+'</span> sog\'lom \xb7 <span class="a">'+warning+'</span> xavf \xb7 <span class="r">'+critical+'</span> kritik</div>'+(an.s8?'<div class="sl-sub">'+xe(an.s8)+'</div>':'')+'<div class="sc2"><div class="sbox"><div class="sbox-t">Kritik mijozlar</div><table class="stbl"><thead><tr><th>Mijoz</th><th class="tr">Score</th><th class="tr">Qarz</th></tr></thead><tbody>'+( ch.filter(function(c){return c.status==='critical'}).length?ch.filter(function(c){return c.status==='critical'}).slice(0,8).map(function(c){return'<tr><td>'+xe(c.name)+'</td><td class="tr r">'+c.score+'</td><td class="tr r" class="font-mono">$'+fmt(c.debt)+'</td></tr>'}).join(''):'<tr><td colspan="3" class="text-center text-[rgba(255,255,255,0.3)] p-5">Kritik mijoz yo\'q \u2713</td></tr>')+'</tbody></table></div><div class="sbox"><div class="sbox-t">Taqsimot</div><div style="display:flex;flex-direction:column;gap:14px;margin-top:10px">'+[{l:'Sog\'lom',n:healthy,c:'#34d399'},{l:'Xavf',n:warning,c:'#fbbf24'},{l:'Kritik',n:critical,c:'#f87171'}].map(function(x){return'<div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:'+x.c+'">'+x.l+'</span><span class="font-mono">'+x.n+' ('+Math.round(x.n/htot*100)+'%)</span></div><div style="height:8px;background:rgba(255,255,255,.1);border-radius:4px"><div style="width:'+Math.round(x.n/htot*100)+'%;height:100%;background:'+x.c+';border-radius:4px"></div></div></div>'}).join('')+'</div></div></div></div>');
 
   // Slide 10: Forecast (growth-based)
   var gfc=calcGrowthForecast();
-  sls.push('<div class="sl"><div class="sl-label">MRR Prognoz</div><div class="sl-title">6 Oylik <span>Ko\'rinish</span></div>'+(an.s9?'<div class="sl-sub">'+xe(an.s9)+'</div>':'')+'<div class="sc2-full"><table class="stbl"><thead><tr><th>Oy</th><th class="tr">Prognoz MRR</th><th class="tr">Mijozlar</th><th class="tr">Yangi/oy</th><th class="tr">Churn/oy</th></tr></thead><tbody>'+gfc.map(function(m){return'<tr><td><b>'+xe(m.label)+'</b></td><td class="tr b" style="font-family:monospace;font-weight:700">$'+fmt(m.mrr)+'</td><td class="tr">'+m.clients+'</td><td class="tr g">+'+m.newPerMonth+'</td><td class="tr r">\u2212'+m.churnPerMonth+'</td></tr>'}).join('')+'</tbody></table><p style="color:rgba(255,255,255,.5);font-size:12px;margin-top:12px">Oxirgi 12 oy yangi mijoz va churn nisbatlariga asoslangan prognoz.</p></div></div>');
+  sls.push('<div class="sl"><div class="sl-label">MRR Prognoz</div><div class="sl-title">6 Oylik <span>Ko\'rinish</span></div>'+(an.s9?'<div class="sl-sub">'+xe(an.s9)+'</div>':'')+'<div class="sc2-full"><table class="stbl"><thead><tr><th>Oy</th><th class="tr">Prognoz MRR</th><th class="tr">Mijozlar</th><th class="tr">Yangi/oy</th><th class="tr">Churn/oy</th></tr></thead><tbody>'+gfc.map(function(m){return'<tr><td><b>'+xe(m.label)+'</b></td><td class="tr b" class="font-mono font-bold">$'+fmt(m.mrr)+'</td><td class="tr">'+m.clients+'</td><td class="tr g">+'+m.newPerMonth+'</td><td class="tr r">\u2212'+m.churnPerMonth+'</td></tr>'}).join('')+'</tbody></table><p style="color:rgba(255,255,255,.5);font-size:12px;margin-top:12px">Oxirgi 12 oy yangi mijoz va churn nisbatlariga asoslangan prognoz.</p></div></div>');
 
   // Slide 11: Closing
-  sls.push('<div class="sl sl-cover"><div style="flex:1;display:flex;flex-direction:column;justify-content:center"><div class="sl-label">Xulosa</div><div class="sl-title">Savollar va<br><span>Muhokama</span></div>'+(an.s10?'<div class="sl-sub" style="margin-top:20px">'+xe(an.s10)+'</div>':'')+'</div></div>');
+  sls.push('<div class="sl sl-cover"><div class="flex-1 flex flex-col justify-center"><div class="sl-label">Xulosa</div><div class="sl-title">Savollar va<br><span>Muhokama</span></div>'+(an.s10?'<div class="sl-sub" style="margin-top:20px">'+xe(an.s10)+'</div>':'')+'</div></div>');
 
   var scss='*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;font-family:"Segoe UI",system-ui,sans-serif;background:#060e1f}.deck{width:100vw;height:100vh;position:relative}.sl{position:absolute;inset:0;display:none;flex-direction:column;padding:52px 80px 88px;background:linear-gradient(145deg,#060e1f 0%,#0d1b35 100%)}.sl.on{display:flex}.sl-cover{background:linear-gradient(145deg,#0f2a6b 0%,#1746a2 55%,#0a3d55 100%)}.sl-label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.45);margin-bottom:12px}.sl-title{font-size:40px;font-weight:800;color:#fff;line-height:1.1;margin-bottom:14px}.sl-title span{color:#60a5fa}.sl-sub{font-size:15px;color:rgba(255,255,255,.65);line-height:1.5;max-width:750px}.skg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}.skc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px}.skl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:8px}.skv{font-size:28px;font-weight:800;font-family:monospace;color:#fff;line-height:1}.skd{font-size:12px;margin-top:5px}.sc2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;flex:1}.sc2-full{margin-top:16px;flex:1}.sbox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 18px}.sbox-t{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);margin-bottom:10px}.stbl{width:100%;border-collapse:collapse;font-size:13px}.stbl th{padding:7px 10px;text-align:left;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px}.stbl td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.85)}.tr{text-align:right}.g{color:#34d399}.r{color:#f87171}.a{color:#fbbf24}.b{color:#60a5fa}.w{color:rgba(255,255,255,.85)}.bars{display:flex;align-items:flex-end;gap:3px;height:72px;margin-top:8px}.bar-item{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}.bar-fill{width:100%;border-radius:2px 2px 0 0}.bar-lbl{font-size:7px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden}.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:100;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:40px;padding:7px 14px}.nav button{background:none;border:none;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;padding:4px 10px;border-radius:6px;transition:.15s}.nav button:hover{background:rgba(255,255,255,.1);color:#fff}.cnt{color:rgba(255,255,255,.4);font-size:12px;min-width:52px;text-align:center}.pbar{position:fixed;top:0;left:0;height:2px;background:#3b82f6;transition:width .3s;z-index:200}@media print{.nav,.pbar{display:none!important}.sl{display:flex!important;page-break-after:always;position:relative!important}}';
 
