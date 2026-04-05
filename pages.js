@@ -397,10 +397,17 @@ function toggleDebtFs(){
   clearCache();render();
 }
 (function(){
-  if(window._debtFsKeyBound)return;
-  window._debtFsKeyBound=true;
+  if(window._fsKeyBound)return;
+  window._fsKeyBound=true;
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'&&S.debtFs){S.debtFs=false;clearCache();render();}
+    if(e.key==='Escape'&&S.mrrFs){S.mrrFs=false;clearCache();render();}
+    if(e.key==='f'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      const tag=document.activeElement?.tagName;
+      if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+      if(S.sec==='mrrtable'){e.preventDefault();toggleMrrFullscreen();}
+      else if(S.sec==='debts'){e.preventDefault();toggleDebtFs();}
+    }
   });
 })();
 
@@ -409,18 +416,6 @@ function toggleMrrFullscreen(){
   S.mrrFs=!S.mrrFs;
   clearCache();render();
 }
-(function(){
-  if(window._mrrFsKeyBound)return;
-  window._mrrFsKeyBound=true;
-  document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&S.mrrFs){S.mrrFs=false;clearCache();render();}
-    if(e.key==='f'&&S.sec==='mrrtable'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
-      const tag=document.activeElement?.tagName;
-      if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
-      e.preventDefault();toggleMrrFullscreen();
-    }
-  });
-})();
 
 // === DASHBOARD ===
 function showMetricInfo(k){
