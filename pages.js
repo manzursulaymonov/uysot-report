@@ -595,9 +595,9 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 <div class="flex gap-1 flex-wrap mb-4 items-center">
 ${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="${p.k==='c'?"showPeriodPicker()":"applyPreset('"+p.k+"')"}">${p.l}</button>`).join('')}
 ${isCust?`<div class="flex gap-1 items-center ml-1">
-<input type="date" class="flt text-[11px] p-[5px]" value="${S.dashFrom.toISOString().slice(0,10)}" onchange="S.dashFrom=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-[11px] p-[5px]" value="${localDateStr(S.dashFrom)}" onchange="S.dashFrom=new Date(this.value+'T00:00:00');clearCache();render()">
 <span class="text-subtle">→</span>
-<input type="date" class="flt text-[11px] p-[5px]" value="${S.dashTo.toISOString().slice(0,10)}" onchange="S.dashTo=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-[11px] p-[5px]" value="${localDateStr(S.dashTo)}" onchange="S.dashTo=new Date(this.value+'T00:00:00');clearCache();render()">
 </div>`:''}
 <span class="text-[10.5px] text-subtle ml-1">${dr.gran==='day'?'kunlik':'oylik'}</span>
 </div>
