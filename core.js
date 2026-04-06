@@ -313,7 +313,7 @@ function calcDebtTable(reportDate){
 }
 
 // === DASHBOARD PRESETS ===
-function localDateStr(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd}
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function dashPreset(key){
   const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
   const dow=now.getDay()||7;const wkS=new Date(y,m,d-(dow-1));
