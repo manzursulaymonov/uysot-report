@@ -587,13 +587,16 @@ const mrrExpansion=expClients.reduce((s,c)=>s+c.delta,0);
 const mrrFromRechurn=newClients.filter(c=>c.isRechurn).reduce((s,c)=>s+c.mrr,0);
 const expColor=mrrExpansion>=0?'#0e7c7b':'#a36207';const periodLabel=labels.length>1?labels[0]+'–'+labels[labels.length-1]:labels[0]||'';
 const pre=S.dashPre||'y';const isCust=pre==='c';
-const presets=[{k:'w',l:'Hafta'},{k:'m',l:'Oy'},{k:'q',l:'Chorak'},{k:'y',l:'Yil'},{k:'30',l:'30k'},{k:'90',l:'90k'},{k:'25',l:'2025'},{k:'24',l:'2024'},{k:'c',l:'Oraliq'}];
+const presets=[{k:'m',l:'Oy'},{k:'q',l:'Chorak'},{k:'y',l:'Yil'},{k:'30',l:'30k'},{k:'90',l:'90k'},{k:'25',l:'2025'},{k:'24',l:'2024'}];
+const isWk=pre==='w';
 return`<div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">${tot} ta shartnoma, ${clients.length} ta mijoz</div></div>
 <div class="flex items-center gap-1.5">
 <button class="btn" onclick="showDashSettingsModal()" title="Dashboard sozlamalari"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
 <button class="btn" onclick="showReportModal()" title="PDF hisobot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1 -2.12-9.36L23 10"/></svg></button></div></div>
 <div class="flex gap-1 flex-wrap mb-4 items-center">
-${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="${p.k==='c'?"showPeriodPicker()":"applyPreset('"+p.k+"')"}">${p.l}</button>`).join('')}
+<div class="wk-pick-wrap"><button class="btn${isWk?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="toggleWeekPicker(this)">Hafta${isWk?' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-left:2px"><polyline points=\\'6 9 12 15 18 9\\'/></svg>':''}</button></div>
+${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="applyPreset('${p.k}')">${p.l}</button>`).join('')}
+<button class="btn${isCust?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="S.dashPre='c';clearCache();render()">Oraliq</button>
 ${isCust?`<div class="flex gap-1 items-center ml-1">
 <input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashFrom)}" onchange="S.dashFrom=new Date(this.value);clearCache();render()">
 <span class="text-subtle">→</span>
