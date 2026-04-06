@@ -596,9 +596,9 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 <div class="wk-pick-wrap"><button class="btn${isWk?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="toggleWeekPicker(this)">Hafta${isWk?' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>':''}</button></div>
 <button class="btn${pre==='p'?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="showPeriodPicker()">Davr</button>
 <div class="flex gap-1 items-center ml-1">
-<input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashFrom)}" onchange="S.dashPre='c';S.dashFrom=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashFrom)}" onchange="S.dashPre='c';S.dashFrom=toDate(this.value);clearCache();render()">
 <span class="text-subtle">→</span>
-<input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashTo)}" onchange="S.dashPre='c';S.dashTo=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashTo)}" onchange="S.dashPre='c';S.dashTo=toDate(this.value);clearCache();render()">
 </div>
 <span class="text-[10.5px] text-subtle ml-1">${dr.gran==='day'?'kunlik':'oylik'}</span>
 </div>
@@ -1021,7 +1021,7 @@ const view=S.debtView||'umumiy';
 
 let h=`<div class="page-header"><div><div class="page-title">Qarzdorlik</div><div class="page-sub">${repLabel} oy oxiriga · ${dt.length} ta mijoz</div></div>
 <div class="flex gap-1.5 items-center">
-<input type="date" class="flt text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=new Date(this.value);clearCache();render()">
+<input type="date" class="flt text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=toDate(this.value);clearCache();render()">
 <button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
 </div></div>`;
 h+=_pageTabs([{v:'umumiy',l:"Ko'rsatkichlar"},{v:'jadval',l:'Qarz jadvali'}],view,'debtView');

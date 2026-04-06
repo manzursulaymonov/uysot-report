@@ -314,6 +314,7 @@ function calcDebtTable(reportDate){
 
 // === DASHBOARD PRESETS ===
 function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function toDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function dashPreset(key){
   const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
   const dow=now.getDay()||7;const wkS=new Date(y,m,d-(dow-1));
@@ -348,7 +349,7 @@ function toggleWeekPicker(btn){
   }).join('');
   btn.closest('.wk-pick-wrap').appendChild(d);
   d.querySelectorAll('.wk-item').forEach(b=>b.onclick=function(){
-    S.dashPre='w';S.dashFrom=new Date(this.dataset.f);S.dashTo=new Date(this.dataset.t);clearCache();render();
+    S.dashPre='w';S.dashFrom=toDate(this.dataset.f);S.dashTo=toDate(this.dataset.t);clearCache();render();
   });
   setTimeout(()=>{const close=e=>{if(!d.contains(e.target)&&e.target!==btn){d.remove();document.removeEventListener('click',close)}};document.addEventListener('click',close)},0);
 }
