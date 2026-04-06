@@ -596,6 +596,7 @@ return`<div class="page-header"><div><div class="page-title">Dashboard</div><div
 <div class="flex gap-1 flex-wrap mb-4 items-center">
 <div class="wk-pick-wrap"><button class="btn${isWk?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="toggleWeekPicker(this)">Hafta${isWk?' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-left:2px"><polyline points=\\'6 9 12 15 18 9\\'/></svg>':''}</button></div>
 ${presets.map(p=>`<button class="btn${pre===p.k?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="applyPreset('${p.k}')">${p.l}</button>`).join('')}
+<button class="btn${pre==='p'?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="showPeriodPicker()">Davr</button>
 <button class="btn${isCust?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="S.dashPre='c';clearCache();render()">Oraliq</button>
 ${isCust?`<div class="flex gap-1 items-center ml-1">
 <input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashFrom)}" onchange="S.dashFrom=new Date(this.value);clearCache();render()">
