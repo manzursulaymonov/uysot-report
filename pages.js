@@ -264,7 +264,7 @@ function showClientCard(name,cur){
     +'<button class="btn'+(isUZS?' btn-primary':'')+' py-0.5 px-2 text-[11px]" onclick="var sc=this.closest(\'.modal\').querySelector(\'.client-card-scroll\');S._cardScroll=sc?sc.scrollTop:0;this.closest(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'uzs\')">so\'m</button>'
     +'</div>';
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
-  o.innerHTML='<div class="modal p-0 flex flex-col" style="width:min(98vw,1160px)" class="max-h-[96vh]">'
+  o.innerHTML='<div class="modal p-0 flex flex-col" style="width:min(98vw,1160px);max-height:96vh">'
     // Header
     +'<div class="py-3.5 px-5 border-b border-brd shrink-0">'
     +'<div class="flex justify-between items-center mb-1">'
