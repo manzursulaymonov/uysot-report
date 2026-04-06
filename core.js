@@ -326,6 +326,79 @@ function dashPreset(key){
 }
 function applyPreset(key){S.dashPre=key;const p=dashPreset(key);S.dashFrom=p.from;S.dashTo=p.to;clearCache();render()}
 
+function showPeriodPicker(){
+  const now=new Date(),curY=now.getFullYear();
+  let selY=curY;
+  const months=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+
+  function pick(from,to,label){
+    S.dashPre='c';S.dashFrom=from;S.dashTo=to;clearCache();render();o.remove();
+  }
+
+  function build(){
+    const today=new Date();
+    const h=`<div class="modal pp-modal" style="width:480px">
+    <div class="flex items-center justify-between mb-5">
+      <h2 style="margin:0">Davrni tanlash</h2>
+      <button class="btn pp-close" onclick="this.closest('.overlay').remove()" style="padding:4px 8px;font-size:18px;line-height:1">&times;</button>
+    </div>
+    <div class="pp-year-row">
+      <button class="btn pp-arr" data-dir="-1">&#8249;</button>
+      <span class="pp-year-lbl">${selY} yil</span>
+      <button class="btn pp-arr" data-dir="1">&#8250;</button>
+    </div>
+    <div class="pp-grid pp-months">
+      ${months.map((m,i)=>`<button class="btn pp-cell" data-type="month" data-m="${i}">${m}</button>`).join('')}
+    </div>
+    <div class="pp-divider"></div>
+    <div class="pp-grid pp-quarters">
+      <button class="btn pp-cell pp-wide" data-type="q" data-q="0">1-chorak</button>
+      <button class="btn pp-cell pp-wide" data-type="period" data-p="half1">Yarim yillik</button>
+      <button class="btn pp-cell pp-wide" data-type="q" data-q="1">2-chorak</button>
+      <button class="btn pp-cell pp-wide" data-type="period" data-p="half2">2-yarim yil</button>
+      <button class="btn pp-cell pp-wide" data-type="q" data-q="2">3-chorak</button>
+      <button class="btn pp-cell pp-wide" data-type="period" data-p="9m">9 oy</button>
+      <button class="btn pp-cell pp-wide" data-type="q" data-q="3">4-chorak</button>
+      <button class="btn pp-cell pp-wide pp-year-btn" data-type="period" data-p="year">Yil</button>
+    </div>
+    </div>`;
+    return h;
+  }
+
+  function attach(){
+    o.querySelectorAll('.pp-arr').forEach(b=>b.onclick=function(e){
+      e.stopPropagation();selY+=parseInt(this.dataset.dir);o.querySelector('.pp-year-lbl').textContent=selY+' yil';
+    });
+    o.querySelectorAll('[data-type="month"]').forEach(b=>b.onclick=function(e){
+      e.stopPropagation();const m=parseInt(this.dataset.m);
+      const last=new Date(selY,m+1,0);
+      const to=new Date()<=last?new Date():last;
+      pick(new Date(selY,m,1),to);
+    });
+    o.querySelectorAll('[data-type="q"]').forEach(b=>b.onclick=function(e){
+      e.stopPropagation();const q=parseInt(this.dataset.q);
+      const from=new Date(selY,q*3,1);const last=new Date(selY,q*3+3,0);
+      const to=new Date()<=last?new Date():last;
+      pick(from,to);
+    });
+    o.querySelectorAll('[data-type="period"]').forEach(b=>b.onclick=function(e){
+      e.stopPropagation();const p=this.dataset.p;
+      let from,to;
+      if(p==='half1'){from=new Date(selY,0,1);to=new Date(selY,5,30)}
+      else if(p==='half2'){from=new Date(selY,6,1);to=new Date(selY,11,31)}
+      else if(p==='9m'){from=new Date(selY,0,1);to=new Date(selY,8,30)}
+      else if(p==='year'){from=new Date(selY,0,1);to=new Date(selY,11,31)}
+      const last=to;to=new Date()<=last?new Date():last;
+      pick(from,to);
+    });
+  }
+
+  o.innerHTML=build();
+  attach();
+  document.body.appendChild(o);
+}
+
 function downloadCSV(rows,filename){
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return}
   const hs=Object.keys(rows[0]);
