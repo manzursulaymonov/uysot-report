@@ -1206,11 +1206,11 @@ function rMoliya(){
         <button class="btn${inkFs?' btn-primary':''} py-2 px-3" onclick="S.inkassoFs=!S.inkassoFs;render()" title="${inkFs?'Kichraytirish':'To\'liq ekran'}">${inkFsIcon}</button>
       </div>
     </div>
-    ${cr.length?`${inkMetrics}<div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'100':'320'}px)"><table><thead><tr>
+    ${cr.length?`${inkMetrics}<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'100':'320'}px)"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
         <th class="text-r">Farq</th><th>Undiruv darajasi</th>
-      </tr></thead><tbody>${fCrRows}</tbody></table></div>`
+      </tr></thead><tbody>${fCrRows}</tbody></table></div></div></div>`
       :'<div class="text-center text-subtle p-6">Ma\'lumot yo\'q</div>'}
   </div>`;
 
