@@ -161,7 +161,9 @@ Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CS
 
 <div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">Interfeys temasi</div>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px" id="themeGrid"></div>
+<select class="flt text-xs py-1.5 px-2.5" style="width:100%" onchange="applyThemeStyle(this.value);render()">
+${EO_STYLES.map(s=>'<option value="'+s.id+'"'+((localStorage.getItem('uysot_style')||'default')===s.id?' selected':'')+'>'+s.name+'</option>').join('')}
+</select>
 </div>
 
 <div class="mb-4">
@@ -184,9 +186,7 @@ ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;disp
 </div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
 </div>`:`<div class="modal-btns"><button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button></div>`}
-</div>`;document.body.appendChild(o);
-const tg=o.querySelector('#themeGrid');if(tg){const cur=localStorage.getItem('uysot_theme')||'light';EO_THEMES.forEach(t=>{const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;cursor:pointer;border:2px solid '+(cur===t.id?'var(--accent2)':'transparent')+';transition:border .15s';d.innerHTML='<div style="display:flex;gap:3px">'+t.preview.map(c=>'<div style="width:14px;height:14px;border-radius:50%;background:'+c+'"></div>').join('')+'</div><div><div style="font-size:12px;font-weight:600">'+t.name+'</div><div style="font-size:10px;color:var(--text3)">'+t.description+'</div></div><span style="margin-left:auto;font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--text3)">'+t.mode+'</span>';d.onclick=function(){applyAppTheme(t.id);o.remove();render();showConfig()};tg.appendChild(d)})}
-}
+</div>`;document.body.appendChild(o)}
 
 // === REPORT MODAL ===
 function showReportModal(){
