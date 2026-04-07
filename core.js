@@ -328,6 +328,48 @@ function calcDebtTable(reportDate){
 // === DASHBOARD PRESETS ===
 function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function toDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+
+// === AI METRIC RECOMMENDATION ===
+async function aiRecommend(metricKey){
+  if(S.aiProvider==='none'||(!S.apiKey&&!S.geminiKey)){
+    showToast("AI sozlamalarini oching va API kalit kiriting",'error');
+    return;
+  }
+  // Find or create result container in the open modal
+  const modal=document.querySelector('.overlay .modal');
+  if(!modal)return;
+  let box=modal.querySelector('.ai-rec-box');
+  if(!box){box=document.createElement('div');box.className='ai-rec-box';const closeBtn=modal.querySelector('.btn-primary');if(closeBtn)closeBtn.parentNode.insertBefore(box,closeBtn);else modal.appendChild(box);}
+  box.innerHTML='<div class="text-center py-3 text-[12px] text-subtle"><span class="inline-block animate-pulse">⏳</span> AI tahlil qilmoqda...</div>';
+  // Build metric names & values
+  const names={mrr:'MRR',nrr:'NRR',grr:'GRR',cust:'Active Customers',arpa:'ARPA',cac:'CAC',cash:'Net Cash In',qr:'Quick Ratio',dso:'DSO',conc:'Revenue Concentration',ltv:'LTV',lc:'Logo vs Revenue Churn',cur_mrr:'Current MRR',total_cv:'Total Contract Value',total_paid:'Total Paid',outstanding:'Outstanding Balance',health:'Health Score',pay_rate:'Payment Rate',days_exp:'Days to Expiry',avg_monthly:'Avg. Monthly Payment'};
+  const mName=names[metricKey]||metricKey;
+  let val='';
+  try{
+    // Try to get dashboard-level value
+    if(typeof dashRange==='function'){
+      const dr=dashRange();
+      const t=dr.totals;const c=t[t.length-1]||0;
+      const vm={mrr:fmt(c)+' $',nrr:dr.nrr+'%',grr:dr.grr+'%',cust:dr.cpmArr[dr.cpmArr.length-1],arpa:fmt(dr.arpa)+' $',cash:fmt(dr.cashIn)+' $',qr:dr.quickRatio?.toFixed(2)+'x',dso:Math.round(dr.dso)+' kun',ltv:fmt(dr.ltv)+' $'};
+      if(vm[metricKey])val=vm[metricKey];
+    }
+    // Try client card context
+    const ccModal=document.querySelector('.client-card-scroll');
+    if(ccModal&&!val){
+      const kpis=ccModal.closest('.modal')?.querySelectorAll('.client-kpi-grid .mono, .client-kpi-grid2 .mono');
+      const km={cur_mrr:0,total_cv:1,total_paid:2,outstanding:3,health:4,pay_rate:5,days_exp:6,avg_monthly:7};
+      if(km[metricKey]!==undefined&&kpis&&kpis[km[metricKey]])val=kpis[km[metricKey]].textContent.trim();
+    }
+  }catch(e){}
+  const prompt='Sen SaaS CRM moliyaviy maslahatchi AI san. Quyidagi metrika haqida O\'zbek tilida 3 ta aniq, qisqa tavsiya ber (har biri 1-2 gap). Faqat tavsiyalar, boshqa narsa emas.\n\nMetrika: '+mName+(val?'\nJoriy qiymat: '+val:'')+'\n\nTavsiyalar:';
+  try{
+    const result=await _callAI(prompt);
+    box.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px] leading-relaxed" style="background:var(--accent-bg);border:1px solid var(--border)"><div class="font-bold text-[11px] uppercase tracking-[0.5px] mb-2" style="color:var(--accent)">💡 AI Tavsiya</div><div style="white-space:pre-wrap">'+result.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
+  }catch(e){
+    box.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px] text-danger" style="background:var(--red-bg);border:1px solid var(--red)">❌ '+e.message+'</div>';
+  }
+}
+
 function dashPreset(key){
   const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
   const dow=now.getDay()||7;const wkS=new Date(y,m,d-(dow-1));

@@ -132,7 +132,7 @@ function showClientCard(name,cur){
   const mgr=mrow?.Manager||'';
   const hudud=mrow?.Hudud||'';
   const health=calcClientHealth().find(c=>c.name===n);
-  const hBadge=health?(health.status==='healthy'?'<span class="badge b-green">Sog\'lom</span>':health.status==='warning'?'<span class="badge b-amber">⚠ Xavf</span>':'<span class="badge b-red">Kritik</span>'):'';
+  const hBadge=health?(health.status==='healthy'?'<span class="badge b-green">Healthy</span>':health.status==='warning'?'<span class="badge b-amber">⚠ Warning</span>':'<span class="badge b-red">Critical</span>'):'';
   const allPays=[];
   S.payRows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),uzs:pn(r.UZS||r.summasi||'0'),type:r['tolov turi']||'',kassa:r.kassa||'',src:'pay',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
   S.y2024Rows.forEach(r=>{if(r.Client?.trim()!==n)return;const d=pd(r.sanasi);if(!d||!pn(r.USD))return;allPays.push({date:d,dateStr:r.sanasi||'',usd:pn(r.USD),uzs:pn(r.UZS||'0'),type:r['tolov turi']||'',kassa:r.kassa||'',src:'y24',origSum:r.summasi||'',valyuta:(r.Valyuta||'USD').toUpperCase()})});
@@ -283,40 +283,40 @@ function showClientCard(name,cur){
     // Row 1: 4 main metric cards
     +'<div class="client-kpi-grid grid grid-cols-4 gap-2.5 mb-2.5">'
     +'<div class="bg-accent-bg border border-brd rounded-[10px] py-3.5 px-4 border-t-[3px] border-t-accent">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Joriy MRR</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Current MRR <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'cur_mrr\')">i</span></div>'
     +'<div class="mono text-[22px] font-bold text-accent">'+(isChurn?'0 '+ccy:activeMrr?fmt(activeMrr)+' '+ccy:'—')+'</div>'
-    +'<div class="text-[10px] text-subtle mt-0.5">'+(isChurn?'churn':activeCount+' aktiv shartnoma')+'</div></div>'
+    +'<div class="text-[10px] text-subtle mt-0.5">'+(isChurn?'churn':activeCount+' active contracts')+'</div></div>'
     +'<div class="bg-card border border-brd rounded-[10px] py-3.5 px-4 border-t-[3px] border-t-success">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Jami shartnoma</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Total Contract Value <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'total_cv\')">i</span></div>'
     +'<div class="mono text-[22px] font-bold">'+fmt(totalSum)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle mt-0.5">'+(cRows.length+qCRows.length)+' ta shartnoma</div></div>'
+    +'<div class="text-[10px] text-subtle mt-0.5">'+(cRows.length+qCRows.length)+' contracts</div></div>'
     +'<div class="bg-card border border-brd rounded-[10px] py-3.5 px-4 border-t-[3px] border-t-tw-teal">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">To\'langan</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Total Paid <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'total_paid\')">i</span></div>'
     +'<div class="mono text-[22px] font-bold text-tw-teal">'+fmt(totalPaid)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle mt-0.5">'+allPays.length+' ta to\'lov</div></div>'
+    +'<div class="text-[10px] text-subtle mt-0.5">'+allPays.length+' payments</div></div>'
     +'<div class="bg-card border border-brd rounded-[10px] py-3.5 px-4" style="border-top:3px solid '+(kelQarz>0?'var(--red)':'var(--green)')+'">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Kelishuv qoldig\'i</div>'
-    +'<div class="mono text-[22px] font-bold" style="color:'+dC+'">'+(kelQarz>0?fmt(kelQarz)+' '+ccy:'✓ Yo\'q')+'</div>'
-    +(oyQarz>0?'<div class="text-[10px] text-warn mt-0.5">Oy oxiri: '+fmt(oyQarz)+' '+ccy+'</div>':'<div class="text-[10px] text-subtle mt-0.5">Oy oxiri ham to\'liq</div>')
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Outstanding Balance <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'outstanding\')">i</span></div>'
+    +'<div class="mono text-[22px] font-bold" style="color:'+dC+'">'+(kelQarz>0?fmt(kelQarz)+' '+ccy:'✓ None')+'</div>'
+    +(oyQarz>0?'<div class="text-[10px] text-warn mt-0.5">Month-end: '+fmt(oyQarz)+' '+ccy+'</div>':'<div class="text-[10px] text-subtle mt-0.5">Month-end clear</div>')
     +'</div></div>'
     // Row 2: 4 mini KPI cards
     +'<div class="client-kpi-grid2 grid grid-cols-4 gap-2 mb-4">'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Sog\'liq balli</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Health Score <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'health\')">i</span></div>'
     +'<div class="mono text-[17px] font-bold" style="color:'+(health?(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)'):'var(--text3)')+'">'+( health?health.score+'/100':'—')+'</div>'
     +'<div class="text-[10px] text-subtle">'+(health?hBadge:'')+'</div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">To\'lov foizi</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Payment Rate <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'pay_rate\')">i</span></div>'
     +'<div class="mono text-[17px] font-bold" style="color:'+(payPct>=80?'var(--green)':payPct>=50?'var(--amber)':'var(--red)')+'">'+payPct+'%</div>'
     +'<div class="h-1 rounded-sm mt-0.5" style="background:var(--border)"><div class="h-full rounded-sm" style="width:'+payPct+'%;background:'+(payPct>=80?'var(--green)':payPct>=50?'var(--amber)':'var(--red)')+';transition:width .3s"></div></div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Tugashga</div>'
-    +'<div class="mono text-[17px] font-bold" style="color:'+(daysToEnd!=null&&daysToEnd>0&&daysToEnd<=30?'var(--amber)':daysToEnd!=null&&daysToEnd===-999?'var(--red)':'var(--text)')+'">'+( daysToEnd!=null?(daysToEnd===-999?'Tugagan':daysToEnd>999?'Belgilanmagan':daysToEnd+' kun'):'—')+'</div>'
-    +'<div class="text-[10px] text-subtle">shartnoma muddati</div></div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Days to Expiry <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'days_exp\')">i</span></div>'
+    +'<div class="mono text-[17px] font-bold" style="color:'+(daysToEnd!=null&&daysToEnd>0&&daysToEnd<=30?'var(--amber)':daysToEnd!=null&&daysToEnd===-999?'var(--red)':'var(--text)')+'">'+( daysToEnd!=null?(daysToEnd===-999?'Expired':daysToEnd>999?'N/A':daysToEnd+' days'):'—')+'</div>'
+    +'<div class="text-[10px] text-subtle">contract term</div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">O\'rt. oylik to\'lov</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Avg. Monthly Payment <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'avg_monthly\')">i</span></div>'
     +'<div class="mono text-[17px] font-bold text-accent">'+fmt(arpa)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle">jami to\'lov ÷ oylar</div></div>'
+    +'<div class="text-[10px] text-subtle">total paid ÷ months</div></div>'
     +'</div>'
     // Two-column layout: left=tables, right=charts
     +'<div class="client-detail-grid grid grid-cols-[1fr_340px] gap-4 items-start">'
@@ -324,48 +324,48 @@ function showClientCard(name,cur){
     +'<div class="min-w-0 overflow-hidden">'
     // Health strip
     +(health?'<div class="flex items-center gap-3 py-[9px] px-3.5 bg-hover rounded-lg mb-3.5 text-xs flex-wrap">'
-    +'<span>Sog\'liq: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
-    +(health.debt>0?'<span class="text-subtle">·</span><span>Qarz: <span class="mono text-danger">'+fmt(oyQarz)+' '+ccy+'</span></span>':'')
-    +(health.daysToEnd>0&&health.daysToEnd<999?'<span class="text-subtle">·</span><span>Tugashiga: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' kun</span></span>':(health.daysToEnd===-999?'<span class="text-subtle">·</span><span class="text-danger">Shartnoma tugagan</span>':''))
+    +'<span>Health: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
+    +(health.debt>0?'<span class="text-subtle">·</span><span>Debt: <span class="mono text-danger">'+fmt(oyQarz)+' '+ccy+'</span></span>':'')
+    +(health.daysToEnd>0&&health.daysToEnd<999?'<span class="text-subtle">·</span><span>Expires in: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' days</span></span>':(health.daysToEnd===-999?'<span class="text-subtle">·</span><span class="text-danger">Contract expired</span>':''))
     +'</div>':'')
     // Contracts table
     +(ctHtml?'<div id="_snap_ct" class="mb-3.5 p-2 bg-card rounded-[10px]">'
     +'<div class="flex items-center justify-between mb-1.5">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted">Shartnomalar</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted">Contracts</div>'
     +'<button onclick="snapEl(document.getElementById(\'_snap_ct\'),this)" class="bg-transparent border border-brd rounded-md py-[3px] px-[7px] cursor-pointer text-subtle text-xs flex items-center gap-1" title="Rasmga olish (clipboard)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M5 3v2M19 3v2"/></svg></button></div>'
     +'<div class="border border-brd rounded-[10px] overflow-hidden"><div class="overflow-x-auto">'
-    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th><th class="text-r">To\'langan</th><th class="text-r">Qoldiq</th></tr></thead>'
+    +'<table><thead><tr><th>#</th><th>Start</th><th>End</th><th class="text-r">Deposit '+ccy+'</th><th class="text-r">Monthly '+ccy+'</th><th class="text-r">Total '+ccy+'</th><th class="text-r">Paid</th><th class="text-r">Balance</th></tr></thead>'
     +'<tbody>'+ctHtml+'</tbody></table></div></div>'
     // Additional contracts table (inside snapshot area)
-    +(qHtml?'<div class="mt-2.5"><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">Qo\'shimcha kelishuvlar</div>'
+    +(qHtml?'<div class="mt-2.5"><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">Additional Agreements</div>'
     +'<div class="border border-brd rounded-[10px] overflow-hidden"><div class="overflow-x-auto">'
-    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th></tr></thead>'
+    +'<table><thead><tr><th>#</th><th>Start</th><th>End</th><th class="text-r">Deposit '+ccy+'</th><th class="text-r">Monthly '+ccy+'</th><th class="text-r">Total '+ccy+'</th></tr></thead>'
     +'<tbody>'+qHtml+'</tbody></table></div></div></div>':'')
     +'</div>':'')
     // Payment history
-    +'<div><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">To\'lovlar tarixi'+(allPays.length>50?' (so\'nggi 50 ta)':' ('+allPays.length+' ta)')+'</div>'
+    +'<div><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">Payment History'+(allPays.length>50?' (last 50)':' ('+allPays.length+')')+'</div>'
     +(payHtml?'<div class="border border-brd rounded-[10px] overflow-hidden">'
     +'<div class="max-h-[220px] overflow-y-auto">'
     +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">'+(isUZS?'Summa':'USD')+'</th></tr></thead>'
     +'<tbody>'+payHtml+'</tbody></table></div></div>'
-    :'<div class="text-center p-5 text-subtle text-[13px]">To\'lovlar tarixi mavjud emas</div>')
+    :'<div class="text-center p-5 text-subtle text-[13px]">No payment history</div>')
     +'</div>'
     +'</div>'
     // RIGHT column: charts
     +'<div class="flex flex-col gap-3.5 min-w-0 overflow-hidden">'
     // MRR bar chart
     +'<div class="bg-card border border-brd rounded-[10px] p-3 overflow-hidden">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">MRR dinamikasi (12 oy)</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">MRR Trend (12M)</div>'
     +'<div class="relative h-[140px] w-full"><canvas id="'+cid+'_mrr"></canvas></div>'
     +'</div>'
     // Payment trend bar chart
     +'<div class="bg-card border border-brd rounded-[10px] p-3 overflow-hidden">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">To\'lovlar trendi (12 oy)</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">Payment Trend (12M)</div>'
     +'<div class="relative h-[140px] w-full"><canvas id="'+cid+'_trend"></canvas></div>'
     +'</div>'
     // Payment type donut
     +(dtLabels.length?'<div class="bg-card border border-brd rounded-[10px] p-3 overflow-hidden">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">To\'lov turlari</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">Payment Types</div>'
     +'<div class="relative h-[160px] w-full"><canvas id="'+cid+'_pay"></canvas></div>'
     +'</div>':'')
     +'</div>'
@@ -568,9 +568,82 @@ function showMetricInfo(k){
         <b>Logo > Revenue:</b> Ko'p kichik mijozlar ketmoqda, lekin yiriklari qolmoqda — <b>Revenue Concentration</b> xavfi oshadi.<br>
         <b>Logo < Revenue:</b> Kam, lekin <b>yirik mijozlar</b> ketmoqda — bu eng xavfli senariy!<br>
         <b>⚠️ Risk:</b> Revenue Churn yuqori, Logo Churn past bo'lsa — portfelingizning eng qimmatli qismi ketayotganini anglatadi.
+      </div>`,
+
+    'cur_mrr': `<h4 class="mb-2.5">📊 Current MRR — Joriy Oylik Daromad</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Ushbu mijozning hozirgi <b>faol shartnomalaridan keladigan oylik doimiy daromad</b>. Shartnoma summasi ÷ muddat (oy) asosida hisoblanadi.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> Σ (Shartnoma summasi ÷ Muddat oylari) — faqat faol shartnomalar</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> MRR barqaror yoki o\'sib borsa — mijoz faol va xizmatdan mamnun.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> MRR pasaygan — shartnoma tugagan yoki qisqartirilgan bo\'lishi mumkin.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli:</b> MRR = 0 — mijoz churn holatida. Qayta jalb qilish strategiyasi kerak.')}
+      </div>`,
+
+    'total_cv': `<h4 class="mb-2.5">💰 Total Contract Value — Jami Shartnoma Qiymati</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijoz bilan tuzilgan <b>barcha shartnomalar (asosiy + qo'shimcha)</b> umumiy summasi. Bu mijozning <b>butun umr davomidagi shartnoma hajmi</b>ni ko'rsatadi.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> Σ (Barcha shartnomalar summasi)</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> Jami qiymat oshib borsa — mijoz yangi shartnomalar tuzmoqda, expansion mavjud.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> Faqat bitta shartnoma — kengayish imkoniyatlarini qidiring.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli:</b> Shartnoma qiymati past va oshmaganiga — mijoz cheklangan yoki xizmatdan to\'liq foydalanmayapti.')}
+      </div>`,
+
+    'total_paid': `<h4 class="mb-2.5">💵 Total Paid — Jami To'langan Summa</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijoz tomonidan <b>haqiqatda to'langan barcha summalar</b>. Naqd, karta va bank o'tkazmalari kiritiladi. Bu real pul oqimini ko'rsatadi.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> Σ (Barcha to'lovlar summasi)</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> To\'langan summa shartnoma qiymatiga yaqin — mijoz o\'z vaqtida to\'lamoqda.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> To\'langan < 70% shartnoma — qisman qarzdorlik mavjud.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli:</b> To\'langan < 50% — jiddiy qarzdorlik! Inkasso jarayonini boshlash kerak.')}
+      </div>`,
+
+    'outstanding': `<h4 class="mb-2.5">⚖️ Outstanding Balance — Qoldiq Qarz</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijoz <b>to'lashi kerak bo'lgan qolgan summa</b>. Total Contract Value dan Total Paid ayirmasi. Oy oxirigacha kutilgan to'lov alohida ko'rsatiladi.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> Jami Shartnoma − Jami To'langan</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> Qoldiq 0 yoki juda kam — mijoz to\'lovda intizomli.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> Qoldiq mavjud lekin grafik bo\'yicha — kuzatishda davom eting.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli:</b> Katta qoldiq + muddati o\'tgan to\'lovlar — mijoz bilan shoshilinch muloqot kerak.')}
+      </div>`,
+
+    'health': `<h4 class="mb-2.5">🏥 Health Score — Sog'liq Balli</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijozning <b>umumiy holatini 100 ballik shkalada</b> baholaydi. Qarzdorlik, shartnoma muddati, va hamkorlik davomiyligiga asoslanadi.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> 100 dan boshlab: qarz bo'lsa −30, shartnoma tugashiga <30 kun −20, hamkorlik <6 oy −10, expired −40</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Healthy (80-100):</b> Mijoz sog\'lom — to\'lovda intizomli, shartnoma faol, uzoq muddatli hamkorlik.')}
+        ${bx('#f0b020','🟡','<b>Warning (50-79):</b> Ba\'zi muammolar — qarzdorlik yoki shartnoma muddati tugashiga yaqin. E\'tibor kerak.')}
+        ${bx('#e74c3c','🔴','<b>Critical (<50):</b> Jiddiy xavf — katta qarz, shartnoma tugagan yoki boshqa muammolar. Darhol harakat kerak.')}
+      </div>`,
+
+    'pay_rate': `<h4 class="mb-2.5">📈 Payment Rate — To'lov Foizi</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijoz <b>shartnoma summasining necha foizini to'laganligini</b> ko'rsatadi. 100% — to'liq to'langan.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> (Jami To'langan ÷ Jami Shartnoma Qiymati) × 100%</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi (80%+):</b> Mijoz asosan to\'lovda — intizomli, ishonchli hamkor.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha (50-80%):</b> O\'rtacha to\'lov — eslatmalar va monitoring kerak.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli (<50%):</b> Jiddiy to\'lov orqada qolishi! Inkasso yoki muloqot kerak.')}
+      </div>`,
+
+    'days_exp': `<h4 class="mb-2.5">⏳ Days to Expiry — Tugashga Qolgan Kunlar</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijozning <b>eng oxirgi faol shartnomasi tugashiga qancha kun</b> qolganligini ko'rsatadi. Renewal rejasini oldindan tuzish uchun muhim.</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> Shartnoma tugash sanasi − Bugungi sana (kunlarda)</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi (90+ kun):</b> Vaqt yetarli — shoshilmasdan renewal tayyorlash mumkin.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha (30-90 kun):</b> Tez orada tugaydi — mijoz bilan renewal muloqotini boshlang.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli (<30 kun / Expired):</b> Zudlik bilan harakat! Shartnoma tugaydi yoki allaqachon tugagan.')}
+      </div>`,
+
+    'avg_monthly': `<h4 class="mb-2.5">💳 Avg. Monthly Payment — O'rtacha Oylik To'lov</h4>
+      <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijozning <b>jami to'lovlarini hamkorlik oylariga bo'lgandagi o'rtacha</b>. ARPA ga o'xshash lekin bu real to'lovlarga asoslanadi (shartnomaga emas).</div>
+      <div class="text-[11.5px] leading-relaxed text-muted mb-3.5"><b>Formula:</b> Jami To'langan ÷ Hamkorlik oylari soni</div>
+      <div class="mb-3.5">
+        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> O\'rtacha oylik to\'lov oylik shartnoma summasiga teng yoki yuqori — mijoz intizomli.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> O\'rtacha to\'lov shartnomadan biroz past — ba\'zi oylarda kechikish bo\'lgan.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli:</b> O\'rtacha to\'lov shartnomadan ancha past — tizimli qarzdorlik mavjud.')}
       </div>`
   };
-  o.innerHTML=`<div class="modal max-w-[440px]">${d[k]||''}<div class="mt-5"><button class="btn btn-primary w-100 p-2.5" onclick="this.closest('.overlay').remove()">Tushunarli</button></div></div>`;
+  const aiBtn=`<button class="btn w-100 p-2 mt-3 text-[12px]" style="background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent)" onclick="aiRecommend('${k}')">💡 Yaxshilash bo'yicha tavsiya</button>`;
+  o.innerHTML=`<div class="modal max-w-[440px]">${d[k]||''}${d[k]?aiBtn:''}<div class="mt-4"><button class="btn btn-primary w-100 p-2.5" onclick="this.closest('.overlay').remove()">Tushunarli</button></div></div>`;
   document.body.appendChild(o);
 }
 
