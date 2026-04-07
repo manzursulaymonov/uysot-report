@@ -1193,8 +1193,8 @@ function rMoliya(){
   </div>`;
   const inkFs=S.inkassoFs||false;
   const inkFsIcon=inkFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
-  const crSection=`<div id="inkContainer"${inkFs?' class="ink-fs-active"':''}>
-    <div class="toolbar mb-2 gap-2.5">
+  const crSection=`<div id="inkContainer"${inkFs?' class="ink-fs-active"':''} style="height:calc(100vh - 68px);display:flex;flex-direction:column;overflow:hidden">
+    <div class="toolbar mb-2 gap-2.5" style="flex-shrink:0">
       <div class="flex gap-2 items-center">
         ${modeToggle}
         <button class="btn${capRate?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoCap=!S.inkassoCap;render()" title="100% dan oshmasin">Cap 100%</button>
@@ -1205,7 +1205,7 @@ function rMoliya(){
         <button class="btn${inkFs?' btn-primary':''} py-2 px-3" onclick="S.inkassoFs=!S.inkassoFs;render()" title="${inkFs?'Kichraytirish':'To\'liq ekran'}">${inkFsIcon}</button>
       </div>
     </div>
-    ${cr.length?`${inkMetrics}<div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'100':'280'}px)"><table><thead><tr>
+    ${cr.length?`<div style="flex-shrink:0">${inkMetrics}</div><div class="tbl-scroll" style="flex:1;overflow-y:auto"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
         <th class="text-r">Farq</th><th>Undiruv darajasi</th>
