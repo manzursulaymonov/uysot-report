@@ -588,7 +588,7 @@ const mrrFromRechurn=newClients.filter(c=>c.isRechurn).reduce((s,c)=>s+c.mrr,0);
 const expColor=mrrExpansion>=0?'#0e7c7b':'#a36207';const periodLabel=labels.length>1?labels[0]+'–'+labels[labels.length-1]:labels[0]||'';
 const pre=S.dashPre||'y';
 const isWk=pre==='w';
-return`<div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">${tot} ta shartnoma, ${clients.length} ta mijoz</div></div>
+return`<div class="page-header" style="justify-content:flex-end">
 <div class="flex items-center gap-1.5">
 <button class="btn" onclick="showDashSettingsModal()" title="Dashboard sozlamalari"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
 <button class="btn" onclick="showReportModal()" title="PDF hisobot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button><button class="btn" onclick="if(S.config)loadFromConfig(S.config);else showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1 -2.12-9.36L23 10"/></svg></button></div></div>
@@ -835,7 +835,7 @@ let d=[...S.rows];
 if(S.cQ){const q=S.cQ.toLowerCase();d=d.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q)||(r.INN||'').includes(q))}
 if(S.cS)d=d.filter(r=>sc(r.status)===S.cS);if(S.cM)d=d.filter(r=>r.Manager===S.cM);if(S.cR)d=d.filter(r=>r.Hudud===S.cR);
 const t=d.length;
-let h=`<div class="page-header"><div><div class="page-title">Shartnomalar</div><div class="page-sub">${t} ta</div></div><button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'contracts')" title="Yuklab olish">${_dlSvg}</button></div>`;
+let h=`<div class="page-header" style="justify-content:flex-end"><button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'contracts')" title="Yuklab olish">${_dlSvg}</button></div>`;
 return h+_rCBody();
 }
 
@@ -909,11 +909,11 @@ return`<td class="${cls}"${tip}>${fmt(v)}</td>`}).join('')}
 // === MANAGERS ===
 function rM(){
   const mg=calcManagerAcquisition();
-  if(!mg.length) return`<div class="page-header"><div><div class="page-title">Menejerlar</div><div class="page-sub">Ma'lumot yuklanmagan</div></div></div><div class="flex flex-col items-center justify-center min-h-[300px] gap-3 text-subtle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><div class="text-sm font-semibold">Menejer ma'lumotlari topilmadi</div><div class="text-xs">Shartnomalar yuklanib, Manager ustuni to'ldirilganda bu sahifa faollashadi.</div></div>`;
+  if(!mg.length) return`<div class="flex flex-col items-center justify-center min-h-[300px] gap-3 text-subtle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><div class="text-sm font-semibold">Menejer ma'lumotlari topilmadi</div><div class="text-xs">Shartnomalar yuklanib, Manager ustuni to'ldirilganda bu sahifa faollashadi.</div></div>`;
   const tM=mg.reduce((s,x)=>s+x.initialMRR,0);
   const co=['#1746a2','#117a52','#c42b1c','#6941b8','#a36207','#0e7c7b','#d4537e','#5a5955','#854f0b','#993556'];
   const view=S.mgrView||'umumiy';
-  let h=`<div class="page-header"><div><div class="page-title">Menejerlar</div><div class="page-sub">${mg.length} ta menejer</div></div></div>`;
+  let h='';
   h+=_pageTabs([{v:'umumiy',l:'Acquisition'},{v:'reyting',l:'MRR Harakati'}],view,'mgrView');
 
   if(view==='reyting'){
@@ -939,7 +939,7 @@ const dr=dashRange();
 const ch=calcClientHealth();
 const view=S.clView||'shartnomalar';
 
-let h=`<div class="page-header"><div><div class="page-title">Mijozlar</div><div class="page-sub">${ch.length} ta korxona tahlili</div></div></div>`;
+let h='';
 
 if(view==='tahlil'){
   const rg=calcRegionalPerf();
@@ -990,7 +990,7 @@ function rT(){
 const act=activeR().sort((a,b)=>b._mUSD-a._mUSD),tM=act.reduce((s,r)=>s+r._mUSD,0);
 const t5=act.slice(0,5).reduce((s,r)=>s+r._mUSD,0),t10=act.slice(0,10).reduce((s,r)=>s+r._mUSD,0),t20=act.slice(0,20).reduce((s,r)=>s+r._mUSD,0);
 const view=S.topView||'metrka';
-let h=`<div class="page-header"><div><div class="page-title">Top MRR</div><div class="page-sub">Eng yirik aktiv shartnomalar</div></div></div>`;
+let h='';
 if(view==='jadval'){
   h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono text-[11px] text-muted">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px;transition:width .5s ease"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`;
 }else{
@@ -1018,7 +1018,7 @@ const dsoColor=dsoVal<35?'var(--green)':dsoVal<60?'var(--amber)':'var(--red)';
 const concColor=conc5<30?'var(--green)':conc5<50?'var(--amber)':'var(--red)';
 const view=S.debtView||'umumiy';
 
-let h=`<div class="page-header"><div><div class="page-title">Qarzdorlik</div><div class="page-sub">${repLabel} oy oxiriga · ${dt.length} ta mijoz</div></div>
+let h=`<div class="page-header" style="justify-content:flex-end">
 <div class="flex gap-1.5 items-center">
 <input type="date" class="flt text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=toDate(this.value);clearCache();render()">
 <button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
@@ -1237,7 +1237,7 @@ function rMoliya(){
   </div>`;
 
   const view=S.molView||'aging';
-  const header=`<div class="page-header"><div><div class="page-title">Finance</div><div class="page-sub">AR Aging · Inkasso · Tahlil</div></div></div>`;
+  const header='';
   if(view==='inkasso') return header+crSection;
   if(view==='tahlil') return header+auditSection;
   return header+agingSection;
