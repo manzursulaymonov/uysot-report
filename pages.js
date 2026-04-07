@@ -1141,14 +1141,33 @@ function rMoliya(){
   const cr=calcCollectionRate(inkMode);
   const now=new Date();
   const curMon=mos[now.getMonth()]+' '+now.getFullYear();
-  let crRows='';
   const capRate=S.inkassoCap!==false;
-  cr.forEach(c=>{
+  const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+(capRate?Math.min(c.rate,100):c.rate),0)/cr.length):0;
+  const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
+  const modeToggle=`<div class="flex gap-0.5 bg-hover rounded-md p-0.5">
+    <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
+    <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Kelishuv</button>
+  </div>`;
+  // Inkasso metrics
+  const totalExpected=cr.reduce((s,c)=>s+c.expected,0);
+  const totalPaidInk=cr.reduce((s,c)=>s+c.paid,0);
+  const fulfilled=cr.filter(c=>c.rate>=100).length;
+  const partial=cr.filter(c=>c.rate>0&&c.rate<100).length;
+  const noPay=cr.filter(c=>c.rate===0).length;
+  const collPct=totalExpected>0?Math.round(totalPaidInk/totalExpected*100):0;
+  const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
+  const inkFlt=S.inkassoFilter||'all';
+  let filteredCr=cr;
+  if(inkFlt==='full')filteredCr=cr.filter(c=>c.rate>=100);
+  else if(inkFlt==='partial')filteredCr=cr.filter(c=>c.rate>0&&c.rate<100);
+  else if(inkFlt==='none')filteredCr=cr.filter(c=>c.rate===0);
+  let fCrRows='';
+  filteredCr.forEach(c=>{
     const dispRate=capRate?Math.min(c.rate,100):c.rate;
     const rateCol=dispRate>=90?'var(--green)':dispRate>=70?'var(--amber)':'var(--red)';
     const barW=Math.min(100,dispRate);
     const deltaCol=c.delta>=0?'var(--green)':'var(--red)';
-    crRows+=`<tr>
+    fCrRows+=`<tr>
       <td class="font-medium">${cl(c.name)}</td>
       <td class="text-r mono text-[11px]">${fmt(c.expected)}</td>
       <td class="text-r mono text-[11px]">${fmt(c.paid)}</td>
@@ -1163,50 +1182,31 @@ function rMoliya(){
       </td>
     </tr>`;
   });
-  const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+(capRate?Math.min(c.rate,100):c.rate),0)/cr.length):0;
-  const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
-  const modeToggle=`<div class="flex gap-0.5 bg-hover rounded-md p-0.5">
-    <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
-    <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Kelishuv</button>
+  const inkMetrics=`<div class="metrics grid-cols-3 mb-4">
+    <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='partial'?'outline:2px solid var(--amber);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='none'?'outline:2px solid var(--red);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
   </div>`;
-  // Inkasso metrics
-  const totalExpected=cr.reduce((s,c)=>s+c.expected,0);
-  const totalPaidInk=cr.reduce((s,c)=>s+c.paid,0);
-  const fulfilled=cr.filter(c=>c.rate>=100).length;
-  const partial=cr.filter(c=>c.rate>0&&c.rate<100).length;
-  const noPay=cr.filter(c=>c.rate===0).length;
-  const overPaid=cr.filter(c=>c.rate>100).length;
-  const collPct=totalExpected>0?Math.round(totalPaidInk/totalExpected*100):0;
-  const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
-  const inkMetrics=`<div class="metrics grid-cols-6 mb-4">
-    <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
-    <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
-    <div class="metric"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
-    <div class="metric"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
-    <div class="metric"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
-    <div class="metric"><div class="metric-lbl">Ortiqcha to'lagan</div><div class="metric-val" style="color:var(--accent)">${overPaid}</div><div class="metric-foot">${cr.length?Math.round(overPaid/cr.length*100):0}%</div></div>
-  </div>`;
-  const crSection=`<div class="card">
-    <div class="card-head">
-      <span class="card-label">Inkasso (To'lov undiruvi) — ${curMon}</span>
+  const inkFs=S.inkassoFs||false;
+  const inkFsIcon=inkFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+  const crSection=`<div id="inkContainer"${inkFs?' class="ink-fs-active"':''}>
+    <div class="toolbar mb-2 gap-2.5">
       <div class="flex gap-2 items-center">
         ${modeToggle}
         <button class="btn${capRate?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoCap=!S.inkassoCap;render()" title="100% dan oshmasin">Cap 100%</button>
         <span style="font-size:13px;font-weight:700;color:${avgRateCol}">${avgRate}% o'rtacha</span>
+      </div>
+      <div class="flex gap-1.5 items-center" style="margin-left:auto">
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'collection')" title="Yuklab olish">${_dlSvg}</button>
+        <button class="btn${inkFs?' btn-primary':''} py-2 px-3" onclick="S.inkassoFs=!S.inkassoFs;render()" title="${inkFs?'Kichraytirish':'To\'liq ekran'}">${inkFsIcon}</button>
       </div>
     </div>
-    <div class="card-body p-0">
-      ${cr.length?`<div style="padding:16px 16px 0">${inkMetrics}</div><div class="tbl-scroll"><table><thead><tr>
+    ${cr.length?`${inkMetrics}<div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'100':'280'}px)"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
         <th class="text-r">Farq</th><th>Undiruv darajasi</th>
-      </tr></thead><tbody>${crRows}</tbody></table></div>
-      <div class="py-3 px-4 text-[11px] text-subtle border-t border-brd">
-        Jami ${cr.length} ta mijoz · ${cr.filter(c=>c.rate>=90).length} ta ≥90% · ${cr.filter(c=>c.rate<70).length} ta &lt;70%
-      </div>`
+      </tr></thead><tbody>${fCrRows}</tbody></table></div>`
       :'<div class="text-center text-subtle p-6">Ma\'lumot yo\'q</div>'}
-    </div>
   </div>`;
 
   // === Tahlil (Data Quality Audit) ===
