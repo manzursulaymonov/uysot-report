@@ -160,6 +160,20 @@ ${hasSaved?`<button class="btn p-2.5" onclick="if(S.config)loadFromConfig(S.conf
 Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b>.</div></div>
 
 <div class="mb-4">
+<div class="text-xs font-semibold text-muted mb-2">Interfeys temasi</div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+${EO_THEMES.map(t=>{
+  const cur=localStorage.getItem('uysot_theme')||'light';
+  const isAct=cur===t.id;
+  return'<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;cursor:pointer;border:2px solid '+(isAct?'var(--accent2)':'transparent')+';transition:border .15s" onclick="applyAppTheme(\\\''+t.id+'\\\');this.closest(\\\'.overlay\\\').remove();render();showConfig()">'
+  +'<div style="display:flex;gap:3px">'+t.preview.map(c=>'<div style="width:14px;height:14px;border-radius:50%;background:'+c+'"></div>').join('')+'</div>'
+  +'<div><div style="font-size:12px;font-weight:600">'+t.name+'</div>'
+  +'<div style="font-size:10px;color:var(--text3)">'+t.description+'</div></div>'
+  +'<span style="margin-left:auto;font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--text3)">'+t.mode+'</span></div>';
+}).join('')}
+</div></div>
+
+<div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">AI hisobot (ixtiyoriy)</div>
 <div class="flex flex-col gap-1.5">
 <div class="flex gap-2 items-center">

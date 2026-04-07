@@ -9,16 +9,40 @@ const _defs={cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1},tRenew:
 const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
 
 // === THEME ===
+const EO_THEMES=[
+  {id:'light',name:'Light',description:'Standart och tema',mode:'light',preview:['#f4f3ef','#1746a2','#117a52']},
+  {id:'dark',name:'Dark',description:'Standart qorongʻi tema',mode:'dark',preview:['#111110','#4b7be5','#2ecc94']},
+  {id:'executive-obsidian',name:'Executive Obsidian',description:'Qoʻngʻir-oltin aksent, qorongʻi interfeys',mode:'dark',preview:['#0f1117','#d4b896','#9b7fd4']},
+  {id:'executive-obsidian-light',name:'Executive Obsidian Light',description:'Och fon, oltin-binafsha aksent',mode:'light',preview:['#f4f3f8','#a07840','#6b4fbf']}
+];
+function applyAppTheme(themeId){
+  const html=document.documentElement;
+  html.removeAttribute('data-theme');
+  html.removeAttribute('data-eo-theme');
+  if(themeId==='dark'){
+    html.setAttribute('data-theme','dark');
+  }else if(themeId==='executive-obsidian'){
+    html.setAttribute('data-eo-theme','');
+  }else if(themeId==='executive-obsidian-light'){
+    html.setAttribute('data-theme','executive-obsidian-light');
+    html.setAttribute('data-eo-theme','');
+  }
+  // 'light' = no attributes needed (default :root)
+  localStorage.setItem('uysot_theme',themeId);
+}
 function initTheme(){
   const saved=localStorage.getItem('uysot_theme');
-  if(saved)document.documentElement.setAttribute('data-theme',saved);
-  else if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.setAttribute('data-theme','dark');
+  if(saved&&saved!=='light'){
+    applyAppTheme(saved);
+  }else if(!saved&&window.matchMedia('(prefers-color-scheme:dark)').matches){
+    applyAppTheme('dark');
+  }
 }
 function toggleTheme(){
-  const cur=document.documentElement.getAttribute('data-theme');
-  const next=cur==='dark'?'light':'dark';
-  document.documentElement.setAttribute('data-theme',next);
-  localStorage.setItem('uysot_theme',next);
+  const cur=localStorage.getItem('uysot_theme')||'light';
+  const ids=EO_THEMES.map(t=>t.id);
+  const next=ids[(ids.indexOf(cur)+1)%ids.length];
+  applyAppTheme(next);
   render();
 }
 initTheme();

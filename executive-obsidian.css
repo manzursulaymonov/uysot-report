@@ -1,0 +1,137 @@
+/* ============================================================
+   Executive Obsidian — Theme Variables & Components
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap');
+
+/* === Dark (default) === */
+:root{
+  --eo-bg-app:#0f1117;
+  --eo-bg-surface:#13151e;
+  --eo-bg-deep:#0a0c12;
+  --eo-bg-hover:rgba(21,24,32,0.6);
+  --eo-border:#1e2130;
+  --eo-text-primary:#f0edff;
+  --eo-text-secondary:#9990b8;
+  --eo-text-muted:#484d6a;
+  --eo-text-label:#555a7a;
+  --eo-accent-gold:#d4b896;
+  --eo-accent-purple:#9b7fd4;
+  --eo-green:#7ab87a;
+  --eo-red:#c47070;
+  --eo-amber:#d4a060;
+  --eo-blue:#6090c4;
+  --eo-badge-green-bg:#1a2e1a;
+  --eo-badge-green-text:#7ab87a;
+  --eo-badge-amber-bg:#2d2010;
+  --eo-badge-amber-text:#d4a060;
+  --eo-badge-red-bg:#2d1818;
+  --eo-badge-red-text:#c47070;
+  --eo-badge-blue-bg:#151d2d;
+  --eo-badge-blue-text:#6090c4;
+  --eo-badge-gray-bg:#1e2130;
+  --eo-badge-gray-text:#7a7fa0;
+  --eo-progress-track:#1e2130;
+  --eo-progress-start:#9b7fd4;
+  --eo-progress-end:#d4b896;
+  --eo-font-display:'DM Serif Display',Georgia,serif;
+  --eo-font-ui:'DM Sans',system-ui,sans-serif;
+}
+
+/* === Light === */
+[data-theme="executive-obsidian-light"]{
+  --eo-bg-app:#f4f3f8;
+  --eo-bg-surface:#ffffff;
+  --eo-bg-deep:#eceaf4;
+  --eo-bg-hover:rgba(0,0,0,0.03);
+  --eo-border:#e2e0ec;
+  --eo-text-primary:#1a1730;
+  --eo-text-secondary:#5a5470;
+  --eo-text-muted:#9590b0;
+  --eo-text-label:#a09ab8;
+  --eo-accent-gold:#a07840;
+  --eo-accent-purple:#6b4fbf;
+  --eo-green:#3a7a3a;
+  --eo-red:#a03030;
+  --eo-amber:#9a6010;
+  --eo-blue:#2060a0;
+  --eo-badge-green-bg:#e6f4e6;
+  --eo-badge-green-text:#2a6a2a;
+  --eo-badge-amber-bg:#fdf0dc;
+  --eo-badge-amber-text:#8a5010;
+  --eo-badge-red-bg:#fde8e8;
+  --eo-badge-red-text:#8a2020;
+  --eo-badge-blue-bg:#e0eaf8;
+  --eo-badge-blue-text:#1a5090;
+  --eo-badge-gray-bg:#eeecf4;
+  --eo-badge-gray-text:#5a5470;
+  --eo-progress-track:#e2e0ec;
+  --eo-progress-start:#6b4fbf;
+  --eo-progress-end:#a07840;
+}
+
+/* === Component Styles (scoped to [data-eo-theme]) === */
+
+[data-eo-theme] .eo-metric-card{
+  background:var(--eo-bg-surface);
+  border:1px solid var(--eo-border);
+  border-radius:10px;
+  padding:16px;
+}
+
+[data-eo-theme] .eo-card{
+  background:var(--eo-bg-surface);
+  border:1px solid var(--eo-border);
+  border-radius:10px;
+  padding:18px;
+}
+
+[data-eo-theme] .eo-table th{
+  font-family:var(--eo-font-ui);
+  font-size:11px;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  color:var(--eo-text-label);
+  padding:10px 12px;
+  border-bottom:1px solid var(--eo-border);
+}
+
+[data-eo-theme] .eo-table td{
+  font-family:var(--eo-font-ui);
+  font-size:13px;
+  color:var(--eo-text-primary);
+  padding:10px 12px;
+  border-bottom:1px solid var(--eo-border);
+}
+
+[data-eo-theme] .eo-badge-green{background:var(--eo-badge-green-bg);color:var(--eo-badge-green-text);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+[data-eo-theme] .eo-badge-amber{background:var(--eo-badge-amber-bg);color:var(--eo-badge-amber-text);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+[data-eo-theme] .eo-badge-red{background:var(--eo-badge-red-bg);color:var(--eo-badge-red-text);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+[data-eo-theme] .eo-badge-blue{background:var(--eo-badge-blue-bg);color:var(--eo-badge-blue-text);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+[data-eo-theme] .eo-badge-gray{background:var(--eo-badge-gray-bg);color:var(--eo-badge-gray-text);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+
+[data-eo-theme] .eo-progress-bar{
+  height:6px;
+  background:var(--eo-progress-track);
+  border-radius:3px;
+  overflow:hidden;
+}
+
+[data-eo-theme] .eo-progress-fill{
+  height:100%;
+  border-radius:3px;
+  background:linear-gradient(90deg,var(--eo-progress-start),var(--eo-progress-end));
+}
+
+[data-eo-theme] .eo-sidebar{
+  width:220px;
+  background:var(--eo-bg-surface);
+  border-right:1px solid var(--eo-border);
+}
+
+/* Scrollbar */
+[data-eo-theme] ::-webkit-scrollbar{width:4px;height:4px}
+[data-eo-theme] ::-webkit-scrollbar-track{background:transparent}
+[data-eo-theme] ::-webkit-scrollbar-thumb{background:var(--eo-border);border-radius:2px}
+[data-eo-theme] ::-webkit-scrollbar-thumb:hover{background:var(--eo-text-muted)}
