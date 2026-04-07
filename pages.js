@@ -402,11 +402,13 @@ function toggleDebtFs(){
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'&&S.debtFs){if(document.querySelectorAll('.overlay').length)return;S.debtFs=false;clearCache();render();}
     if(e.key==='Escape'&&S.mrrFs){if(document.querySelectorAll('.overlay').length)return;S.mrrFs=false;clearCache();render();}
+    if(e.key==='Escape'&&S.inkassoFs){if(document.querySelectorAll('.overlay').length)return;S.inkassoFs=false;clearCache();render();}
     if(e.key==='f'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const tag=document.activeElement?.tagName;
       if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
       if(S.sec==='mrrtable'){e.preventDefault();toggleMrrFullscreen();}
       else if(S.sec==='debts'){e.preventDefault();toggleDebtFs();}
+      else if(S.sec==='moliya'&&S.molView==='inkasso'){e.preventDefault();S.inkassoFs=!S.inkassoFs;render();}
     }
   });
 })();
@@ -1182,7 +1184,9 @@ function rMoliya(){
       </td>
     </tr>`;
   });
-  const inkMetrics=`<div class="metrics grid-cols-3 mb-4">
+  const inkMetrics=`<div class="metrics grid-cols-5 mb-4">
+    <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
+    <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='partial'?'outline:2px solid var(--amber);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='none'?'outline:2px solid var(--red);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
