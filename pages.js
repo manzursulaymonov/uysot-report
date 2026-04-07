@@ -1018,11 +1018,7 @@ const dsoColor=dsoVal<35?'var(--green)':dsoVal<60?'var(--amber)':'var(--red)';
 const concColor=conc5<30?'var(--green)':conc5<50?'var(--amber)':'var(--red)';
 const view=S.debtView||'umumiy';
 
-let h=`<div class="page-header" style="justify-content:flex-end">
-<div class="flex gap-1.5 items-center">
-<input type="date" class="flt text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=toDate(this.value);clearCache();render()">
-<button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
-</div></div>`;
+let h='';
 
 if(view==='jadval'){
   S.debtMobCol=S.debtMobCol||'oy';
@@ -1036,9 +1032,13 @@ if(view==='jadval'){
   h+=`<div id="debtContainer"${S.debtFs?' class="debt-fs-active"':''}>`;
   h+=`<div class="toolbar mb-3 gap-2.5">
 <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz nomi..." value="${S.debtQ||''}" oninput="onSearch('debtQ',this.value)"><button class="search-clear" onclick="onSearch('debtQ','');render()" type="button">&times;</button></div>
-<div style="margin-left:auto"><button class="btn${S.debtFs?' btn-primary':''} py-2 px-3" onclick="toggleDebtFs()" title="${S.debtFs?'Kichraytirish':'To\'liq ekran'}">${fsIcon}</button></div>
+<div class="flex gap-1.5 items-center" style="margin-left:auto">
+<input type="date" class="flt text-xs py-1.5 px-2.5" value="${dateStr(repDate)}" onchange="S.debtDate=toDate(this.value);clearCache();render()">
+<button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
+<button class="btn${S.debtFs?' btn-primary':''} py-2 px-3" onclick="toggleDebtFs()" title="${S.debtFs?'Kichraytirish':'To\'liq ekran'}">${fsIcon}</button>
+</div>
 </div>`;
-  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'72':'220'}px)"><table><thead><tr><th>Mijoz</th>
+  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'60':'140'}px)"><table><thead><tr><th>Mijoz</th>
 ${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq</th>`:''}
 ${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Oy oxiri</th>`:''}
 ${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Kelishuv</th>`:''}
