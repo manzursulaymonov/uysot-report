@@ -1227,18 +1227,16 @@ function rMoliya(){
       <td style="font-size:12px;max-width:300px">${a.detail}</td>
     </tr>`;
   });
-  const auditSection=`<div class="card mb-4">
-    <div class="card-head">
-      <span class="card-label">Ma'lumotlar tahlili · ${audit.length} ta xatolik</span>
-      <div class="flex gap-1.5 items-center">
+  const auditSection=`<div>
+    <div class="toolbar mb-2 gap-2.5">
+      <span class="text-xs font-semibold text-subtle">${audit.length} ta xatolik</span>
+      <div class="flex gap-1.5 items-center" style="margin-left:auto">
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'audit')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
-    <div class="card-body">
-      ${audit.length?`<div class="tbl-scroll"><table><thead><tr>
+    ${audit.length?`<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - 100px)"><table><thead><tr>
         <th>Mijoz</th><th>Shartnoma</th><th>Xatolik turi</th><th>Tafsilot</th>
-      </tr></thead><tbody>${auditRows}</tbody></table></div>`:'<div style="text-align:center;color:var(--green);padding:24px">Xatolik topilmadi ✅</div>'}
-    </div>
+      </tr></thead><tbody>${auditRows}</tbody></table></div></div></div>`:'<div style="text-align:center;color:var(--green);padding:24px">Xatolik topilmadi</div>'}
   </div>`;
 
   const view=S.molView||'aging';
