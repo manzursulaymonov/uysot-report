@@ -1185,7 +1185,7 @@ function rMoliya(){
       </td>
     </tr>`;
   });
-  const inkMetrics=`<div class="metrics grid-cols-5 mb-4">
+  const inkMetrics=`<div class="metrics grid-cols-5 mb-2">
     <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
     <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
@@ -1206,7 +1206,7 @@ function rMoliya(){
         <button class="btn${inkFs?' btn-primary':''} py-2 px-3" onclick="S.inkassoFs=!S.inkassoFs;render()" title="${inkFs?'Kichraytirish':'To\'liq ekran'}">${inkFsIcon}</button>
       </div>
     </div>
-    ${cr.length?`${inkMetrics}<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'60':'260'}px)"><table><thead><tr>
+    ${cr.length?`${inkMetrics}<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'60':'210'}px)"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
         <th class="text-r">Farq</th><th>Undiruv darajasi</th>
@@ -1234,7 +1234,7 @@ function rMoliya(){
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'audit')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
-    ${audit.length?`<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - 100px)"><table><thead><tr>
+    ${audit.length?`<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - 80px)"><table><thead><tr>
         <th>Mijoz</th><th>Shartnoma</th><th>Xatolik turi</th><th>Tafsilot</th>
       </tr></thead><tbody>${auditRows}</tbody></table></div></div></div>`:'<div style="text-align:center;color:var(--green);padding:24px">Xatolik topilmadi</div>'}
   </div>`;
