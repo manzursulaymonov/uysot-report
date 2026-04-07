@@ -991,7 +991,6 @@ const act=activeR().sort((a,b)=>b._mUSD-a._mUSD),tM=act.reduce((s,r)=>s+r._mUSD,
 const t5=act.slice(0,5).reduce((s,r)=>s+r._mUSD,0),t10=act.slice(0,10).reduce((s,r)=>s+r._mUSD,0),t20=act.slice(0,20).reduce((s,r)=>s+r._mUSD,0);
 const view=S.topView||'metrka';
 let h=`<div class="page-header"><div><div class="page-title">Top MRR</div><div class="page-sub">Eng yirik aktiv shartnomalar</div></div></div>`;
-h+=_pageTabs([{v:'metrka',l:'Ko\'rsatkichlar'},{v:'jadval',l:"Ro'yxat"}],view,'topView');
 if(view==='jadval'){
   h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono text-[11px] text-muted">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px;transition:width .5s ease"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`;
 }else{
@@ -1024,7 +1023,6 @@ let h=`<div class="page-header"><div><div class="page-title">Qarzdorlik</div><di
 <input type="date" class="flt text-xs py-1.5 px-2.5" value="${repDate.toISOString().slice(0,10)}" onchange="S.debtDate=toDate(this.value);clearCache();render()">
 <button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
 </div></div>`;
-h+=_pageTabs([{v:'umumiy',l:"Ko'rsatkichlar"},{v:'jadval',l:'Qarz jadvali'}],view,'debtView');
 
 if(view==='jadval'){
   S.debtMobCol=S.debtMobCol||'oy';
@@ -1240,8 +1238,7 @@ function rMoliya(){
 
   const view=S.molView||'aging';
   const header=`<div class="page-header"><div><div class="page-title">Finance</div><div class="page-sub">AR Aging · Inkasso · Tahlil</div></div></div>`;
-  const tabs=_pageTabs([{v:'aging',l:'AR Aging'},{v:'inkasso',l:'Inkasso'},{v:'tahlil',l:'Tahlil'}],view,'molView');
-  if(view==='inkasso') return header+tabs+crSection;
-  if(view==='tahlil') return header+tabs+auditSection;
-  return header+tabs+agingSection;
+  if(view==='inkasso') return header+crSection;
+  if(view==='tahlil') return header+auditSection;
+  return header+agingSection;
 }

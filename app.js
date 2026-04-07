@@ -1136,13 +1136,21 @@ function _render(){
   const html=(f[S.sec]||rD)();
   root.innerHTML=secChanged?'<div class="page-enter">'+html+'</div>':html;
   iC();
-  // Sync clients sub-nav active state
+  // Sync sub-nav active states
   const clientsSub=document.getElementById('clients-sub');
   if(clientsSub&&S.sec==='clients'){
     clientsSub.querySelectorAll('.nav-sub-item').forEach(el=>{
       el.classList.toggle('active',el.dataset.clview===(S.clView||'umumiy'));
     });
   }
+  const syncSub={topmrr:{id:'topmrr-sub',key:'topView',def:'metrka'},debts:{id:'debts-sub',key:'debtView',def:'umumiy'},moliya:{id:'moliya-sub',key:'molView',def:'aging'}};
+  Object.entries(syncSub).forEach(([sec,cfg])=>{
+    const sub=document.getElementById(cfg.id);
+    if(sub)sub.querySelectorAll('.nav-sub-item[data-subview]').forEach(el=>{
+      const val=el.dataset.subview.split(':')[1];
+      el.classList.toggle('active',val===(S[cfg.key]||cfg.def));
+    });
+  });
   // Restore scroll positions after re-render (prevents jitter)
   if(!secChanged&&(savedTop>0||savedLeft>0)){
     requestAnimationFrame(()=>{const t=document.querySelector('.tbl-scroll');if(t){t.scrollTop=savedTop;t.scrollLeft=savedLeft;}});
@@ -1179,17 +1187,21 @@ function toggleAgingFilter(label){if(!S.arAgingFilter)S.arAgingFilter=[];var i=S
 
 // === NAV ===
 function initNav(){
-  const clientsSub=document.getElementById('clients-sub');
+  const subMap={clients:'clients-sub',topmrr:'topmrr-sub',debts:'debts-sub',moliya:'moliya-sub'};
+  const allSubs=Object.values(subMap).map(id=>document.getElementById(id)).filter(Boolean);
+
   document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>{
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
     el.classList.add('active');
     S.sec=el.dataset.sec;
-    if(clientsSub){
-      if(S.sec==='clients'){clientsSub.classList.add('open')}
-      else{clientsSub.classList.remove('open')}
-    }
+    allSubs.forEach(s=>s.classList.remove('open'));
+    const sub=subMap[S.sec]&&document.getElementById(subMap[S.sec]);
+    if(sub)sub.classList.add('open');
     clearCache();render();closeSidebar();
   }));
+
+  // Clients sub (legacy data-clview)
+  const clientsSub=document.getElementById('clients-sub');
   if(clientsSub){
     clientsSub.querySelectorAll('.nav-sub-item').forEach(el=>el.addEventListener('click',e=>{
       e.stopPropagation();
@@ -1199,6 +1211,17 @@ function initNav(){
       clearCache();render();
     }));
   }
+
+  // Generic sub-menus (data-subview="key:value")
+  document.querySelectorAll('.nav-sub-item[data-subview]').forEach(el=>el.addEventListener('click',e=>{
+    e.stopPropagation();
+    const parent=el.closest('.nav-sub');
+    parent.querySelectorAll('.nav-sub-item').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+    const [key,val]=el.dataset.subview.split(':');
+    S[key]=val;
+    clearCache();render();
+  }));
 }
 
 function showMgrStats(mgrName) {
