@@ -239,13 +239,12 @@ body{
 .metric{
   background:var(--bg2);border:1px solid var(--border);
   border-radius:var(--rlg);padding:16px 18px;
-  box-shadow:var(--shadow);position:relative;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
   transition:transform var(--transition-fast),box-shadow var(--transition-fast);
 }
 .metric:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
 .metric::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
-  border-radius:var(--rlg) var(--rlg) 0 0;
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
 }
 .metric.c1::after{background:linear-gradient(90deg,var(--accent),var(--accent2))}
 .metric.c2::after{background:linear-gradient(90deg,var(--green),#2ecc94)}
@@ -269,6 +268,7 @@ body{
   background:var(--bg2);box-shadow:var(--shadow);overflow:hidden;
 }
 .tbl-scroll{overflow-x:auto;max-height:600px;overflow-y:auto}
+#mrrContainer .tbl-scroll{max-height:calc(100vh - 100px)}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 thead{position:sticky;top:0;z-index:2}
 th{
@@ -428,6 +428,43 @@ body:has(.overlay){overflow:hidden}
 }
 .modal .help{font-size:11.5px;color:var(--text3);margin:-8px 0 14px;line-height:1.6}
 .modal-btns{display:flex;gap:7px;justify-content:flex-end;margin-top:6px}
+
+/* === WEEK PICKER === */
+.wk-pick-wrap{position:relative}
+.wk-drop{
+  position:absolute;top:100%;left:0;margin-top:4px;z-index:50;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);min-width:190px;padding:4px;
+  animation:modalIn .15s ease;
+}
+.wk-item{
+  display:block;width:100%;text-align:left;padding:7px 12px;
+  font-size:12px;font-family:var(--mono);color:var(--text);
+  border:none;background:none;border-radius:6px;cursor:pointer;
+  transition:background var(--transition-fast);
+}
+.wk-item:hover{background:var(--bg3)}
+.wk-item.wk-active{background:var(--accent-bg);color:var(--accent2);font-weight:600}
+
+/* === PERIOD PICKER === */
+.pp-year-row{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  background:var(--accent-bg);border-radius:var(--radius);
+  padding:10px 0;margin-bottom:16px;
+}
+.pp-year-lbl{font-size:15px;font-weight:700;color:var(--text);min-width:90px;text-align:center}
+.pp-arr{font-size:22px;line-height:1;padding:2px 12px;font-weight:700;color:var(--accent2)}
+.pp-grid{display:grid;gap:6px}
+.pp-months{grid-template-columns:repeat(3,1fr)}
+.pp-quarters{grid-template-columns:repeat(2,1fr)}
+.pp-cell{
+  padding:10px 4px;font-size:12.5px;font-weight:500;text-align:center;
+  border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--bg2);color:var(--text);cursor:pointer;
+  transition:all var(--transition-fast);
+}
+.pp-cell:hover{border-color:var(--accent2);background:var(--accent-bg);color:var(--accent2)}
+.pp-divider{height:1px;background:var(--border);margin:12px 0}
 
 /* === PAGE TRANSITION === */
 .page-enter{animation:pageIn .3s ease}
@@ -653,6 +690,15 @@ body:has(.overlay){overflow:hidden}
   max-height:calc(100vh - 72px) !important;
 }
 
+/* Inkasso Fullscreen */
+#inkContainer.ink-fs-active{
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg);padding:12px 16px;
+  height:100vh!important;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#inkContainer.ink-fs-active .tbl-scroll{flex:1;overflow-y:auto}
+
 /* MRR Fullscreen */
 #mrrContainer.mrr-fs-active{
   position:fixed;
@@ -758,3 +804,8 @@ input:focus-visible{outline:none}
 .status-dot { display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;vertical-align:middle;margin-right:5px; }
 .status-dot.active { background:var(--green);animation:statusPulse 1.8s ease-in-out infinite; }
 .status-dot.debt { background:var(--red);animation:statusBlink 0.8s ease-in-out infinite; }
+
+/* === ACCESSIBILITY === */
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}

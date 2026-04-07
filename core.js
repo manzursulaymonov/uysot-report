@@ -48,7 +48,7 @@ function showToast(msg,type='info'){
   while(c.children.length>=3)c.firstChild.remove();
   const t=document.createElement('div');t.className='toast toast-'+type;
   const icons={success:'✓',error:'✕',info:'ℹ'};
-  t.innerHTML='<span style="font-size:14px;font-weight:700">'+icons[type]+'</span> '+msg;
+  t.innerHTML='<span class="text-sm font-bold">'+icons[type]+'</span> '+msg;
   c.appendChild(t);setTimeout(()=>t.remove(),4000);
 }
 
@@ -313,6 +313,8 @@ function calcDebtTable(reportDate){
 }
 
 // === DASHBOARD PRESETS ===
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function toDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function dashPreset(key){
   const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
   const dow=now.getDay()||7;const wkS=new Date(y,m,d-(dow-1));
@@ -325,6 +327,92 @@ function dashPreset(key){
   return presets[key]||presets['y'];
 }
 function applyPreset(key){S.dashPre=key;const p=dashPreset(key);S.dashFrom=p.from;S.dashTo=p.to;clearCache();render()}
+
+function toggleWeekPicker(btn){
+  const ex=document.querySelector('.wk-drop');
+  if(ex){ex.remove();return}
+  const mn=['yan','fev','mar','apr','may','iyn','iyl','avg','sen','okt','noy','dek'];
+  const now=new Date();const dow=now.getDay()||7;
+  const thisSat=new Date(now.getFullYear(),now.getMonth(),now.getDate()+(6-dow));
+  const weeks=[];
+  for(let i=0;i<10;i++){
+    const sat=new Date(thisSat);sat.setDate(sat.getDate()-i*7);
+    const mon=new Date(sat);mon.setDate(mon.getDate()-5);
+    weeks.push({from:mon,to:sat});
+  }
+  const fmtD=d=>d.getDate()+'-'+mn[d.getMonth()];
+  const cur=S.dashPre==='w'?dateStr(S.dashFrom):'';
+  const d=document.createElement('div');d.className='wk-drop';
+  d.innerHTML=weeks.map(w=>{
+    const active=dateStr(w.from)===cur?' wk-active':'';
+    return`<button class="wk-item${active}" data-f="${dateStr(w.from)}" data-t="${dateStr(w.to)}">${fmtD(w.from)} — ${fmtD(w.to)}</button>`;
+  }).join('');
+  btn.closest('.wk-pick-wrap').appendChild(d);
+  d.querySelectorAll('.wk-item').forEach(b=>b.onclick=function(){
+    S.dashPre='w';S.dashFrom=toDate(this.dataset.f);S.dashTo=toDate(this.dataset.t);clearCache();render();
+  });
+  setTimeout(()=>{const close=e=>{if(!d.contains(e.target)&&e.target!==btn){d.remove();document.removeEventListener('click',close)}};document.addEventListener('click',close)},0);
+}
+
+function showPeriodPicker(){
+  const now=new Date(),curY=now.getFullYear();
+  let selY=curY;
+  const months=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+
+  function pick(from,to){
+    S.dashPre='p';S.dashFrom=from;S.dashTo=to;clearCache();render();o.remove();
+  }
+
+  function build(){
+    return`<div class="modal" style="width:480px">
+    <div class="flex items-center justify-between mb-5">
+      <h2 style="margin:0">Davrni tanlash</h2>
+      <button class="btn" onclick="this.closest('.overlay').remove()" style="padding:4px 8px;font-size:18px;line-height:1">&times;</button>
+    </div>
+    <div class="pp-year-row">
+      <button class="btn pp-arr" data-dir="-1">&#8249;</button>
+      <span class="pp-year-lbl">${selY} yil</span>
+      <button class="btn pp-arr" data-dir="1">&#8250;</button>
+    </div>
+    <div class="pp-grid pp-months">
+      ${months.map((m,i)=>`<button class="btn pp-cell" data-type="month" data-m="${i}">${m}</button>`).join('')}
+    </div>
+    <div class="pp-divider"></div>
+    <div class="pp-grid pp-quarters">
+      <button class="btn pp-cell" data-type="q" data-q="0">1-chorak</button>
+      <button class="btn pp-cell" data-type="period" data-p="half1">Yarim yillik</button>
+      <button class="btn pp-cell" data-type="q" data-q="1">2-chorak</button>
+      <button class="btn pp-cell" data-type="period" data-p="half2">2-yarim yil</button>
+      <button class="btn pp-cell" data-type="q" data-q="2">3-chorak</button>
+      <button class="btn pp-cell" data-type="period" data-p="9m">9 oy</button>
+      <button class="btn pp-cell" data-type="q" data-q="3">4-chorak</button>
+      <button class="btn pp-cell" data-type="period" data-p="year">Yil</button>
+    </div></div>`;
+  }
+
+  o.innerHTML=build();
+  o.querySelectorAll('.pp-arr').forEach(b=>b.onclick=function(e){
+    e.stopPropagation();selY+=parseInt(this.dataset.dir);o.querySelector('.pp-year-lbl').textContent=selY+' yil';
+  });
+  o.querySelectorAll('[data-type="month"]').forEach(b=>b.onclick=function(e){
+    e.stopPropagation();const m=parseInt(this.dataset.m);
+    const last=new Date(selY,m+1,0);pick(new Date(selY,m,1),new Date()<=last?new Date():last);
+  });
+  o.querySelectorAll('[data-type="q"]').forEach(b=>b.onclick=function(e){
+    e.stopPropagation();const q=parseInt(this.dataset.q);
+    const last=new Date(selY,q*3+3,0);pick(new Date(selY,q*3,1),new Date()<=last?new Date():last);
+  });
+  o.querySelectorAll('[data-type="period"]').forEach(b=>b.onclick=function(e){
+    e.stopPropagation();const p=this.dataset.p;let from,to;
+    if(p==='half1'){from=new Date(selY,0,1);to=new Date(selY,5,30)}
+    else if(p==='half2'){from=new Date(selY,6,1);to=new Date(selY,11,31)}
+    else if(p==='9m'){from=new Date(selY,0,1);to=new Date(selY,8,30)}
+    else{from=new Date(selY,0,1);to=new Date(selY,11,31)}
+    pick(from,new Date()<=to?new Date():to);
+  });
+  document.body.appendChild(o);
+}
 
 function downloadCSV(rows,filename){
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return}
@@ -350,7 +438,7 @@ function showDlMenu(btn,type){
   const r=btn.getBoundingClientRect();
   m.style.top=(r.bottom+4)+'px';m.style.right=(window.innerWidth-r.right)+'px';
   m.innerHTML=[{l:'📊 XLSX',f:`exportXLSX('${type}')`},{l:'🖨 PDF',f:`exportPDF('${type}')`}]
-    .map(o=>`<div onclick="${o.f};document.getElementById('_dlMenu')?.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;white-space:nowrap" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">${o.l}</div>`).join('');
+    .map(o=>`<div onclick="${o.f};document.getElementById('_dlMenu')?.remove()" class="py-2.5 px-4 cursor-pointer text-[13px] whitespace-nowrap hover:bg-hover">${o.l}</div>`).join('');
   document.body.appendChild(m);
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)&&e.target!==btn){m.remove();document.removeEventListener('click',h)}}),0);
 }
