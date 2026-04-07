@@ -314,9 +314,9 @@ function showClientCard(name,cur){
     +'<div class="mono text-[17px] font-bold" style="color:'+(daysToEnd!=null&&daysToEnd>0&&daysToEnd<=30?'var(--amber)':daysToEnd!=null&&daysToEnd===-999?'var(--red)':'var(--text)')+'">'+( daysToEnd!=null?(daysToEnd===-999?'Tugagan':daysToEnd>999?'Belgilanmagan':daysToEnd+' kun'):'—')+'</div>'
     +'<div class="text-[10px] text-subtle">shartnoma muddati</div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">ARPA / oy</div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">O\'rt. oylik to\'lov</div>'
     +'<div class="mono text-[17px] font-bold text-accent">'+fmt(arpa)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle">o\'rtacha to\'lov / oy</div></div>'
+    +'<div class="text-[10px] text-subtle">jami to\'lov ÷ oylar</div></div>'
     +'</div>'
     // Two-column layout: left=tables, right=charts
     +'<div class="client-detail-grid grid grid-cols-[1fr_340px] gap-4 items-start">'
