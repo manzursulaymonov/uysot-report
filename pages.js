@@ -147,13 +147,13 @@ function showClientCard(name,cur){
   const graceBadge=isGrace?'<span class="inline-flex items-center bg-[rgba(217,119,6,0.1)] border border-[rgba(217,119,6,0.3)] rounded-full py-[3px] px-2.5 text-[11px] font-semibold text-warn">Yangi kelishuv kutilmoqda</span>':'';
   let statusHtml='';
   if(isDebt){
-    statusHtml='<span class="inline-flex items-center bg-[rgba(220,38,38,0.1)] border border-[rgba(220,38,38,0.3)] rounded-full py-[3px] pr-2.5 pl-[7px] text-[11px] font-semibold text-danger"><span class="status-dot debt"></span>QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'+(isChurn?(!isGrace?churnBadge:graceBadge):'');
+    statusHtml='<span class="inline-flex items-center bg-[rgba(220,38,38,0.1)] border border-[rgba(220,38,38,0.3)] rounded-full py-[3px] pr-2.5 pl-[7px] text-[11px] font-semibold text-danger">QARZDOR · '+fmtD(qarzdorFromDate)+' dan</span>'+(isChurn?(!isGrace?churnBadge:graceBadge):'');
   } else if(isGrace){
     statusHtml=graceBadge;
   } else if(isChurn){
     statusHtml=churnBadge;
   } else if(activeUntil&&activeUntil>=now){
-    statusHtml='<span class="inline-flex items-center bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] rounded-full py-[3px] pr-2.5 pl-[7px] text-[11px] font-semibold text-success"><span class="status-dot active"></span>AKTIV · '+(paidUntilDate?fmtD(paidUntilDate):fmtD(activeUntil))+' gacha</span>';
+    statusHtml='<span class="inline-flex items-center bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] rounded-full py-[3px] pr-2.5 pl-[7px] text-[11px] font-semibold text-success">AKTIV · '+(paidUntilDate?fmtD(paidUntilDate):fmtD(activeUntil))+' gacha</span>';
   }
   // Colored delta helper
   const dlt=v=>v>0?'<span class="text-success text-[9px] font-mono block">+'+fmt(v)+'</span>':v<0?'<span class="text-danger text-[9px] font-mono block">'+fmt(v)+'</span>':'';
