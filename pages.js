@@ -1123,20 +1123,18 @@ function rMoliya(){
       <td class="text-[11px] text-subtle">${c.lastPayDate}</td>
     </tr>`;
   });
-  const agingSection=`<div class="card mb-4">
-    <div class="card-head">
-      <span class="card-label">AR Aging — Qarz yoshi bo'yicha tahlil${af.length?` · <span style="color:var(--accent)">${af.join(', ')}</span>`:''}</span>
-      <div class="flex gap-1.5 items-center">
-        ${af.length?`<button class="btn" style="font-size:11px;padding:5px 10px" onclick="S.arAgingFilter=[];render()">✕ Filterni tozala</button>`:''}
+  const agingSection=`<div>
+    <div class="toolbar mb-2 gap-2.5">
+      <span class="text-xs font-semibold text-subtle">${af.length?`Filter: ${af.join(', ')}`:allAging.length+' ta qarzdor'}</span>
+      <div class="flex gap-1.5 items-center" style="margin-left:auto">
+        ${af.length?`<button class="btn" style="font-size:11px;padding:5px 10px" onclick="S.arAgingFilter=[];render()">Filterni tozala</button>`:''}
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'araging')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
-    <div class="card-body">
-      <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">${agingCards}</div>
-      ${agingRows?`<div class="tbl-scroll"><table><thead><tr>
+    <div class="metrics mb-2" style="grid-template-columns:repeat(4,1fr)">${agingCards}</div>
+    ${agingRows?`<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - 230px)"><table><thead><tr>
         <th>Mijoz</th><th>Muddat</th><th class="text-r">Oy qarzi</th><th class="text-r">Kelishuv</th><th class="text-r">Kechikish</th><th>Oxirgi to'lov</th>
-      </tr></thead><tbody>${agingRows}</tbody></table></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q ✅</div>'}
-    </div>
+      </tr></thead><tbody>${agingRows}</tbody></table></div></div></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q</div>'}
   </div>`;
 
   // === Collection Rate ===
