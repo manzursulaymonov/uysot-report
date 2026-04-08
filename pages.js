@@ -1216,8 +1216,6 @@ function rMoliya(){
   const now=new Date();
   const curMon=mos[now.getMonth()]+' '+now.getFullYear();
   const capRate=S.inkassoCap!==false;
-  const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+(capRate?Math.min(c.rate,100):c.rate),0)/cr.length):0;
-  const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
   const modeToggle=`<div class="flex gap-0.5 bg-hover rounded-md p-0.5">
     <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
     <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Kelishuv</button>
@@ -1228,13 +1226,17 @@ function rMoliya(){
   const fulfilled=cr.filter(c=>c.rate>=100).length;
   const partial=cr.filter(c=>c.rate>0&&c.rate<100).length;
   const noPay=cr.filter(c=>c.rate===0).length;
+  const hasPaid=cr.filter(c=>c.paid>0).length;
   const collPct=totalExpected>0?Math.round(totalPaidInk/totalExpected*100):0;
   const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
+  const avgRate=collPct;
+  const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
   const inkFlt=S.inkassoFilter||'all';
   let filteredCr=cr;
   if(inkFlt==='full')filteredCr=cr.filter(c=>c.rate>=100);
   else if(inkFlt==='partial')filteredCr=cr.filter(c=>c.rate>0&&c.rate<100);
   else if(inkFlt==='none')filteredCr=cr.filter(c=>c.rate===0);
+  else if(inkFlt==='paid')filteredCr=cr.filter(c=>c.paid>0);
   let fCrRows='';
   filteredCr.forEach(c=>{
     const dispRate=capRate?Math.min(c.rate,100):c.rate;
@@ -1258,7 +1260,7 @@ function rMoliya(){
   });
   const inkMetrics=`<div class="metrics grid-cols-5 mb-2">
     <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
-    <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='paid'?'outline:2px solid var(--teal);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='paid'?'all':'paid';render()"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='partial'?'outline:2px solid var(--amber);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='none'?'outline:2px solid var(--red);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>

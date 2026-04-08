@@ -620,10 +620,8 @@ function calcCumExpected(year){
             if(isFirst&&isLast){amt=Math.round(ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim);if(ct.sTotal>0)amt=ct.sTotal-ct._added}
             else if(isFirst){amt=ct._fmp}
             else if(isLast){
-              // Last month: use remainder to eliminate rounding error
-              if(ct.sTotal>0){amt=ct.sTotal-ct._added}
-              else if(!ct.isQ){amt=ct._lmp}
-              else{amt=Math.round(ct.musd*Math.max(1,ct.endD.getDate())/dim)}
+              // Renewal assumption: shartnoma oy o'rtasida tugasa ham to'liq oy hisoblanadi
+              amt=ct.musd;
             }
             else{amt=ct.musd}
             ct._added+=amt;monthExp+=amt;
