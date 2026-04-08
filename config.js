@@ -144,20 +144,17 @@ o.innerHTML=`<div class="modal max-w-[520px] max-h-[90vh] overflow-y-auto">
 <div class="flex flex-col gap-1">
 ${sheets.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:6px;font-size:12px">
 <div><span class="font-semibold">${s.l}</span><span style="color:var(--text3);margin-left:6px;font-size:10.5px">${s.d}</span></div>
-<div class="flex items-center gap-2">
 ${s.n?`<span style="color:var(--green);font-weight:600;font-size:11px">${s.n} qator</span>`:'<span style="color:var(--text3);font-size:11px">yuklanmagan</span>'}
-<label style="cursor:pointer;display:flex;align-items:center;padding:3px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--text2);white-space:nowrap">CSV<input type="file" accept=".csv" onchange="loadFile(this,'${s.ft}')" class="hidden"></label>
-</div></div>`).join('')}
+</div>`).join('')}
 </div></div>
 
 <div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">JSON config bilan yuklash</div>
 <div class="flex gap-2">
-<label class="btn btn-primary cursor-pointer flex-1 justify-center p-2.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
+<label class="btn cursor-pointer flex-1 justify-center p-2.5" style="background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent);font-weight:600"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
 ${hasSaved?`<button class="btn p-2.5" onclick="if(S.config)loadFromConfig(S.config)">Qayta yuklash</button>`:''}
 </div>
-<div class="text-[10.5px] text-subtle mt-1.5 leading-normal">5 ta sheet havolalari yozilgan <b>uysot_config.json</b> file yuklang.<br>
-Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b>.</div></div>
+<div class="text-[10.5px] text-subtle mt-1.5 leading-normal"><b>uysot_config.json</b> fayli orqali Google Sheets havolalarini yuklang.</div></div>
 
 <div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">Interfeys temasi</div>
@@ -515,7 +512,7 @@ async function loadFromConfig(config){
     console.error('Xatolik:',e);
     hideSmartLoader();
     showToast('Yuklanmadi: '+e.message,'error');
-    document.getElementById('root').innerHTML=errPage('Yuklanmadi',e.message.replace(/\n/g,'<br>')+'<br><br>CSV fayllarni qo\'lda yuklang (Sozlamalar → CSV tugmalari)')
+    document.getElementById('root').innerHTML=errPage('Yuklanmadi',e.message.replace(/\n/g,'<br>')+'<br><br>JSON config faylni qayta yuklang')
   }
 }
 
@@ -530,9 +527,7 @@ function errPage(title,detail){return`<div class="loading gap-3">
 <div style="font-weight:600;color:var(--red);font-size:16px">${title}</div>
 <div style="color:var(--text2);font-size:12px;text-align:left;max-width:520px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;line-height:1.7">${detail}</div>
 <div class="flex gap-1.5 mt-1">
-<label class="btn btn-primary cursor-pointer">JSON config<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
-<label class="btn cursor-pointer">Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" class="hidden"></label>
-<label class="btn cursor-pointer">Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" class="hidden"></label>
+<label class="btn btn-primary cursor-pointer">JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
 </div><button class="btn" onclick="showConfig()">Sozlamalar</button></div>`}
 
 function loadFile(i,type){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{
