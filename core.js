@@ -456,9 +456,11 @@ function openSpotlight(initialChar){
 
 // === AI METRIC RECOMMENDATION ===
 async function aiRecommend(metricKey){
-  // Auto-detect provider if set to 'none' but keys exist
-  if(S.aiProvider==='none'&&(S.geminiKey||S.apiKey)){
-    S.aiProvider=S.geminiKey?'gemini':'claude';
+  // Auto-detect provider based on available keys
+  if(S.aiProvider==='none'||(S.aiProvider==='gemini'&&!S.geminiKey)||(S.aiProvider==='claude'&&!S.apiKey)){
+    if(S.geminiKey)S.aiProvider='gemini';
+    else if(S.apiKey)S.aiProvider='claude';
+    else S.aiProvider='none';
     localStorage.setItem('uysot_ai',S.aiProvider);
   }
   if(!S.apiKey&&!S.geminiKey){
