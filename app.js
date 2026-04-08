@@ -589,8 +589,8 @@ function mrrData(year){
 }
 
 // === CUM EXPECTED ===
-function calcCumExpected(year){
-  return cached('cumExp_'+year,()=>{
+function calcCumExpected(year,renewal){
+  return cached('cumExp_'+year+(renewal?'_rnw':''),()=>{
     const result={};const allCts={};
     S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUSD||r._mUSD<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUSD,tUSD:r._tUSD||0,sTotal:Math.max(0,(r._sUSD||0)-(r._tUSD||0)),st,endD,isQ:false})});
     S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUSD=pn(r['Tadbiq USD'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD,sTotal:Math.max(0,(pn(r['sum USD'])||0)-tUSD),st,endD,isQ:true})});
@@ -620,8 +620,15 @@ function calcCumExpected(year){
             if(isFirst&&isLast){amt=Math.round(ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim);if(ct.sTotal>0)amt=ct.sTotal-ct._added}
             else if(isFirst){amt=ct._fmp}
             else if(isLast){
-              // Renewal assumption: shartnoma oy o'rtasida tugasa ham to'liq oy hisoblanadi
-              amt=ct.musd;
+              if(renewal){
+                // Inkasso: renewal assumption — to'liq oy hisoblanadi
+                amt=ct.musd;
+              }else{
+                // Qarz/boshqa: pro-rata oxirgi oy
+                if(ct.sTotal>0){amt=ct.sTotal-ct._added}
+                else if(!ct.isQ){amt=ct._lmp}
+                else{amt=Math.round(ct.musd*Math.max(1,ct.endD.getDate())/dim)}
+              }
             }
             else{amt=ct.musd}
             ct._added+=amt;monthExp+=amt;
@@ -1064,7 +1071,7 @@ function calcCollectionRate(mode){
   return cached('collRate_v3_'+mode,()=>{
     const now=new Date();
     const curM=now.getMonth();
-    const cumExp=calcCumExpected(now.getFullYear());
+    const cumExp=calcCumExpected(now.getFullYear(),true);
     const pm=calcPayments();
     const clientPaid={};
     Object.values(pm).forEach(v=>{clientPaid[v.client]=(clientPaid[v.client]||0)+v.total});
