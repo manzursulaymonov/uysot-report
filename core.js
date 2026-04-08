@@ -329,6 +329,135 @@ function calcDebtTable(reportDate){
 function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function toDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 
+// === SPOTLIGHT CLIENT SEARCH ===
+function openSpotlight(initialChar){
+  if(document.querySelector('.spot-overlay'))return;
+  const {all,qAll}=buildContracts();
+  const now=new Date();
+  const snap=mrrOnDate(now,all,qAll);
+  // Build unique client list with metadata
+  const cMap={};
+  S.rows.forEach(r=>{
+    if(!r.Client)return;
+    const n=r.Client.trim();
+    if(!cMap[n])cMap[n]={name:n,firma:r['Firma nomi']||'',mgr:r.Manager||'',hudud:r.Hudud||'',mrr:0,status:r.status||''};
+  });
+  snap.contracts.forEach(c=>{if(cMap[c.client])cMap[c.client].mrr+=c.musd});
+  const dt=calcDebtTable(now);
+  const debtMap={};dt.forEach(d=>{if(d.oyQarz>0)debtMap[d.name]=d.oyQarz});
+  const clients=Object.values(cMap).sort((a,b)=>b.mrr-a.mrr);
+  let idx=-1;
+
+  const o=document.createElement('div');o.className='spot-overlay';
+  o.innerHTML=`<div class="spot-box">
+    <div class="spot-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="spot-input" placeholder="Search clients..." autocomplete="off" spellcheck="false">
+      <kbd>ESC</kbd>
+    </div>
+    <div class="spot-list"></div>
+    <div class="spot-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>Enter</kbd> open</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>`;
+
+  const inp=o.querySelector('.spot-input');
+  const list=o.querySelector('.spot-list');
+
+  function renderList(q){
+    const query=(q||'').toLowerCase();
+    let filtered=clients;
+    if(query)filtered=clients.filter(c=>c.name.toLowerCase().includes(query)||c.firma.toLowerCase().includes(query)||(c.mgr||'').toLowerCase().includes(query)||(c.hudud||'').toLowerCase().includes(query));
+    filtered=filtered.slice(0,30);
+    idx=filtered.length?0:-1;
+    const colors=['#1746a2','#117a52','#6941b8','#0e7c7b','#a36207','#c42b1c','#d4537e','#854f0b'];
+    list.innerHTML=filtered.map((c,i)=>{
+      const ini=c.name.charAt(0).toUpperCase();
+      const col=colors[ini.charCodeAt(0)%colors.length];
+      const debt=debtMap[c.name];
+      let tags='';
+      if(c.mrr>0)tags+=`<span class="spot-tag tag-mrr">${fk(c.mrr)} $/mo</span>`;
+      if(debt)tags+=`<span class="spot-tag tag-debt">debt ${fk(debt)}</span>`;
+      if(c.mrr>0&&!debt)tags+=`<span class="spot-tag tag-ok">OK</span>`;
+      return`<div class="spot-item${i===0?' spot-active':''}" data-idx="${i}" data-name="${c.name.replace(/"/g,'&quot;')}">
+        <div class="spot-ava" style="background:${col}">${ini}</div>
+        <div class="flex-1 min-w-0">
+          <div class="spot-name">${_hl(c.name,query)}</div>
+          <div class="spot-meta">
+            ${c.firma?'<span>'+_hl(c.firma,query)+'</span>':''}
+            ${c.mgr?'<span>👤 '+c.mgr+'</span>':''}
+            ${c.hudud?'<span>📍 '+c.hudud+'</span>':''}
+          </div>
+        </div>
+        <div class="flex gap-1.5">${tags}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function _hl(text,q){
+    if(!q)return text;
+    const i=text.toLowerCase().indexOf(q);
+    if(i===-1)return text;
+    return text.slice(0,i)+'<mark style="background:var(--accent-bg);color:var(--accent);border-radius:2px;padding:0 1px">'+text.slice(i,i+q.length)+'</mark>'+text.slice(i+q.length);
+  }
+
+  function setActive(newIdx){
+    const items=list.querySelectorAll('.spot-item');
+    if(!items.length)return;
+    if(newIdx<0)newIdx=items.length-1;
+    if(newIdx>=items.length)newIdx=0;
+    items.forEach(el=>el.classList.remove('spot-active'));
+    items[newIdx].classList.add('spot-active');
+    items[newIdx].scrollIntoView({block:'nearest'});
+    idx=newIdx;
+  }
+
+  function openSelected(){
+    const active=list.querySelector('.spot-active');
+    if(!active)return;
+    const name=active.dataset.name;
+    o.remove();
+    showClientCard(name);
+  }
+
+  inp.addEventListener('input',()=>renderList(inp.value));
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){e.preventDefault();setActive(idx+1)}
+    else if(e.key==='ArrowUp'){e.preventDefault();setActive(idx-1)}
+    else if(e.key==='Enter'){e.preventDefault();openSelected()}
+    else if(e.key==='Escape'){e.preventDefault();o.remove()}
+  });
+  o.addEventListener('click',e=>{
+    if(e.target===o)o.remove();
+    const item=e.target.closest('.spot-item');
+    if(item){const name=item.dataset.name;o.remove();showClientCard(name)}
+  });
+
+  document.body.appendChild(o);
+  renderList('');
+  if(initialChar){inp.value=initialChar;renderList(initialChar)}
+  inp.focus();
+}
+
+// Global keyboard listener — open spotlight on typing
+(function(){
+  document.addEventListener('keydown',function(e){
+    // Skip if already in an input, textarea, overlay, or modal
+    const t=e.target.tagName;
+    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
+    if(document.querySelector('.overlay')||document.querySelector('.spot-overlay'))return;
+    // Ctrl/Cmd+K shortcut
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSpotlight();return}
+    // Single printable character — open spotlight with that char
+    if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&/[a-zA-Z0-9\u0400-\u04FF\u0600-\u06FF]/.test(e.key)){
+      e.preventDefault();
+      openSpotlight(e.key);
+    }
+  });
+})();
+
 // === AI METRIC RECOMMENDATION ===
 async function aiRecommend(metricKey){
   if(S.aiProvider==='none'||(!S.apiKey&&!S.geminiKey)){
