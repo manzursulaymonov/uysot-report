@@ -377,21 +377,17 @@ function openSpotlight(initialChar){
       const ini=c.name.charAt(0).toUpperCase();
       const col=colors[ini.charCodeAt(0)%colors.length];
       const debt=debtMap[c.name];
-      let tags='';
-      if(c.mrr>0)tags+=`<span class="spot-tag tag-mrr">${fk(c.mrr)} $/mo</span>`;
-      if(debt)tags+=`<span class="spot-tag tag-debt">debt ${fk(debt)}</span>`;
-      if(c.mrr>0&&!debt)tags+=`<span class="spot-tag tag-ok">OK</span>`;
+      const mrrTag=c.mrr>0?`<span class="spot-tag tag-mrr">${fk(c.mrr)} $/mo</span>`:'<span class="spot-tag" style="opacity:.3">—</span>';
+      const debtTag=debt?`<span class="spot-tag tag-debt">${fk(debt)}</span>`:(c.mrr>0?`<span class="spot-tag tag-ok">OK</span>`:'');
       return`<div class="spot-item${i===0?' spot-active':''}" data-idx="${i}" data-name="${c.name.replace(/"/g,'&quot;')}">
         <div class="spot-ava" style="background:${col}">${ini}</div>
-        <div class="flex-1 min-w-0">
+        <div class="spot-col1">
           <div class="spot-name">${_hl(c.name,query)}</div>
-          <div class="spot-meta">
-            ${c.firma?'<span>'+_hl(c.firma,query)+'</span>':''}
-            ${c.mgr?'<span>👤 '+c.mgr+'</span>':''}
-            ${c.hudud?'<span>📍 '+c.hudud+'</span>':''}
-          </div>
+          ${c.firma?'<div class="spot-firma">'+_hl(c.firma,query)+'</div>':''}
         </div>
-        <div class="flex gap-1.5">${tags}</div>
+        <div class="spot-col2">${c.hudud||''}</div>
+        <div class="spot-col3">${mrrTag}</div>
+        <div class="spot-col4">${debtTag}</div>
       </div>`;
     }).join('');
   }
