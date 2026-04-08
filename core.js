@@ -458,10 +458,15 @@ function openSpotlight(initialChar){
 async function aiRecommend(metricKey){
   if(S.aiProvider==='none'||(!S.apiKey&&!S.geminiKey)){
     showToast("AI sozlamalarini oching va API kalit kiriting",'error');
+    // Show inline message too
+    const overlays=document.querySelectorAll('.overlay .modal');
+    const m=overlays.length?overlays[overlays.length-1]:null;
+    if(m){let b=m.querySelector('.ai-rec-box');if(!b){b=document.createElement('div');b.className='ai-rec-box';const cb=m.querySelector('.btn-primary');if(cb)cb.parentNode.insertBefore(b,cb);else m.appendChild(b);}b.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px]" style="background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber)">⚠️ AI sozlamalarida API kalit kiritilmagan. <span style="text-decoration:underline;cursor:pointer" onclick="document.querySelectorAll(\'.overlay\').forEach(o=>o.remove());showConfig()">Sozlamalarni ochish →</span></div>';}
     return;
   }
   // Find or create result container in the open modal
-  const modal=document.querySelector('.overlay .modal');
+  const overlays=document.querySelectorAll('.overlay .modal');
+  const modal=overlays.length?overlays[overlays.length-1]:null;
   if(!modal)return;
   let box=modal.querySelector('.ai-rec-box');
   if(!box){box=document.createElement('div');box.className='ai-rec-box';const closeBtn=modal.querySelector('.btn-primary');if(closeBtn)closeBtn.parentNode.insertBefore(box,closeBtn);else modal.appendChild(box);}
