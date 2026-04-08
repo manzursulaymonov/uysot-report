@@ -580,7 +580,7 @@ function _buildReportData(){
 
 async function _callGemini(prompt){
   if(!S.geminiKey)throw new Error("Gemini kaliti yo'q");
-  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='+S.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.6,maxOutputTokens:2000}})});
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+S.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.6,maxOutputTokens:2000}})});
   const d=await r.json();
   if(d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts[0].text)return d.candidates[0].content.parts[0].text;
   throw new Error(d.error&&d.error.message||'Gemini xatosi');
