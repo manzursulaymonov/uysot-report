@@ -2,6 +2,69 @@
    UYSOT — Charts, Config, Data Loading, Report, Init
    ============================================================ */
 
+// === AES-GCM CONFIG ENCRYPTION ===
+async function _deriveKey(password,salt){
+  const enc=new TextEncoder();
+  const keyMaterial=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+
+async function encryptConfig(jsonStr,password){
+  const enc=new TextEncoder();
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await _deriveKey(password,salt);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(jsonStr));
+  const buf=new Uint8Array(salt.length+iv.length+ct.byteLength);
+  buf.set(salt,0);buf.set(iv,salt.length);buf.set(new Uint8Array(ct),salt.length+iv.length);
+  return JSON.stringify({encrypted:btoa(String.fromCharCode(...buf))});
+}
+
+async function decryptConfig(encObj,password){
+  const raw=atob(encObj.encrypted);
+  const buf=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)buf[i]=raw.charCodeAt(i);
+  const salt=buf.slice(0,16);
+  const iv=buf.slice(16,28);
+  const ct=buf.slice(28);
+  const key=await _deriveKey(password,salt);
+  const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+  return new TextDecoder().decode(dec);
+}
+
+function _askPassword(title,callback){
+  const o=document.createElement('div');o.className='overlay';
+  o.innerHTML='<div class="modal" style="max-width:360px">'
+    +'<h2 style="margin-bottom:12px">'+title+'</h2>'
+    +'<input type="password" class="flt" style="width:100%;padding:10px 12px;font-size:13px;margin-bottom:14px" placeholder="Parol kiriting..." id="_cfgPwd" autofocus>'
+    +'<div class="modal-btns">'
+    +'<button class="btn" onclick="this.closest(\'.overlay\').remove()">Bekor</button>'
+    +'<button class="btn btn-primary" id="_cfgPwdOk">Tasdiqlash</button>'
+    +'</div></div>';
+  document.body.appendChild(o);
+  const inp=o.querySelector('#_cfgPwd');
+  const ok=o.querySelector('#_cfgPwdOk');
+  const submit=()=>{const v=inp.value.trim();if(!v){inp.style.borderColor='var(--red)';return}o.remove();callback(v)};
+  ok.onclick=submit;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+  inp.focus();
+}
+
+function exportEncryptedConfig(){
+  const raw=localStorage.getItem('uysot_config');
+  if(!raw){showToast('Config topilmadi','error');return}
+  _askPassword('🔐 Eksport uchun parol kiriting',async pwd=>{
+    try{
+      const encStr=await encryptConfig(raw,pwd);
+      const blob=new Blob([encStr],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='uysot_config_encrypted.json';
+      a.click();URL.revokeObjectURL(a.href);
+      showToast('Shifrlangan config yuklandi','success');
+    }catch(e){showToast('Shifrlash xatosi: '+e.message,'error')}
+  });
+}
+
 // === CHARTS ===
 function iC(){
 const s=getComputedStyle(document.documentElement);
@@ -145,7 +208,9 @@ o.innerHTML=`<div class="modal max-w-[520px] max-h-[90vh] overflow-y-auto">
 <label class="btn cursor-pointer flex-1 justify-center p-2.5" style="background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent);font-weight:600"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
 ${hasSaved?`<button class="btn p-2.5" onclick="if(S.config){this.closest('.overlay').remove();loadFromConfig(S.config)}">Qayta yuklash</button>`:''}
 </div>
-<div class="text-[10.5px] text-subtle mt-1.5 leading-normal"><b>uysot_config.json</b> fayli orqali Google Sheets havolalarini yuklang.</div></div>
+<div class="text-[10.5px] text-subtle mt-1.5 leading-normal"><b>uysot_config.json</b> fayli orqali Google Sheets havolalarini yuklang.</div>
+${hasSaved?'<button class="btn text-[11px] mt-2 w-100" onclick="exportEncryptedConfig()">🔒 Shifrlangan config yuklab olish</button>':''}
+</div>
 
 <div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">Interfeys temasi</div>
@@ -511,32 +576,57 @@ function _cacheKey(){const p=S.projects&&S.projects[S.projectIdx];return p?'uyso
 function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem(_cacheKey(),JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
 function loadCache(){try{const raw=localStorage.getItem(_cacheKey());if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
 
-function loadJsonConfig(input){const f=input.files[0];if(!f)return;
-const r=new FileReader();r.onload=e=>{try{const raw=JSON.parse(e.target.result);
+function _applyConfig(raw,rawStr){
   // Multi-project format
   if(raw.projects&&Array.isArray(raw.projects)){
     if(!raw.projects.length||!raw.projects[0].shartnomalar)throw new Error('projects[0].shartnomalar havolasi topilmadi');
     S.projects=raw.projects;
     const savedIdx=parseInt(localStorage.getItem('uysot_projectIdx'))||0;
     S.projectIdx=savedIdx<raw.projects.length?savedIdx:0;
-    const p=raw.projects[S.projectIdx];
-    S.config=p;
-    localStorage.setItem('uysot_config',e.target.result);
-    updateProjectUI();
-    applyMenuVisibility();
-    loadFromConfig(p);
+    S.config=raw.projects[S.projectIdx];
   }
   // Legacy single-project format
   else{
     if(!raw.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');
     S.projects=null;S.projectIdx=0;
-    localStorage.setItem('uysot_config',e.target.result);
     S.config=raw;
-    updateProjectUI();
-    applyMenuVisibility();
-    loadFromConfig(raw);
   }
-}catch(e){alert('JSON xatolik: '+e.message)}};r.readAsText(f)}
+  localStorage.setItem('uysot_config',rawStr);
+  updateProjectUI();
+  applyMenuVisibility();
+  loadFromConfig(S.config);
+}
+
+function loadJsonConfig(input){const f=input.files[0];if(!f)return;
+const r=new FileReader();r.onload=e=>{try{const raw=JSON.parse(e.target.result);
+  // Encrypted config
+  if(raw.encrypted){
+    _askPassword('🔒 Config parolini kiriting',async pwd=>{
+      try{
+        const decrypted=await decryptConfig(raw,pwd);
+        const cfg=JSON.parse(decrypted);
+        // Store encrypted version, keep password in memory for re-export
+        S._configPwd=pwd;
+        _applyConfig(cfg,decrypted);
+      }catch(err){showToast('Parol noto\'g\'ri yoki fayl buzilgan','error')}
+    });
+    return;
+  }
+  // Plain config — ask to encrypt
+  _askPassword('🔐 Config uchun parol o\'rnating',async pwd=>{
+    try{
+      S._configPwd=pwd;
+      const encStr=await encryptConfig(e.target.result,pwd);
+      // Save encrypted to localStorage
+      localStorage.setItem('uysot_config_enc',encStr);
+      _applyConfig(raw,e.target.result);
+      showToast('Config shifrlandi va saqlandi','success');
+    }catch(err){
+      // If user cancels or error, load without encryption
+      _applyConfig(raw,e.target.result);
+    }
+  });
+}catch(err){alert('JSON xatolik: '+err.message)}};r.readAsText(f)}
 
 function errPage(title,detail){return`<div class="loading gap-3">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
