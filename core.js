@@ -477,27 +477,81 @@ async function aiRecommend(metricKey){
   let box=modal.querySelector('.ai-rec-box');
   if(!box){box=document.createElement('div');box.className='ai-rec-box';const closeBtn=modal.querySelector('.btn-primary');if(closeBtn)closeBtn.parentNode.insertBefore(box,closeBtn);else modal.appendChild(box);}
   box.innerHTML='<div class="text-center py-3 text-[12px] text-subtle"><span class="inline-block animate-pulse">⏳</span> AI tahlil qilmoqda...</div>';
-  // Build metric names & values
-  const names={mrr:'MRR',nrr:'NRR',grr:'GRR',cust:'Active Customers',arpa:'ARPA',cac:'CAC',cash:'Net Cash In',qr:'Quick Ratio',dso:'DSO',conc:'Revenue Concentration',ltv:'LTV',lc:'Logo vs Revenue Churn',cur_mrr:'Current MRR',total_cv:'Total Contract Value',total_paid:'Total Paid',outstanding:'Outstanding Balance',health:'Health Score',pay_rate:'Payment Rate',days_exp:'Days to Expiry',avg_monthly:'Avg. Monthly Payment'};
+
+  // === BUILD RICH CONTEXT ===
+  const names={mrr:'MRR (Monthly Recurring Revenue)',nrr:'NRR (Net Revenue Retention)',grr:'GRR (Gross Revenue Retention)',cust:'Active Customers',arpa:'ARPA (Average Revenue Per Account)',cac:'CAC (Customer Acquisition Cost)',cash:'Net Cash In',qr:'SaaS Quick Ratio',dso:'DSO (Days Sales Outstanding)',conc:'Revenue Concentration',ltv:'LTV (Customer Lifetime Value)',lc:'Logo vs Revenue Churn',cur_mrr:'Current MRR',total_cv:'Total Contract Value',total_paid:'Total Paid',outstanding:'Outstanding Balance',health:'Health Score',pay_rate:'Payment Rate',days_exp:'Days to Expiry',avg_monthly:'Avg. Monthly Payment'};
   const mName=names[metricKey]||metricKey;
-  let val='';
+  let ctx='';
+
   try{
-    // Try to get dashboard-level value
-    if(typeof dashRange==='function'){
-      const dr=dashRange();
-      const t=dr.totals;const c=t[t.length-1]||0;
-      const vm={mrr:fmt(c)+' $',nrr:dr.nrr+'%',grr:dr.grr+'%',cust:dr.cpmArr[dr.cpmArr.length-1],arpa:fmt(dr.arpa)+' $',cash:fmt(dr.cashIn)+' $',qr:dr.quickRatio?.toFixed(2)+'x',dso:Math.round(dr.dso)+' kun',ltv:fmt(dr.ltv)+' $'};
-      if(vm[metricKey])val=vm[metricKey];
-    }
-    // Try client card context
-    const ccModal=document.querySelector('.client-card-scroll');
-    if(ccModal&&!val){
-      const kpis=ccModal.closest('.modal')?.querySelectorAll('.client-kpi-grid .mono, .client-kpi-grid2 .mono');
-      const km={cur_mrr:0,total_cv:1,total_paid:2,outstanding:3,health:4,pay_rate:5,days_exp:6,avg_monthly:7};
-      if(km[metricKey]!==undefined&&kpis&&kpis[km[metricKey]])val=kpis[km[metricKey]].textContent.trim();
+    const isClientMetric=['cur_mrr','total_cv','total_paid','outstanding','health','pay_rate','days_exp','avg_monthly'].includes(metricKey);
+
+    if(isClientMetric){
+      // --- CLIENT CARD CONTEXT ---
+      const ccModal=document.querySelector('.client-card-scroll');
+      if(ccModal){
+        const parentModal=ccModal.closest('.modal');
+        // Client name from header
+        const nameEl=parentModal?.querySelector('.font-bold.text-lg');
+        const clientName=nameEl?nameEl.textContent.trim():'';
+        // All 8 KPIs
+        const kpis=parentModal?.querySelectorAll('.client-kpi-grid .mono, .client-kpi-grid2 .mono');
+        const kLabels=['Current MRR','Total Contract Value','Total Paid','Outstanding Balance','Health Score','Payment Rate','Days to Expiry','Avg Monthly Payment'];
+        let kpiData=[];
+        if(kpis)kpis.forEach((el,i)=>{if(i<8)kpiData.push(kLabels[i]+': '+el.textContent.trim())});
+        // Health badge
+        const badge=parentModal?.querySelector('.badge');
+        const healthStatus=badge?badge.textContent.trim():'';
+        // Contract count & tenure from subtitle
+        const subtles=parentModal?.querySelectorAll('.text-subtle');
+        let tenure='',contracts='';
+        subtles?.forEach(el=>{const t=el.textContent;if(t.includes('oy'))tenure=t.trim();if(t.includes('shartnoma'))contracts=t.trim()});
+        // Debt info
+        const warnEl=parentModal?.querySelector('.text-warn');
+        const debtInfo=warnEl?warnEl.textContent.trim():'';
+
+        ctx='MIJOZ: '+clientName+'\n';
+        if(tenure)ctx+='Hamkorlik: '+tenure+'\n';
+        if(contracts)ctx+='Shartnomalar: '+contracts+'\n';
+        ctx+='KO\'RSATKICHLAR:\n'+kpiData.join('\n')+'\n';
+        if(healthStatus)ctx+='Sog\'liq holati: '+healthStatus+'\n';
+        if(debtInfo)ctx+='Qarz: '+debtInfo+'\n';
+      }
+    }else{
+      // --- DASHBOARD CONTEXT ---
+      if(typeof dashRange==='function'){
+        const dr=dashRange();
+        const t=dr.totals;const curMRR=t[t.length-1]||0;const startMRR=dr.baseMRR||0;
+        const mrrGrowth=startMRR?Math.round((curMRR-startMRR)/startMRR*100):0;
+        const curCl=dr.cpmArr[dr.cpmArr.length-1]||0;
+        ctx='DASHBOARD KO\'RSATKICHLARI:\n';
+        ctx+='MRR: '+fmt(curMRR)+' $ ('+(mrrGrowth>=0?'+':'')+mrrGrowth+'% o\'sish)\n';
+        ctx+='NRR: '+(dr.nrr||0)+'%\n';
+        ctx+='GRR: '+(dr.grr||0)+'%\n';
+        ctx+='Aktiv mijozlar: '+curCl+'\n';
+        ctx+='ARPA: '+fmt(dr.arpa||0)+' $\n';
+        ctx+='Cash In: '+fmt(dr.cashIn||0)+' $\n';
+        ctx+='DSO: '+Math.round(dr.dso||0)+' kun\n';
+        ctx+='Quick Ratio: '+(dr.quickRatio?.toFixed(2)||'?')+'x\n';
+        ctx+='LTV: '+fmt(dr.ltv||0)+' $\n';
+        ctx+='Top-5 konsentratsiya: '+Math.round(dr.top5Conc||0)+'%\n';
+        ctx+='Yangi: '+dr.newClients.length+' ta (+'+fmt(dr.newClients.reduce((s,c)=>s+c.mrr,0))+' $)\n';
+        ctx+='Churn: '+dr.churnClients.length+' ta (-'+fmt(dr.churnClients.reduce((s,c)=>s+c.mrr,0))+' $)\n';
+        if(dr.logoChurnRate)ctx+='Logo Churn: '+Math.round(dr.logoChurnRate*10)/10+'%\n';
+        if(dr.revenueChurnRate)ctx+='Revenue Churn: '+Math.round(dr.revenueChurnRate*10)/10+'%\n';
+      }
     }
   }catch(e){}
-  const prompt='Sen SaaS CRM moliyaviy maslahatchi AI san. Quyidagi metrika haqida O\'zbek tilida 3 ta aniq, qisqa tavsiya ber (har biri 1-2 gap). Faqat tavsiyalar, boshqa narsa emas.\n\nMetrika: '+mName+(val?'\nJoriy qiymat: '+val:'')+'\n\nTavsiyalar:';
+
+  const prompt='Sen tajribali SaaS CRM moliyaviy maslahatchisan. Quyidagi real ma\'lumotlar asosida '+mName+' ko\'rsatkichini tahlil qil.\n\n'
+    +ctx
+    +'\nSORALGAN METRIKA: '+mName
+    +'\n\nVAZIFA: O\'zbek tilida 3-4 ta ANIQ tavsiya ber. Har bir tavsiya:\n'
+    +'- Yuqoridagi real raqamlarga asoslangan bo\'lsin\n'
+    +'- Qanday harakat qilish kerakligi aniq ko\'rsatilsin\n'
+    +'- Kutilgan natija yoki maqsad raqam berilsin\n'
+    +'Faqat tavsiyalar yoz, boshqa narsa emas.';
+
   try{
     const result=await _callAI(prompt);
     box.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px] leading-relaxed" style="background:var(--accent-bg);border:1px solid var(--border)"><div class="font-bold text-[11px] uppercase tracking-[0.5px] mb-2" style="color:var(--accent)">💡 AI Tavsiya</div><div style="white-space:pre-wrap">'+result.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
