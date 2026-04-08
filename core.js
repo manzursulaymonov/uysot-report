@@ -470,13 +470,30 @@ async function aiRecommend(metricKey){
     if(m){let b=m.querySelector('.ai-rec-box');if(!b){b=document.createElement('div');b.className='ai-rec-box';const cb=m.querySelector('.btn-primary');if(cb)cb.parentNode.insertBefore(b,cb);else m.appendChild(b);}b.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px]" style="background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber)">⚠️ AI sozlamalarida API kalit kiritilmagan. <span style="text-decoration:underline;cursor:pointer" onclick="document.querySelectorAll(\'.overlay\').forEach(o=>o.remove());showConfig()">Sozlamalarni ochish →</span></div>';}
     return;
   }
-  // Find or create result container in the open modal
-  const overlays=document.querySelectorAll('.overlay .modal');
-  const modal=overlays.length?overlays[overlays.length-1]:null;
-  if(!modal)return;
-  let box=modal.querySelector('.ai-rec-box');
-  if(!box){box=document.createElement('div');box.className='ai-rec-box';const closeBtn=modal.querySelector('.btn-primary');if(closeBtn)closeBtn.parentNode.insertBefore(box,closeBtn);else modal.appendChild(box);}
-  box.innerHTML='<div class="text-center py-3 text-[12px] text-subtle"><span class="inline-block animate-pulse">⏳</span> AI tahlil qilmoqda...</div>';
+  // Close the metric info modal and open a dedicated AI modal
+  const existingMetricOverlays=document.querySelectorAll('.overlay');
+  // Keep client card overlay (first one), remove metric info (last one)
+  if(existingMetricOverlays.length>1)existingMetricOverlays[existingMetricOverlays.length-1].remove();
+  else if(existingMetricOverlays.length===1){
+    // Only metric info open (from dashboard), remove it
+    const m=existingMetricOverlays[0].querySelector('.modal');
+    if(m&&!m.querySelector('.client-card-scroll'))existingMetricOverlays[0].remove();
+  }
+
+  // Create dedicated AI recommendation overlay
+  const aiOverlay=document.createElement('div');aiOverlay.className='overlay';
+  aiOverlay.onclick=e=>{if(e.target===aiOverlay)aiOverlay.remove()};
+  aiOverlay.innerHTML=`<div class="modal" style="max-width:600px;max-height:90vh;display:flex;flex-direction:column;padding:0">
+    <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div style="font-weight:700;font-size:15px;color:var(--accent)">💡 AI Tavsiya</div>
+      <button onclick="this.closest('.overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0 4px">×</button>
+    </div>
+    <div class="ai-rec-body" style="padding:20px 24px;overflow-y:auto;flex:1">
+      <div class="text-center py-6 text-[13px] text-subtle"><span class="inline-block animate-pulse" style="font-size:20px">⏳</span><div style="margin-top:8px">AI tahlil qilmoqda...</div></div>
+    </div>
+  </div>`;
+  document.body.appendChild(aiOverlay);
+  const box=aiOverlay.querySelector('.ai-rec-body');
 
   // === BUILD RICH CONTEXT ===
   const names={mrr:'MRR (Monthly Recurring Revenue)',nrr:'NRR (Net Revenue Retention)',grr:'GRR (Gross Revenue Retention)',cust:'Active Customers',arpa:'ARPA (Average Revenue Per Account)',cac:'CAC (Customer Acquisition Cost)',cash:'Net Cash In',qr:'SaaS Quick Ratio',dso:'DSO (Days Sales Outstanding)',conc:'Revenue Concentration',ltv:'LTV (Customer Lifetime Value)',lc:'Logo vs Revenue Churn',cur_mrr:'Current MRR',total_cv:'Total Contract Value',total_paid:'Total Paid',outstanding:'Outstanding Balance',health:'Health Score',pay_rate:'Payment Rate',days_exp:'Days to Expiry',avg_monthly:'Avg. Monthly Payment'};
@@ -554,9 +571,9 @@ async function aiRecommend(metricKey){
 
   try{
     const result=await _callAI(prompt);
-    box.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px] leading-relaxed" style="background:var(--accent-bg);border:1px solid var(--border)"><div class="font-bold text-[11px] uppercase tracking-[0.5px] mb-2" style="color:var(--accent)">💡 AI Tavsiya</div><div style="white-space:pre-wrap">'+result.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
+    box.innerHTML='<div style="font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap">'+result.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</div>';
   }catch(e){
-    box.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px] text-danger" style="background:var(--red-bg);border:1px solid var(--red)">❌ '+e.message+'</div>';
+    box.innerHTML='<div class="p-3 rounded-lg text-[12px]" style="background:var(--red-bg);border:1px solid var(--red);color:var(--red)">❌ '+e.message+'</div>';
   }
 }
 
