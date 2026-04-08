@@ -39,8 +39,8 @@
   --shadow:0 1px 2px rgba(26,23,48,.05),0 2px 8px rgba(26,23,48,.04);
   --shadow-lg:0 4px 16px rgba(26,23,48,.08),0 8px 32px rgba(26,23,48,.05);
   --font:'DM Sans',system-ui,sans-serif;
-  --sidebar-bg:#1a1730;
-  --sidebar-text:#a09ab8;
-  --sidebar-active-bg:rgba(107,79,191,.12);
-  --sidebar-hover-bg:rgba(107,79,191,.06);
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#5a5470;
+  --sidebar-active-bg:rgba(107,79,191,.08);
+  --sidebar-hover-bg:rgba(26,23,48,.03);
 }
