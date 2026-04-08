@@ -11,7 +11,12 @@ const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrR
 // === THEME ===
 const EO_STYLES=[
   {id:'default',name:'Standart'},
-  {id:'obsidian',name:'Executive Obsidian'}
+  {id:'obsidian',name:'Executive Obsidian'},
+  {id:'midnight',name:'Midnight Blue'},
+  {id:'forest',name:'Forest Green'},
+  {id:'sunset',name:'Warm Sunset'},
+  {id:'nordic',name:'Nordic Frost'},
+  {id:'cyber',name:'Cyber Neon'}
 ];
 function applyThemeStyle(styleId){
   const html=document.documentElement;

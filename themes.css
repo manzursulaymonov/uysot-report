@@ -1,0 +1,231 @@
+/* ============================================================
+   UYSOT — Additional Themes
+   Midnight Blue, Forest Green, Warm Sunset, Nordic Frost, Cyber Neon
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Figtree:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================
+   1. MIDNIGHT BLUE — Banking/fintech, deep navy, silver accents
+   Font: Inter
+   ============================================================ */
+
+/* --- Midnight Blue Dark --- */
+[data-style="midnight"][data-theme="dark"]{
+  --bg:#0a0e1a;--bg2:#101828;--bg3:#1a2340;--bg4:#080c16;
+  --text:#e0e6f0;--text2:#8896b0;--text3:#4e5d78;
+  --accent:#5b9cf5;--accent2:#3d7dd4;--accent-bg:#0f1d38;
+  --green:#3dcf8e;--green-bg:#0d2a1e;
+  --red:#f06060;--red-bg:#2a1414;
+  --amber:#f0b840;--amber-bg:#2a2210;
+  --purple:#a07cf0;--purple-bg:#1a1435;
+  --teal:#40c8d0;--teal-bg:#0e2528;
+  --border:#1c2640;--border2:#283552;
+  --shadow:0 1px 2px rgba(5,8,20,.35),0 2px 8px rgba(5,8,20,.25);
+  --shadow-lg:0 4px 16px rgba(5,8,20,.45),0 8px 32px rgba(5,8,20,.35);
+  --font:'Inter',system-ui,sans-serif;
+  --sidebar-bg:#080c16;
+  --sidebar-text:#6878a0;
+  --sidebar-active-bg:rgba(91,156,245,.12);
+  --sidebar-hover-bg:rgba(91,156,245,.06);
+}
+
+/* --- Midnight Blue Light --- */
+[data-style="midnight"]:not([data-theme="dark"]){
+  --bg:#f0f3f8;--bg2:#ffffff;--bg3:#e2e8f2;--bg4:#f6f8fc;
+  --text:#0c1a30;--text2:#4a5672;--text3:#8892a8;
+  --accent:#1a56b8;--accent2:#2868d0;--accent-bg:#e6eefa;
+  --green:#18805a;--green-bg:#e0f4ec;
+  --red:#c03030;--red-bg:#fce6e6;
+  --amber:#a06810;--amber-bg:#fdf2dc;
+  --purple:#6040c0;--purple-bg:#eee8fa;
+  --teal:#187888;--teal-bg:#ddf2f4;
+  --border:#d0d8e4;--border2:#b8c4d4;
+  --shadow:0 1px 2px rgba(12,26,48,.05),0 2px 8px rgba(12,26,48,.04);
+  --shadow-lg:0 4px 16px rgba(12,26,48,.08),0 8px 32px rgba(12,26,48,.05);
+  --font:'Inter',system-ui,sans-serif;
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#4a5672;
+  --sidebar-active-bg:rgba(26,86,184,.07);
+  --sidebar-hover-bg:rgba(12,26,48,.03);
+}
+
+/* ============================================================
+   2. FOREST GREEN — Nature-inspired, growth, warm earth tones
+   Font: Source Sans 3
+   ============================================================ */
+
+/* --- Forest Green Dark --- */
+[data-style="forest"][data-theme="dark"]{
+  --bg:#0c120e;--bg2:#141e16;--bg3:#1e2e22;--bg4:#0a0f0c;
+  --text:#dce8e0;--text2:#8ea898;--text3:#566e5e;
+  --accent:#4aa870;--accent2:#68c490;--accent-bg:#122818;
+  --green:#50d090;--green-bg:#122a18;
+  --red:#e06050;--red-bg:#2c1614;
+  --amber:#e0a840;--amber-bg:#2a2210;
+  --purple:#a888d8;--purple-bg:#1c1430;
+  --teal:#48b8b0;--teal-bg:#102624;
+  --border:#223028;--border2:#304238;
+  --shadow:0 1px 2px rgba(6,10,8,.35),0 2px 8px rgba(6,10,8,.25);
+  --shadow-lg:0 4px 16px rgba(6,10,8,.45),0 8px 32px rgba(6,10,8,.35);
+  --font:'Source Sans 3',system-ui,sans-serif;
+  --sidebar-bg:#0a0f0c;
+  --sidebar-text:#6e8e78;
+  --sidebar-active-bg:rgba(74,168,112,.12);
+  --sidebar-hover-bg:rgba(74,168,112,.06);
+}
+
+/* --- Forest Green Light --- */
+[data-style="forest"]:not([data-theme="dark"]){
+  --bg:#f0f4f1;--bg2:#ffffff;--bg3:#e0e8e2;--bg4:#f6faf7;
+  --text:#121e16;--text2:#4a5e50;--text3:#88a095;
+  --accent:#2a7a4a;--accent2:#35905a;--accent-bg:#e2f2e8;
+  --green:#1a7848;--green-bg:#ddf4e8;
+  --red:#b83028;--red-bg:#fce4e2;
+  --amber:#986010;--amber-bg:#fcf0d8;
+  --purple:#6848b0;--purple-bg:#ede6f8;
+  --teal:#187870;--teal-bg:#dcf0ee;
+  --border:#c8d8ce;--border2:#b0c4b8;
+  --shadow:0 1px 2px rgba(18,30,22,.05),0 2px 8px rgba(18,30,22,.04);
+  --shadow-lg:0 4px 16px rgba(18,30,22,.08),0 8px 32px rgba(18,30,22,.05);
+  --font:'Source Sans 3',system-ui,sans-serif;
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#4a5e50;
+  --sidebar-active-bg:rgba(42,122,74,.07);
+  --sidebar-hover-bg:rgba(18,30,22,.03);
+}
+
+/* ============================================================
+   3. WARM SUNSET — Coral/orange tones, energetic startup vibe
+   Font: Plus Jakarta Sans
+   ============================================================ */
+
+/* --- Warm Sunset Dark --- */
+[data-style="sunset"][data-theme="dark"]{
+  --bg:#141010;--bg2:#1e1818;--bg3:#2c2220;--bg4:#110e0e;
+  --text:#f0e8e4;--text2:#b0a098;--text3:#6e605a;
+  --accent:#e8784a;--accent2:#f09060;--accent-bg:#2c1810;
+  --green:#40c888;--green-bg:#122a1c;
+  --red:#e85050;--red-bg:#2c1414;
+  --amber:#e8b040;--amber-bg:#2c2210;
+  --purple:#b888e0;--purple-bg:#201430;
+  --teal:#48bcc0;--teal-bg:#102628;
+  --border:#302420;--border2:#403430;
+  --shadow:0 1px 2px rgba(14,10,8,.35),0 2px 8px rgba(14,10,8,.25);
+  --shadow-lg:0 4px 16px rgba(14,10,8,.45),0 8px 32px rgba(14,10,8,.35);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --sidebar-bg:#110e0e;
+  --sidebar-text:#907870;
+  --sidebar-active-bg:rgba(232,120,74,.12);
+  --sidebar-hover-bg:rgba(232,120,74,.06);
+}
+
+/* --- Warm Sunset Light --- */
+[data-style="sunset"]:not([data-theme="dark"]){
+  --bg:#faf5f2;--bg2:#ffffff;--bg3:#f0e8e2;--bg4:#fcf8f6;
+  --text:#201410;--text2:#6a5448;--text3:#a09088;
+  --accent:#c85a28;--accent2:#e06830;--accent-bg:#fcece4;
+  --green:#1a7850;--green-bg:#e0f4ea;
+  --red:#c03028;--red-bg:#fce4e2;
+  --amber:#a06810;--amber-bg:#fdf0d8;
+  --purple:#7040b8;--purple-bg:#f0e8fa;
+  --teal:#187878;--teal-bg:#dcf0f0;
+  --border:#e4d8d0;--border2:#d0c0b4;
+  --shadow:0 1px 2px rgba(32,20,16,.06),0 2px 8px rgba(32,20,16,.04);
+  --shadow-lg:0 4px 16px rgba(32,20,16,.09),0 8px 32px rgba(32,20,16,.06);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#6a5448;
+  --sidebar-active-bg:rgba(200,90,40,.08);
+  --sidebar-hover-bg:rgba(32,20,16,.03);
+}
+
+/* ============================================================
+   4. NORDIC FROST — Minimalist Scandinavian, monochrome + subtle blue
+   Font: Figtree
+   ============================================================ */
+
+/* --- Nordic Frost Dark --- */
+[data-style="nordic"][data-theme="dark"]{
+  --bg:#101214;--bg2:#181a1e;--bg3:#22262c;--bg4:#0c0e10;
+  --text:#e2e4e8;--text2:#8a8e98;--text3:#505660;
+  --accent:#7098c0;--accent2:#88b0d8;--accent-bg:#141e28;
+  --green:#48c090;--green-bg:#102a1e;
+  --red:#d86060;--red-bg:#2a1515;
+  --amber:#d8a848;--amber-bg:#282010;
+  --purple:#9880c8;--purple-bg:#1a1530;
+  --teal:#50b0b8;--teal-bg:#102425;
+  --border:#22262c;--border2:#303640;
+  --shadow:0 1px 2px rgba(8,10,14,.3),0 2px 8px rgba(8,10,14,.2);
+  --shadow-lg:0 4px 16px rgba(8,10,14,.4),0 8px 32px rgba(8,10,14,.3);
+  --font:'Figtree',system-ui,sans-serif;
+  --sidebar-bg:#0c0e10;
+  --sidebar-text:#606870;
+  --sidebar-active-bg:rgba(112,152,192,.10);
+  --sidebar-hover-bg:rgba(112,152,192,.05);
+}
+
+/* --- Nordic Frost Light --- */
+[data-style="nordic"]:not([data-theme="dark"]){
+  --bg:#f4f5f7;--bg2:#ffffff;--bg3:#e8eaee;--bg4:#f8f9fa;
+  --text:#14171c;--text2:#50565e;--text3:#8890a0;
+  --accent:#456888;--accent2:#5880a0;--accent-bg:#e6eef4;
+  --green:#207858;--green-bg:#e0f2ea;
+  --red:#b83838;--red-bg:#fae4e4;
+  --amber:#907010;--amber-bg:#f8f0d8;
+  --purple:#604898;--purple-bg:#ece6f4;
+  --teal:#207078;--teal-bg:#dceef0;
+  --border:#d8dce2;--border2:#c4cad2;
+  --shadow:0 1px 2px rgba(20,23,28,.04),0 2px 8px rgba(20,23,28,.03);
+  --shadow-lg:0 4px 16px rgba(20,23,28,.07),0 8px 32px rgba(20,23,28,.04);
+  --font:'Figtree',system-ui,sans-serif;
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#50565e;
+  --sidebar-active-bg:rgba(69,104,136,.06);
+  --sidebar-hover-bg:rgba(20,23,28,.025);
+}
+
+/* ============================================================
+   5. CYBER NEON — Tech/cyberpunk, dark-first, bright neon accents
+   Font: Space Grotesk
+   ============================================================ */
+
+/* --- Cyber Neon Dark --- */
+[data-style="cyber"][data-theme="dark"]{
+  --bg:#08080c;--bg2:#101018;--bg3:#1a1a28;--bg4:#060608;
+  --text:#e8e8f0;--text2:#8888a8;--text3:#505068;
+  --accent:#00e4a0;--accent2:#00c8ff;--accent-bg:#081c18;
+  --green:#00e878;--green-bg:#082a14;
+  --red:#ff4060;--red-bg:#280c14;
+  --amber:#ffc020;--amber-bg:#28200a;
+  --purple:#c060ff;--purple-bg:#1c0c30;
+  --teal:#00d0e0;--teal-bg:#082428;
+  --border:#1a1a28;--border2:#282840;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);
+  --shadow-lg:0 4px 16px rgba(0,228,160,.06),0 8px 32px rgba(0,0,0,.4);
+  --font:'Space Grotesk',system-ui,sans-serif;
+  --sidebar-bg:#060608;
+  --sidebar-text:#585878;
+  --sidebar-active-bg:rgba(0,228,160,.10);
+  --sidebar-hover-bg:rgba(0,228,160,.05);
+}
+
+/* --- Cyber Neon Light --- */
+[data-style="cyber"]:not([data-theme="dark"]){
+  --bg:#f0f0f4;--bg2:#ffffff;--bg3:#e2e2ea;--bg4:#f6f6fa;
+  --text:#101018;--text2:#484860;--text3:#8080a0;
+  --accent:#009870;--accent2:#0088b8;--accent-bg:#e0f6f0;
+  --green:#009858;--green-bg:#dcf4e8;
+  --red:#d02848;--red-bg:#fce0e4;
+  --amber:#a88010;--amber-bg:#f8f0d8;
+  --purple:#8030d0;--purple-bg:#f0e4fc;
+  --teal:#0090a0;--teal-bg:#daf0f4;
+  --border:#d4d4de;--border2:#c0c0cc;
+  --shadow:0 1px 2px rgba(16,16,24,.05),0 2px 8px rgba(16,16,24,.04);
+  --shadow-lg:0 4px 16px rgba(16,16,24,.08),0 8px 32px rgba(16,16,24,.05);
+  --font:'Space Grotesk',system-ui,sans-serif;
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#484860;
+  --sidebar-active-bg:rgba(0,152,112,.08);
+  --sidebar-hover-bg:rgba(16,16,24,.03);
+}
