@@ -285,19 +285,19 @@ function showClientCard(name,cur){
     +'<div class="bg-accent-bg border border-brd rounded-[10px] py-3.5 px-4 border-t-[3px] border-t-accent">'
     +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Current MRR <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'cur_mrr\')">i</span></div>'
     +'<div class="mono text-[22px] font-bold text-accent">'+(isChurn?'0 '+ccy:activeMrr?fmt(activeMrr)+' '+ccy:'—')+'</div>'
-    +'<div class="text-[10px] text-subtle mt-0.5">'+(isChurn?'churn':activeCount+' active contracts')+'</div></div>'
+    +'<div class="text-[10px] text-subtle mt-0.5">'+(isChurn?'churn':activeCount+' aktiv shartnoma')+'</div></div>'
     +'<div class="bg-card border border-brd rounded-[10px] py-3.5 px-4 border-t-[3px] border-t-success">'
     +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Total Contract Value <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'total_cv\')">i</span></div>'
     +'<div class="mono text-[22px] font-bold">'+fmt(totalSum)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle mt-0.5">'+(cRows.length+qCRows.length)+' contracts</div></div>'
+    +'<div class="text-[10px] text-subtle mt-0.5">'+(cRows.length+qCRows.length)+' ta shartnoma</div></div>'
     +'<div class="bg-card border border-brd rounded-[10px] py-3.5 px-4 border-t-[3px] border-t-tw-teal">'
     +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Total Paid <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'total_paid\')">i</span></div>'
     +'<div class="mono text-[22px] font-bold text-tw-teal">'+fmt(totalPaid)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle mt-0.5">'+allPays.length+' payments</div></div>'
+    +'<div class="text-[10px] text-subtle mt-0.5">'+allPays.length+' ta to\'lov</div></div>'
     +'<div class="bg-card border border-brd rounded-[10px] py-3.5 px-4" style="border-top:3px solid '+(kelQarz>0?'var(--red)':'var(--green)')+'">'
     +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.5px] mb-1">Outstanding Balance <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'outstanding\')">i</span></div>'
-    +'<div class="mono text-[22px] font-bold" style="color:'+dC+'">'+(kelQarz>0?fmt(kelQarz)+' '+ccy:'✓ None')+'</div>'
-    +(oyQarz>0?'<div class="text-[10px] text-warn mt-0.5">Month-end: '+fmt(oyQarz)+' '+ccy+'</div>':'<div class="text-[10px] text-subtle mt-0.5">Month-end clear</div>')
+    +'<div class="mono text-[22px] font-bold" style="color:'+dC+'">'+(kelQarz>0?fmt(kelQarz)+' '+ccy:'✓ Yo\'q')+'</div>'
+    +(oyQarz>0?'<div class="text-[10px] text-warn mt-0.5">Oy oxiri: '+fmt(oyQarz)+' '+ccy+'</div>':'<div class="text-[10px] text-subtle mt-0.5">Oy oxiri ham to\'liq</div>')
     +'</div></div>'
     // Row 2: 4 mini KPI cards
     +'<div class="client-kpi-grid2 grid grid-cols-4 gap-2 mb-4">'
@@ -311,12 +311,12 @@ function showClientCard(name,cur){
     +'<div class="h-1 rounded-sm mt-0.5" style="background:var(--border)"><div class="h-full rounded-sm" style="width:'+payPct+'%;background:'+(payPct>=80?'var(--green)':payPct>=50?'var(--amber)':'var(--red)')+';transition:width .3s"></div></div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
     +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Days to Expiry <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'days_exp\')">i</span></div>'
-    +'<div class="mono text-[17px] font-bold" style="color:'+(daysToEnd!=null&&daysToEnd>0&&daysToEnd<=30?'var(--amber)':daysToEnd!=null&&daysToEnd===-999?'var(--red)':'var(--text)')+'">'+( daysToEnd!=null?(daysToEnd===-999?'Expired':daysToEnd>999?'N/A':daysToEnd+' days'):'—')+'</div>'
-    +'<div class="text-[10px] text-subtle">contract term</div></div>'
+    +'<div class="mono text-[17px] font-bold" style="color:'+(daysToEnd!=null&&daysToEnd>0&&daysToEnd<=30?'var(--amber)':daysToEnd!=null&&daysToEnd===-999?'var(--red)':'var(--text)')+'">'+( daysToEnd!=null?(daysToEnd===-999?'Tugagan':daysToEnd>999?'Belgilanmagan':daysToEnd+' kun'):'—')+'</div>'
+    +'<div class="text-[10px] text-subtle">shartnoma muddati</div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
     +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Avg. Monthly Payment <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'avg_monthly\')">i</span></div>'
     +'<div class="mono text-[17px] font-bold text-accent">'+fmt(arpa)+' '+ccy+'</div>'
-    +'<div class="text-[10px] text-subtle">total paid ÷ months</div></div>'
+    +'<div class="text-[10px] text-subtle">jami to\'lov ÷ oylar</div></div>'
     +'</div>'
     // Two-column layout: left=tables, right=charts
     +'<div class="client-detail-grid grid grid-cols-[1fr_340px] gap-4 items-start">'
@@ -324,48 +324,48 @@ function showClientCard(name,cur){
     +'<div class="min-w-0 overflow-hidden">'
     // Health strip
     +(health?'<div class="flex items-center gap-3 py-[9px] px-3.5 bg-hover rounded-lg mb-3.5 text-xs flex-wrap">'
-    +'<span>Health: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
-    +(health.debt>0?'<span class="text-subtle">·</span><span>Debt: <span class="mono text-danger">'+fmt(oyQarz)+' '+ccy+'</span></span>':'')
-    +(health.daysToEnd>0&&health.daysToEnd<999?'<span class="text-subtle">·</span><span>Expires in: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' days</span></span>':(health.daysToEnd===-999?'<span class="text-subtle">·</span><span class="text-danger">Contract expired</span>':''))
+    +'<span>Sog\'liq: <strong style="color:'+(health.score>=80?'var(--green)':health.score>=50?'var(--amber)':'var(--red)')+'">'+health.score+'/100</strong></span>'
+    +(health.debt>0?'<span class="text-subtle">·</span><span>Qarz: <span class="mono text-danger">'+fmt(oyQarz)+' '+ccy+'</span></span>':'')
+    +(health.daysToEnd>0&&health.daysToEnd<999?'<span class="text-subtle">·</span><span>Tugashiga: <span class="mono" style="color:'+(health.daysToEnd<=30?'var(--amber)':'var(--text2)')+'">'+health.daysToEnd+' kun</span></span>':(health.daysToEnd===-999?'<span class="text-subtle">·</span><span class="text-danger">Shartnoma tugagan</span>':''))
     +'</div>':'')
     // Contracts table
     +(ctHtml?'<div id="_snap_ct" class="mb-3.5 p-2 bg-card rounded-[10px]">'
     +'<div class="flex items-center justify-between mb-1.5">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted">Contracts</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted">Shartnomalar</div>'
     +'<button onclick="snapEl(document.getElementById(\'_snap_ct\'),this)" class="bg-transparent border border-brd rounded-md py-[3px] px-[7px] cursor-pointer text-subtle text-xs flex items-center gap-1" title="Rasmga olish (clipboard)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M5 3v2M19 3v2"/></svg></button></div>'
     +'<div class="border border-brd rounded-[10px] overflow-hidden"><div class="overflow-x-auto">'
-    +'<table><thead><tr><th>#</th><th>Start</th><th>End</th><th class="text-r">Deposit '+ccy+'</th><th class="text-r">Monthly '+ccy+'</th><th class="text-r">Total '+ccy+'</th><th class="text-r">Paid</th><th class="text-r">Balance</th></tr></thead>'
+    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th><th class="text-r">To\'langan</th><th class="text-r">Qoldiq</th></tr></thead>'
     +'<tbody>'+ctHtml+'</tbody></table></div></div>'
     // Additional contracts table (inside snapshot area)
-    +(qHtml?'<div class="mt-2.5"><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">Additional Agreements</div>'
+    +(qHtml?'<div class="mt-2.5"><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">Qo\'shimcha kelishuvlar</div>'
     +'<div class="border border-brd rounded-[10px] overflow-hidden"><div class="overflow-x-auto">'
-    +'<table><thead><tr><th>#</th><th>Start</th><th>End</th><th class="text-r">Deposit '+ccy+'</th><th class="text-r">Monthly '+ccy+'</th><th class="text-r">Total '+ccy+'</th></tr></thead>'
+    +'<table><thead><tr><th>Raqami</th><th>Boshlanish</th><th>Tugash</th><th class="text-r">Tadbiq '+ccy+'</th><th class="text-r">Oylik '+ccy+'</th><th class="text-r">Jami '+ccy+'</th></tr></thead>'
     +'<tbody>'+qHtml+'</tbody></table></div></div></div>':'')
     +'</div>':'')
     // Payment history
-    +'<div><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">Payment History'+(allPays.length>50?' (last 50)':' ('+allPays.length+')')+'</div>'
+    +'<div><div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-1.5">To\'lovlar tarixi'+(allPays.length>50?' (so\'nggi 50 ta)':' ('+allPays.length+' ta)')+'</div>'
     +(payHtml?'<div class="border border-brd rounded-[10px] overflow-hidden">'
     +'<div class="max-h-[220px] overflow-y-auto">'
-    +'<table class="pay-tbl"><thead><tr><th>Date</th><th>Type</th><th class="text-r">'+(isUZS?'Summa':'USD')+'</th></tr></thead>'
+    +'<table class="pay-tbl"><thead><tr><th>Sana</th><th>Turi</th><th class="text-r">'+(isUZS?'Summa':'USD')+'</th></tr></thead>'
     +'<tbody>'+payHtml+'</tbody></table></div></div>'
-    :'<div class="text-center p-5 text-subtle text-[13px]">No payment history</div>')
+    :'<div class="text-center p-5 text-subtle text-[13px]">To\'lovlar tarixi mavjud emas</div>')
     +'</div>'
     +'</div>'
     // RIGHT column: charts
     +'<div class="flex flex-col gap-3.5 min-w-0 overflow-hidden">'
     // MRR bar chart
     +'<div class="bg-card border border-brd rounded-[10px] p-3 overflow-hidden">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">MRR Trend (12M)</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">MRR dinamikasi (12 oy)</div>'
     +'<div class="relative h-[140px] w-full"><canvas id="'+cid+'_mrr"></canvas></div>'
     +'</div>'
     // Payment trend bar chart
     +'<div class="bg-card border border-brd rounded-[10px] p-3 overflow-hidden">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">Payment Trend (12M)</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">To\'lovlar trendi (12 oy)</div>'
     +'<div class="relative h-[140px] w-full"><canvas id="'+cid+'_trend"></canvas></div>'
     +'</div>'
     // Payment type donut
     +(dtLabels.length?'<div class="bg-card border border-brd rounded-[10px] p-3 overflow-hidden">'
-    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">Payment Types</div>'
+    +'<div class="text-[10px] font-bold uppercase tracking-[0.5px] text-muted mb-2.5">To\'lov turlari</div>'
     +'<div class="relative h-[160px] w-full"><canvas id="'+cid+'_pay"></canvas></div>'
     +'</div>':'')
     +'</div>'
@@ -433,7 +433,7 @@ function showMetricInfo(k){
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>ARR</b> = MRR × 12. Yillik darajadagi bashorat. Investorlar va moliyaviy rejalashtirishda ishlatiladi.<br>
-        <b>⚠️ Risk:</b> Agar bir nechta yirik shartnoma tugashi yaqin bo'lsa, MRR keskin tushishi mumkin. Revenue Concentration kartasini kuzating.
+        <b>⚠️ Risk:</b> Agar bir nechta yirik shartnoma tugashi yaqin bo'lsa, MRR keskin tushishi mumkin. Revenue Konsentratsiya kartasini kuzating.
       </div>`,
 
     'nrr': `<h4 class="mb-2.5">♻️ NRR — Net Revenue Retention</h4>
@@ -460,7 +460,7 @@ function showMetricInfo(k){
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>Churn Rate:</b> Har oyda bazangizning necha %i ketmoqda.<br>
         <b>Yaxshi:</b> < 3% oylik | <b>O'rtacha:</b> 3-5% | <b>Xavfli:</b> > 5%<br>
-        <b>⚠️ Risk:</b> Agar kichik mijozlar ko'p ketsa va yirik qolsa — soni kamayadi lekin MRR saqlanadi. Bu vaqtinchalik! Shunday paytda Revenue Concentration xavfi oshadi.
+        <b>⚠️ Risk:</b> Agar kichik mijozlar ko'p ketsa va yirik qolsa — soni kamayadi lekin MRR saqlanadi. Bu vaqtinchalik! Shunday paytda Revenue Konsentratsiya xavfi oshadi.
       </div>`,
 
     'arpa': `<h4 class="mb-2.5">💳 ARPA — Average Revenue Per Account</h4>
@@ -507,7 +507,7 @@ function showMetricInfo(k){
         <b>⚠️ Risk:</b> DSO oshib borsa — bu churnning "yashirin belgisi" bo'lishi mumkin. To'lamaydigan mijoz ertaga ketadigan mijozdir.
       </div>`,
 
-    'conc': `<h4 class="mb-2.5">🏢 Revenue Concentration — Daromad Concentrationsi</h4>
+    'conc': `<h4 class="mb-2.5">🏢 Revenue Konsentratsiya — Daromad Konsentratsiyasi</h4>
       <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Umumiy daromadning <b>eng yirik mijozlarga qanchalik bog'liq</b> ekanligini ko'rsatadi. Top 5 va Top 10 ulushini o'lchaydi.</div>
       <div class="mb-3.5">
         ${bx('#2ecc96','🟢','<b>Yaxshi (Top 5 < 25%):</b> Daromad <b>keng tarqalgan.</b> Birorta yirik mijoz ketsa ham biznesga jiddiy zarar yetmaydi.')}
@@ -516,7 +516,7 @@ function showMetricInfo(k){
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>Top 10:</b> Eng katta 10 ta mijozning umumiy MRRdagi ulushi.<br>
-        <b>⚠️ Risk:</b> Concentration yuqori bo'lsa, yirik mijoz bilan munosabat buzilishi butun kompaniya moliyaviy holatini buzadi. <b>Har bir yirik mijozga alohida Account Manager biriktiring.</b>
+        <b>⚠️ Risk:</b> Konsentratsiya yuqori bo'lsa, yirik mijoz bilan munosabat buzilishi butun kompaniya moliyaviy holatini buzadi. <b>Har bir yirik mijozga alohida Account Manager biriktiring.</b>
       </div>`,
 
     'ltv': `<h4 class="mb-2.5">💎 LTV — Customer Lifetime Value</h4>
@@ -565,7 +565,7 @@ function showMetricInfo(k){
         ${bx('#e74c3c','🔴','<b>Xavfli:</b> Logo Churn <b>> 5%</b> yoki Revenue Churn <b>> 5%.</b> Jiddiy mijoz yo\'qotish. <b>Sabab tahlili zudlik bilan kerak.</b>')}
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
-        <b>Logo > Revenue:</b> Ko'p kichik mijozlar ketmoqda, lekin yiriklari qolmoqda — <b>Revenue Concentration</b> xavfi oshadi.<br>
+        <b>Logo > Revenue:</b> Ko'p kichik mijozlar ketmoqda, lekin yiriklari qolmoqda — <b>Revenue Konsentratsiya</b> xavfi oshadi.<br>
         <b>Logo < Revenue:</b> Kam, lekin <b>yirik mijozlar</b> ketmoqda — bu eng xavfli senariy!<br>
         <b>⚠️ Risk:</b> Revenue Churn yuqori, Logo Churn past bo'lsa — portfelingizning eng qimmatli qismi ketayotganini anglatadi.
       </div>`,
@@ -816,8 +816,8 @@ ${(()=>{
 
   if(c.tNew?.s!==false || c.tChurn?.s!==false){
     h+=`<div class="grid-2 mt-3.5">`;
-    if(c.tNew?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>New (${totalNew}) <span style="color:var(--green);font-weight:600">+${fmt(mrrFromNew)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Client</th><th class="col-hide">Manager</th><th class="text-r">MRR</th></tr></thead><tbody>${newClients.length?newClients.map(c=>{return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td class="font-semibold text-xs">'+cl(c.name)+'</td><td class="col-hide text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green);font-weight:600">+'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
-    if(c.tChurn?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn (${totalChurn}) <span style="color:var(--red);font-weight:600">-${fmt(mrrFromChurn)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Client</th><th class="col-hide">Manager</th><th class="text-r">MRR</th></tr></thead><tbody>${churnClients.length?churnClients.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="col-hide text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red);font-weight:600">-'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    if(c.tNew?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>New (${totalNew}) <span style="color:var(--green);font-weight:600">+${fmt(mrrFromNew)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${newClients.length?newClients.map(c=>{return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td class="font-semibold text-xs">'+cl(c.name)+'</td><td class="col-hide text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--green);font-weight:600">+'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    if(c.tChurn?.s!==false) h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Churn (${totalChurn}) <span style="color:var(--red);font-weight:600">-${fmt(mrrFromChurn)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:340px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th></tr></thead><tbody>${churnClients.length?churnClients.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="col-hide text-[11px] text-muted">'+(c.mgr||'—')+'</td><td class="text-r mono" style="color:var(--red);font-weight:600">-'+fmt(c.mrr)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
     h+=`</div>`;
   }
 
@@ -829,10 +829,10 @@ ${(()=>{
 
     h+=`<div class="grid-2 mt-3.5">`;
     // EXPANSION TABLE
-    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-teal"></span>Expansion (${expansions.length}) <span style="color:var(--green);font-weight:600">+${fmt(mrrExpOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Client</th><th class="text-r">Before</th><th class="text-r">After</th><th class="text-r">Change</th></tr></thead><tbody>${expansions.length?expansions.map(c=>{const badge = (c.isRes?' <span class="badge b-amber" style="font-size:8px;padding:1px 4px">Q</span>':'') + (c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''); return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--green)">+'+fmt(c.delta)+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-teal"></span>Expansion (${expansions.length}) <span style="color:var(--green);font-weight:600">+${fmt(mrrExpOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="text-r">Oldin</th><th class="text-r">Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${expansions.length?expansions.map(c=>{const badge = (c.isRes?' <span class="badge b-amber" style="font-size:8px;padding:1px 4px">Q</span>':'') + (c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''); return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--green)">+'+fmt(c.delta)+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
     
     // CONTRACTION TABLE
-    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-warn"></span>Contraction (${contractions.length}) <span style="color:var(--red);font-weight:600">-${fmt(mrrConOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Client</th><th class="text-r">Before</th><th class="text-r">After</th><th class="text-r">Change</th></tr></thead><tbody>${contractions.length?contractions.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--red)">-'+fmt(Math.abs(c.delta))+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-warn"></span>Contraction (${contractions.length}) <span style="color:var(--red);font-weight:600">-${fmt(mrrConOnly)}</span></span></div><div class="card-body dash-new-full" style="padding:0;max-height:300px;overflow-y:auto"><table><thead><tr><th>Sana</th><th>Mijoz</th><th class="text-r">Oldin</th><th class="text-r">Hozir</th><th class="text-r">Farq</th></tr></thead><tbody>${contractions.length?contractions.map(c=>{const badge = c.isIntra?' <span class="badge b-accent" style="font-size:10px;padding:0 2px">🔄</span>':''; return'<tr><td class="mono" style="font-size:10.5px;color:var(--text3);white-space:nowrap">'+fmtD(c.date)+'</td><td style="font-weight:500;font-size:12px">'+cl(c.name)+badge+'</td><td class="text-r mono text-[11px] text-subtle">'+fmt(c.mrrStart)+'</td><td class="text-r mono text-[11px]">'+fmt(c.mrrEnd)+'</td><td class="text-r mono" style="font-size:11px;font-weight:600;color:var(--red)">-'+fmt(Math.abs(c.delta))+'</td></tr>'}).join(''):'<tr><td colspan="5" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
     h+=`</div>`;
   }
   h+=`</div>`;
@@ -862,7 +862,7 @@ const t=d.length,pg=Math.ceil(t/S.cN),sl=d.slice(S.cP*S.cN,(S.cP+1)*S.cN);
 const so=[{v:'',l:'Barcha'},{v:'A',l:'Aktiv'},{v:'D',l:'Bajarildi'},{v:'Q',l:'Eski qarz'},{v:'P',l:'Muammo'},{v:'O',l:'Ortiqcha'},{v:'X',l:'Bekor'}];
 const hasPay=S.payRows.length||S.y2024Rows.length||S.perevodRows.length;
 const view=S.cView||'royyat';
-let h=_pageTabs([{v:'royyat',l:"List"},{v:'muddatlar',l:'Deadlines'}],view,'cView');
+let h=_pageTabs([{v:'royyat',l:"Ro'yxat"},{v:'muddatlar',l:'Muddatlar'}],view,'cView');
 
 if(view==='muddatlar'){
   // Extended renewal calendar: 90 days ahead + 30 days expired
@@ -880,23 +880,23 @@ if(view==='muddatlar'){
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const rnAll=Object.values(rnMap).map(c=>({...c,daysLeft:Math.round((c.endDate-today)/864e5)})).filter(c=>c.daysLeft<=7&&c.daysLeft>=-7).sort((a,b)=>a.daysLeft-b.daysLeft);
   const ctExp=rnAll.filter(r=>r.daysLeft<0).length,ctAhead=rnAll.filter(r=>r.daysLeft>=0).length;
-  h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-warn"></span>Deadline Calendar (±7 days) — <span class="text-success font-bold">${ctAhead}</span> expiring${ctExp?` / <span class="text-subtle">${ctExp} expired</span>`:''}</span></div>
-  <div class="card-body dash-new-full p-0"><div class="tbl-scroll max-h-[calc(100vh-220px)]"><table><thead><tr><th>Client</th><th class="col-hide">Company</th><th class="col-hide">Manager</th><th class="text-r">MRR</th><th class="text-r">Days Left</th></tr></thead><tbody>`;
+  h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-warn"></span>Muddat Kalendari (±7 kun) — <span class="text-success font-bold">${ctAhead}</span> tugayotgan${ctExp?` / <span class="text-subtle">${ctExp} tugagan</span>`:''}</span></div>
+  <div class="card-body dash-new-full p-0"><div class="tbl-scroll max-h-[calc(100vh-220px)]"><table><thead><tr><th>Mijoz</th><th class="col-hide">Firma</th><th class="col-hide">Menejer</th><th class="text-r">MRR</th><th class="text-r">Qoldi</th></tr></thead><tbody>`;
   if(rnAll.length)rnAll.forEach(r=>{
     const expired=r.daysLeft<0;
     const dc=expired?'var(--text3)':r.daysLeft<=5?'var(--red)':r.daysLeft<=10?'var(--amber)':'var(--green)';
     const nm=expired?`<span class="opacity-60">${cl(r.name)}</span>`:cl(r.name);
-    const dl=expired?`<span class="text-[10px] text-subtle">${Math.abs(r.daysLeft)} days ago</span>`:`${r.daysLeft} days`;
+    const dl=expired?`<span class="text-[10px] text-subtle">${Math.abs(r.daysLeft)} kun oldin</span>`:`${r.daysLeft} kun`;
     const firmaHtml=r.firma?r.firma+(r.inn?'<div class="text-[9px] text-subtle font-mono">'+r.inn+' <button onclick="navigator.clipboard.writeText(\''+r.inn+'\');showToast(\'Nusxalandi\',\'success\')" class="bg-transparent border-none cursor-pointer text-subtle p-0 text-[9px]">📋</button></div>':''):'—';
     h+=`<tr${expired?' class="opacity-50"':''}><td class="font-semibold text-xs">${nm}</td><td class="col-hide text-[11px] text-muted">${firmaHtml}</td><td class="col-hide text-[11px] text-muted">${r.mgr||'—'}</td><td class="text-r mono text-[11px]">${fmt(r.mrr)}</td><td class="text-r mono" style="font-size:11px;font-weight:700;color:${dc}">${dl}</td></tr>`;
-  });else h+=`<tr><td colspan="5" class="text-center text-subtle p-5">No contracts expiring soon ✅</td></tr>`;
+  });else h+=`<tr><td colspan="5" class="text-center text-subtle p-5">Yaqinda tugaydigan shartnoma yo'q ✅</td></tr>`;
   h+=`</tbody></table></div></div></div>`;
 }else{
   h+=`<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, firma, INN..." value="${S.cQ}" oninput="onSearch('cQ',this.value)"><button class="search-clear" onclick="onSearch('cQ','');render()" type="button">&times;</button></div>
 <select class="flt" onchange="S.cS=this.value;S.cP=0;clearCache();render()">${so.map(o=>`<option value="${o.v}"${S.cS===o.v?' selected':''}>${o.l}</option>`).join('')}</select>
 <select class="flt" onchange="S.cM=this.value;S.cP=0;clearCache();render()"><option value="">Barcha menejerlar</option>${uq('Manager').map(m=>`<option value="${m}"${S.cM===m?' selected':''}>${m}</option>`).join('')}</select>
 <select class="flt" onchange="S.cR=this.value;S.cP=0;clearCache();render()"><option value="">Barcha hududlar</option>${uq('Hudud').map(r=>`<option value="${r}"${S.cR===r?' selected':''}>${r}</option>`).join('')}</select></div>`;
-  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Client</th><th>Company</th><th>Region</th><th>Manager</th><th>Date</th><th>End</th><th class="text-r">Monthly $</th><th class="text-r">Total $</th>${hasPay?'<th class="text-r">Paid</th><th class="text-r">Debt</th>':''}<th>Status</th></tr></thead><tbody>${sl.map(r=>{
+  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Mijoz</th><th>Firma</th><th>Hudud</th><th>Menejer</th><th>Sana</th><th>Tugash</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th>${hasPay?'<th class="text-r">To\'langan</th><th class="text-r">Qarz</th>':''}<th>Status</th></tr></thead><tbody>${sl.map(r=>{
 const k=r.Client+'|'+r.raqami;const qExtra=qm[k]||0;const totalSum=r._sUSD+qExtra;
 const p=pm[k]||{total:0};const qarz=Math.round(totalSum-p.total)||0;const qarzD=Math.abs(qarz)<=1?0:qarz;
 const qC=qarzD>0?'var(--red)':qarzD<0?'var(--amber)':'var(--green)';const qW=qarzD>0?'600':'400';
@@ -933,7 +933,7 @@ const _pm=calcPayments();const clPay={};Object.values(_pm).forEach(v=>{clPay[v.c
 const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 const cc=S.mrrCols;let filtered=[...d.clients];
 if(S.mrrQ){const q=S.mrrQ.toLowerCase();filtered=filtered.filter(c=>c.name.toLowerCase().includes(q)||c.mgr.toLowerCase().includes(q)||(c.hudud||'').toLowerCase().includes(q))}
-const colDefs=[{k:'mgr',l:'Manager'},{k:'hudud',l:'Region'},{k:'mrr',l:'MRR'},{k:'deal',l:'Deal Start'},{k:'end',l:'Deal End'}];
+const colDefs=[{k:'mgr',l:'Manager'},{k:'hudud',l:'Hudud'},{k:'mrr',l:'MRR'},{k:'deal',l:'Deal boshi'},{k:'end',l:'Deal tugashi'}];
 const setPanel=S.mrrSet?`<div class="mrr-set">${colDefs.map(c=>`<label><input type="checkbox" ${cc[c.k]?'checked':''} onchange="S.mrrCols.${c.k}=this.checked;render()">${c.l}</label>`).join('')}</div>`:'';
 const exCols=(cc.mgr?1:0)+(cc.hudud?1:0)+(cc.mrr?1:0)+(cc.deal?1:0)+(cc.end?1:0);
 
@@ -990,21 +990,21 @@ function rM(){
   const co=['#1746a2','#117a52','#c42b1c','#6941b8','#a36207','#0e7c7b','#d4537e','#5a5955','#854f0b','#993556'];
   const view=S.mgrView||'umumiy';
   let h='';
-  h+=_pageTabs([{v:'umumiy',l:'Acquisition'},{v:'reyting',l:'MRR Movement'}],view,'mgrView');
+  h+=_pageTabs([{v:'umumiy',l:'Acquisition'},{v:'reyting',l:'MRR Harakati'}],view,'mgrView');
 
   if(view==='reyting'){
     const mb=calcManagerBoard();
-    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent2"></span>MRR Movement Rating <span class="text-[10px] text-subtle font-normal ml-1.5">· selected period</span></span></div>
-    <div class="card-body dash-new-full p-0"><div class="tbl-scroll max-h-[calc(100vh-220px)]"><table><thead><tr><th>#</th><th>Manager</th><th class="text-r" title="MRR from new clients">New</th><th class="text-r col-hide" title="MRR lost from churned clients">Churn</th><th class="text-r col-hide" title="Additional MRR from expanded contracts">Exp</th><th class="text-r col-hide" title="Reduced MRR from contracted deals">Con</th><th class="text-r" title="New + Exp − Churn − Con">Net MRR</th></tr></thead><tbody>`;
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent2"></span>MRR Harakati Reytingi <span class="text-[10px] text-subtle font-normal ml-1.5">· tanlangan davr</span></span></div>
+    <div class="card-body dash-new-full p-0"><div class="tbl-scroll max-h-[calc(100vh-220px)]"><table><thead><tr><th>#</th><th>Menejer</th><th class="text-r" title="Yangi mijozlardan kelgan MRR">Yangi</th><th class="text-r col-hide" title="Ketgan mijozlardan yo'qotilgan MRR">Churn</th><th class="text-r col-hide" title="Kengaygan shartnomalardan qo'shimcha MRR">Exp</th><th class="text-r col-hide" title="Qisqargan shartnomalardan kamaygan MRR">Con</th><th class="text-r" title="Yangi + Exp − Churn − Con">Sof MRR</th></tr></thead><tbody>`;
     mb.forEach((m,i)=>{
       const nc=m.netMRR>=0?'var(--green)':'var(--red)';
       h+=`<tr><td style="font-weight:700;color:var(--text3)">${i+1}</td><td class="font-semibold text-xs"><span class="mgr-link" onclick="showMgrStats('${m.name.replace(/'/g,"\\'")}')">${m.name}</span></td><td class="text-r"><span class="up mono text-[11px]">+${fmt(m.newMRR)}</span> <span style="font-size:9px;color:var(--text3)">(${m.newCount})</span></td><td class="text-r col-hide"><span class="dn mono text-[11px]">-${fmt(m.churnMRR)}</span> <span style="font-size:9px;color:var(--text3)">(${m.churnCount})</span></td><td class="text-r col-hide mono" style="font-size:11px;color:var(--green)">${m.expMRR>0?'+'+fmt(m.expMRR):'—'}</td><td class="text-r col-hide mono" style="font-size:11px;color:${m.conMRR>0?'var(--amber)':'var(--text3)'}">${m.conMRR>0?'-'+fmt(m.conMRR):'—'}</td><td class="text-r mono" style="font-weight:700;color:${nc}">${m.netMRR>=0?'+':''}${fmt(m.netMRR)}</td></tr>`;
     });
     h+=`</tbody></table></div></div></div>`;
   }else{
-    h+=`<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Acquired MRR ($)</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMM"></canvas></div></div></div>
-    <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>Customer Count</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMC"></canvas></div></div></div></div>
-    <div class="tbl-wrap mt-3.5"><table><thead><tr><th>Manager</th><th class="text-r">Clients</th><th class="text-r">Acquired MRR ($)</th><th class="text-r">Average</th><th>Share</th></tr></thead><tbody>${mg.map((x,i)=>{const p=tM?Math.round(x.initialMRR/tM*100):0;const av=x.clients?Math.round(x.initialMRR/x.clients):0;return`<tr><td class="font-semibold"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${co[i%co.length]};margin-right:7px;vertical-align:middle"></span><span class="mgr-link" onclick="showMgrStats('${x.name.replace(/'/g,"\\'")}')">${x.name}</span></td><td class="text-r mono">${x.clients}</td><td class="text-r mono font-semibold">${fmt(x.initialMRR)}</td><td class="text-r mono">${fmt(av)}</td><td><div class="flex items-center gap-1.5"><div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:${co[i%co.length]};border-radius:3px;transition:width .5s ease"></div></div><span class="mono" style="font-size:10px;color:var(--text3);min-width:28px;text-align:right">${p}%</span></div></td></tr>`}).join('')}</tbody></table></div>`;
+    h+=`<div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Olib kelingan MRR ($)</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMM"></canvas></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>Mijozlar soni</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chMC"></canvas></div></div></div></div>
+    <div class="tbl-wrap mt-3.5"><table><thead><tr><th>Menejer</th><th class="text-r">Mijozlar</th><th class="text-r">Olib kelgan MRR ($)</th><th class="text-r">O'rtacha</th><th>Ulush</th></tr></thead><tbody>${mg.map((x,i)=>{const p=tM?Math.round(x.initialMRR/tM*100):0;const av=x.clients?Math.round(x.initialMRR/x.clients):0;return`<tr><td class="font-semibold"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${co[i%co.length]};margin-right:7px;vertical-align:middle"></span><span class="mgr-link" onclick="showMgrStats('${x.name.replace(/'/g,"\\'")}')">${x.name}</span></td><td class="text-r mono">${x.clients}</td><td class="text-r mono font-semibold">${fmt(x.initialMRR)}</td><td class="text-r mono">${fmt(av)}</td><td><div class="flex items-center gap-1.5"><div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:${co[i%co.length]};border-radius:3px;transition:width .5s ease"></div></div><span class="mono" style="font-size:10px;color:var(--text3);min-width:28px;text-align:right">${p}%</span></div></td></tr>`}).join('')}</tbody></table></div>`;
   }
   return h;
 }
@@ -1025,11 +1025,11 @@ if(view==='tahlil'){
   const logoC=Math.round((dr.logoChurnRate||0)*10)/10;
   const revC=Math.round((dr.revenueChurnRate||0)*10)/10;
   h+=`<div class="grid-2">
-  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-teal"></span>Regional Analysis</span></div>
-  <div class="card-body dash-new-full p-0 max-h-[400px] overflow-y-auto"><table><thead><tr><th>Region</th><th class="text-r">MRR</th><th></th><th class="text-r">Clients</th></tr></thead><tbody>`;
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-teal"></span>Hudud bo'yicha tahlil</span></div>
+  <div class="card-body dash-new-full p-0 max-h-[400px] overflow-y-auto"><table><thead><tr><th>Hudud</th><th class="text-r">MRR</th><th></th><th class="text-r">Mijozlar</th></tr></thead><tbody>`;
   rg.forEach(r=>{const w=Math.round(r.mrr/maxMRR*100);const hn=JSON.stringify(r.name).replace(/"/g,'&quot;');h+=`<tr style="cursor:pointer" onclick="showRegionModal(${hn})" title="${r.name} mijozlarini ko'rish"><td class="font-semibold text-xs">${r.name}</td><td class="text-r mono text-[11px]">${fmt(r.mrr)}</td><td><div style="background:var(--bg3);border-radius:3px;height:12px;overflow:hidden"><div style="width:${w}%;height:100%;background:var(--teal);border-radius:3px"></div></div></td><td class="text-r font-semibold">${r.count}</td></tr>`;});
   h+=`</tbody></table></div></div>
-  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-purple"></span>Customer Loyalty (Retention)</span></div>
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-purple"></span>Mijozlar sadoqati (Retention)</span></div>
   <div class="card-body p-5">
     <div class="flex justify-between items-center mb-5">
       <div><div class="text-[11px] text-subtle mb-1">LOGO CHURN</div><div style="font-size:24px;font-weight:700;color:${logoC>5?'var(--red)':'var(--green)'}">${logoC}%</div></div>
@@ -1040,9 +1040,9 @@ if(view==='tahlil'){
     <div class="text-[11.5px] text-muted leading-normal p-3 bg-card rounded-lg">Mijozlar soni va daromad yo'qotish ko'rsatkichlari. LTV (Lifetime Value) - bir mijozdan kutiladigan jami daromad.</div>
   </div></div></div>`;
   if(cq.length){
-    h+=`<div class="card mt-4"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Customer Loyalty (Cohort Heatmap)</span></div>
+    h+=`<div class="card mt-4"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Mijozlar sadoqati (Cohort Heatmap)</span></div>
     <div class="overflow-x-auto pb-2.5"><table class="u-table text-[11.5px] min-w-[800px] text-center">
-    <thead><tr><th class="text-left w-[120px]">Cohort (Join Month)</th><th class="w-20">Clients</th>`;
+    <thead><tr><th class="text-left w-[120px]">Kogort (Ulangan oyi)</th><th class="w-20">Mijozlar</th>`;
     let maxM=0;cq.forEach(d=>maxM=Math.max(maxM,d.months.length));
     for(let i=0;i<maxM;i++)h+=`<th>Oy ${i}</th>`;
     h+=`</tr></thead><tbody>`;
@@ -1068,15 +1068,15 @@ const t5=act.slice(0,5).reduce((s,r)=>s+r._mUSD,0),t10=act.slice(0,10).reduce((s
 const view=S.topView||'metrka';
 let h='';
 if(view==='jadval'){
-  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Client</th><th>Company</th><th>Manager</th><th>Region</th><th class="text-r">Monthly $</th><th class="text-r">Share</th><th style="width:160px">Ratio</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono text-[11px] text-muted">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px;transition:width .5s ease"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`;
+  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Mijoz</th><th>Firma</th><th>Menejer</th><th>Hudud</th><th class="text-r">Oylik $</th><th class="text-r">Ulush</th><th style="width:160px">Nisbat</th></tr></thead><tbody>${act.slice(0,40).map((r,i)=>{const p=tM?(r._mUSD/tM*100):0;const rc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';const bc=i<3?'var(--accent)':i<10?'var(--green)':'var(--amber)';return`<tr><td><span class="rank ${rc}">${i+1}</span></td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px">${r['Firma nomi']||'—'}</td><td class="text-xs">${r.Manager||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="text-r mono" style="font-weight:700;font-size:13px">${fmt(r._mUSD)}</td><td class="text-r mono text-[11px] text-muted">${p.toFixed(1)}%</td><td><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${act[0]?Math.min(r._mUSD/act[0]._mUSD*100,100):0}%;background:${bc};border-radius:4px;transition:width .5s ease"></div></div></td></tr>`}).join('')}</tbody></table></div></div>`;
 }else{
   h+=`<div class="metrics grid-cols-4">
   <div class="metric c5"><div class="metric-lbl">Top 5</div><div class="metric-val">${tM?Math.round(t5/tM*100):0}%</div><div class="metric-foot">${fmt(t5)} $</div></div>
   <div class="metric c1"><div class="metric-lbl">Top 10</div><div class="metric-val">${tM?Math.round(t10/tM*100):0}%</div><div class="metric-foot">${fmt(t10)} $</div></div>
   <div class="metric c2"><div class="metric-lbl">Top 20</div><div class="metric-val">${tM?Math.round(t20/tM*100):0}%</div><div class="metric-foot">${fmt(t20)} $</div></div>
-  <div class="metric c3"><div class="metric-lbl">Average</div><div class="metric-val">${fmt(act.length?Math.round(tM/act.length):0)}</div><div class="metric-foot">per contract</div></div></div>
+  <div class="metric c3"><div class="metric-lbl">O'rtacha</div><div class="metric-val">${fmt(act.length?Math.round(tM/act.length):0)}</div><div class="metric-foot">per shartnoma</div></div></div>
   <div class="grid-2"><div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Top 10</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chT"></canvas></div></div></div>
-  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-purple"></span>Concentration</span></div><div class="card-body"><div class="chart-wrap h-[220px]"><canvas id="chK"></canvas></div></div></div></div>`;
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-tw-purple"></span>Konsentratsiya</span></div><div class="card-body"><div class="chart-wrap h-[220px]"><canvas id="chK"></canvas></div></div></div></div>`;
 }
 return h;
 }
@@ -1103,7 +1103,7 @@ if(view==='jadval'){
   let filtered=dt;
   if(S.debtQ){const q=S.debtQ.toLowerCase();filtered=dt.filter(r=>r.name.toLowerCase().includes(q));}
   let mobTabs='';
-  if(isM){const tabs=[{k:'sh',l:'Balance'},{k:'oy',l:'Month-end'},{k:'kel',l:'Agreement'},{k:'lp',l:"Last Payment"}];mobTabs='<div style="display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px">'+tabs.map(t=>`<button class="btn" style="flex-shrink:0;${S.debtMobCol===t.k?'background:var(--accent);color:#fff;border-color:var(--accent)':''}" onclick="switchDMC('${t.k}')">${t.l}</button>`).join('')+'</div>';}
+  if(isM){const tabs=[{k:'sh',l:'Sh. qoldiq'},{k:'oy',l:'Oy oxiri'},{k:'kel',l:'Kelishuv'},{k:'lp',l:"Oxirgi to'lov"}];mobTabs='<div style="display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px">'+tabs.map(t=>`<button class="btn" style="flex-shrink:0;${S.debtMobCol===t.k?'background:var(--accent);color:#fff;border-color:var(--accent)':''}" onclick="switchDMC('${t.k}')">${t.l}</button>`).join('')+'</div>';}
   const fsIcon=S.debtFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
   h+=`<div id="debtContainer"${S.debtFs?' class="debt-fs-active"':''}>`;
   h+=`<div class="toolbar mb-3 gap-2.5">
@@ -1114,11 +1114,11 @@ if(view==='jadval'){
 <button class="btn${S.debtFs?' btn-primary':''} py-2 px-3" onclick="toggleDebtFs()" title="${S.debtFs?'Kichraytirish':'To\'liq ekran'}">${fsIcon}</button>
 </div>
 </div>`;
-  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'60':'140'}px)"><table><thead><tr><th>Client</th>
-${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Balance</th>`:''}
-${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Month-end</th>`:''}
-${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Agreement</th>`:''}
-${(!isM||S.debtMobCol==='lp')?`<th class="text-r">Last Payment</th>`:''}
+  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'60':'140'}px)"><table><thead><tr><th>Mijoz</th>
+${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq</th>`:''}
+${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Oy oxiri</th>`:''}
+${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Kelishuv</th>`:''}
+${(!isM||S.debtMobCol==='lp')?`<th class="text-r">Oxirgi to'lov</th>`:''}
 </tr></thead><tbody>${filtered.length?filtered.map(r=>{
 const oyC=r.oyQarz>0?'var(--amber)':'var(--green)';const kelC=r.kelQarz>0?'var(--red)':'var(--green)';
 const lp=r.lastPay;
@@ -1146,19 +1146,19 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
   h+=`</div>`;
 }else{
   h+=`<div class="metrics grid-cols-4">
-  <div class="metric c6"><div class="metric-lbl">DSO (Days Sales Outstanding)</div><div class="metric-val" style="color:${dsoColor}">${dsoVal} <span class="text-sm">days</span></div></div>
-  <div class="metric c2"><div class="metric-lbl">Rev. Concentration (Top 5)</div><div class="metric-val" style="color:${concColor}">${conc5}%</div></div>
-  <div class="metric c4"><div class="metric-lbl">Month-end Debt</div><div class="metric-val">${fmt(totalOy)}</div></div>
-  <div class="metric c4"><div class="metric-lbl">Agreement Debt</div><div class="metric-val">${fmt(totalKel)}</div></div></div>
-  <div class="card mt-4"><div class="card-head"><span class="card-label">Debt Distribution</span></div>
+  <div class="metric c6"><div class="metric-lbl">DSO</div><div class="metric-val" style="color:${dsoColor}">${dsoVal} <span class="text-sm">kun</span></div></div>
+  <div class="metric c2"><div class="metric-lbl">Konsentratsiya (Top 5)</div><div class="metric-val" style="color:${concColor}">${conc5}%</div></div>
+  <div class="metric c4"><div class="metric-lbl">Oy oxiri qarzi</div><div class="metric-val">${fmt(totalOy)}</div></div>
+  <div class="metric c4"><div class="metric-lbl">Kelishuv qarzi</div><div class="metric-val">${fmt(totalKel)}</div></div></div>
+  <div class="card mt-4"><div class="card-head"><span class="card-label">Qarz taqsimoti</span></div>
   <div class="card-body">
     ${dt.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div><div class="text-[11px] text-subtle mb-2">Month-end Debt TOP 5</div>
+    <div><div class="text-[11px] text-subtle mb-2">Oy oxiri qarz bo'yicha TOP 5</div>
     ${dt.filter(r=>r.oyQarz>0).sort((a,b)=>b.oyQarz-a.oyQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span class="font-medium">${cl(r.name)}</span><span class="mono" style="color:var(--amber);font-weight:600">${fmt(r.oyQarz)}</span></div>`).join('')}
     </div>
-    <div><div class="text-[11px] text-subtle mb-2">Agreement Debt TOP 5</div>
+    <div><div class="text-[11px] text-subtle mb-2">Kelishuv qarz bo'yicha TOP 5</div>
     ${dt.filter(r=>r.kelQarz>0).sort((a,b)=>b.kelQarz-a.kelQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span class="font-medium">${cl(r.name)}</span><span class="mono" style="color:var(--red);font-weight:600">${fmt(r.kelQarz)}</span></div>`).join('')}
-    </div></div>`:'<div class="text-center text-subtle p-6">No debtors ✅</div>'}
+    </div></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q ✅</div>'}
   </div></div>`;
 }
 return h;
@@ -1178,9 +1178,9 @@ function rMoliya(){
     const pct=agingTotal>0?Math.round(b.total/agingTotal*100):0;
     const isActive=af.includes(b.label);
     agingCards+=`<div class="metric cursor-pointer" style="border-top:3px solid ${b.color};${isActive?`border-color:${b.color};background:var(--bg3)`:''}" onclick="toggleAgingFilter('${b.label}')" title="${b.label} bo'yicha filterlash">
-      <div class="metric-lbl">${b.label}${isActive?' <span style="font-size:9px;color:var(--text3)">(active)</span>':''}</div>
+      <div class="metric-lbl">${b.label}${isActive?' <span style="font-size:9px;color:var(--text3)">(aktiv)</span>':''}</div>
       <div class="metric-val mono" style="color:${b.color}">${fmt(b.total)}</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:4px">${b.clients.length} clients · ${pct}%</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">${b.clients.length} ta mijoz · ${pct}%</div>
     </div>`;
   });
   let agingRows='';
@@ -1192,22 +1192,22 @@ function rMoliya(){
       <td><span class="badge" style="background:${c.color}20;color:${c.color};border:1px solid ${c.color}40">${c.bucket}</span></td>
       <td class="text-r mono" style="color:var(--red);font-weight:600">${fmt(c.qarz)}</td>
       <td class="text-r mono text-[11px] text-subtle">${c.kelQarz>0?fmt(c.kelQarz):'—'}</td>
-      <td class="text-r text-xs">${c.days<999?c.days+' days':'—'}</td>
+      <td class="text-r text-xs">${c.days<999?c.days+' kun':'—'}</td>
       <td class="text-[11px] text-subtle">${c.lastPayDate}</td>
     </tr>`;
   });
   const agingSection=`<div>
     <div class="toolbar mb-2 gap-2.5">
-      <span class="text-xs font-semibold text-subtle">${af.length?`Filter: ${af.join(', ')}`:allAging.length+' debtors'}</span>
+      <span class="text-xs font-semibold text-subtle">${af.length?`Filter: ${af.join(', ')}`:allAging.length+' ta qarzdor'}</span>
       <div class="flex gap-1.5 items-center" style="margin-left:auto">
-        ${af.length?`<button class="btn" style="font-size:11px;padding:5px 10px" onclick="S.arAgingFilter=[];render()">Clear Filter</button>`:''}
+        ${af.length?`<button class="btn" style="font-size:11px;padding:5px 10px" onclick="S.arAgingFilter=[];render()">Filterni tozala</button>`:''}
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'araging')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
     <div class="metrics mb-2" style="grid-template-columns:repeat(4,1fr)">${agingCards}</div>
     ${agingRows?`<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - 230px)"><table><thead><tr>
-        <th>Client</th><th>Bucket</th><th class="text-r">Month Debt</th><th class="text-r">Agreement</th><th class="text-r">Overdue</th><th>Last Payment</th>
-      </tr></thead><tbody>${agingRows}</tbody></table></div></div></div>`:'<div class="text-center text-subtle p-6">No debtors</div>'}
+        <th>Mijoz</th><th>Muddat</th><th class="text-r">Oy qarzi</th><th class="text-r">Kelishuv</th><th class="text-r">Kechikish</th><th>Oxirgi to'lov</th>
+      </tr></thead><tbody>${agingRows}</tbody></table></div></div></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q</div>'}
   </div>`;
 
   // === Collection Rate ===
@@ -1219,8 +1219,8 @@ function rMoliya(){
   const avgRate=cr.length?Math.round(cr.reduce((s,c)=>s+(capRate?Math.min(c.rate,100):c.rate),0)/cr.length):0;
   const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
   const modeToggle=`<div class="flex gap-0.5 bg-hover rounded-md p-0.5">
-    <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Month-end</button>
-    <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Agreement</button>
+    <button class="btn${inkMode==='oy'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='oy';clearCache();render()">Oy oxiri</button>
+    <button class="btn${inkMode==='kelishuv'?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoMode='kelishuv';clearCache();render()">Kelishuv</button>
   </div>`;
   // Inkasso metrics
   const totalExpected=cr.reduce((s,c)=>s+c.expected,0);
@@ -1257,11 +1257,11 @@ function rMoliya(){
     </tr>`;
   });
   const inkMetrics=`<div class="metrics grid-cols-5 mb-2">
-    <div class="metric"><div class="metric-lbl">Total Expected</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} clients</div></div>
-    <div class="metric"><div class="metric-lbl">Total Collected</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% overall</div></div>
-    <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">Fully Paid</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
-    <div class="metric" style="cursor:pointer;${inkFlt==='partial'?'outline:2px solid var(--amber);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><div class="metric-lbl">Partially Paid</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
-    <div class="metric" style="cursor:pointer;${inkFlt==='none'?'outline:2px solid var(--red);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><div class="metric-lbl">Unpaid</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
+    <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
+    <div class="metric"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='partial'?'outline:2px solid var(--amber);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='none'?'outline:2px solid var(--red);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
   </div>`;
   const inkFs=S.inkassoFs||false;
   const inkFsIcon=inkFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
@@ -1270,7 +1270,7 @@ function rMoliya(){
       <div class="flex gap-2 items-center">
         ${modeToggle}
         <button class="btn${capRate?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoCap=!S.inkassoCap;render()" title="100% dan oshmasin">Cap 100%</button>
-        <span style="font-size:13px;font-weight:700;color:${avgRateCol}">${avgRate}% avg</span>
+        <span style="font-size:13px;font-weight:700;color:${avgRateCol}">${avgRate}% o'rtacha</span>
       </div>
       <div class="flex gap-1.5 items-center" style="margin-left:auto">
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'collection')" title="Yuklab olish">${_dlSvg}</button>
@@ -1278,11 +1278,11 @@ function rMoliya(){
       </div>
     </div>
     ${cr.length?`${inkMetrics}<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'60':'210'}px)"><table><thead><tr>
-        <th>Client</th><th class="text-r" title="Beginning balance + expected this month">Expected</th>
-        <th class="text-r" title="Collected this month">Collected</th>
-        <th class="text-r">Diff</th><th>Collection Rate</th>
+        <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
+        <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
+        <th class="text-r">Farq</th><th>Undiruv darajasi</th>
       </tr></thead><tbody>${fCrRows}</tbody></table></div></div></div>`
-      :'<div class="text-center text-subtle p-6">No data</div>'}
+      :'<div class="text-center text-subtle p-6">Ma\'lumot yo\'q</div>'}
   </div>`;
 
   // === Tahlil (Data Quality Audit) ===
@@ -1300,14 +1300,14 @@ function rMoliya(){
   });
   const auditSection=`<div>
     <div class="toolbar mb-2 gap-2.5">
-      <span class="text-xs font-semibold text-subtle">${audit.length} issues</span>
+      <span class="text-xs font-semibold text-subtle">${audit.length} ta xatolik</span>
       <div class="flex gap-1.5 items-center" style="margin-left:auto">
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'audit')" title="Yuklab olish">${_dlSvg}</button>
       </div>
     </div>
     ${audit.length?`<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - 80px)"><table><thead><tr>
-        <th>Client</th><th>Contract</th><th>Issue Type</th><th>Details</th>
-      </tr></thead><tbody>${auditRows}</tbody></table></div></div></div>`:'<div style="text-align:center;color:var(--green);padding:24px">No issues found</div>'}
+        <th>Mijoz</th><th>Shartnoma</th><th>Xatolik turi</th><th>Tafsilot</th>
+      </tr></thead><tbody>${auditRows}</tbody></table></div></div></div>`:'<div style="text-align:center;color:var(--green);padding:24px">Xatolik topilmadi</div>'}
   </div>`;
 
   const view=S.molView||'aging';
