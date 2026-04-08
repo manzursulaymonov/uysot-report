@@ -498,14 +498,16 @@ function showProjectSwitcher(){
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   const items=S.projects.map((p,i)=>{
     const active=i===S.projectIdx;
-    return`<div class="spot-item${active?' spot-active':''}" style="display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-radius:10px" onclick="switchProject(${i});this.closest('.overlay').remove()">
-      <div class="spot-ava" style="background:${active?'var(--accent)':'var(--bg3)');color:${active?'#fff':'var(--text2)'}">${p.name.charAt(0).toUpperCase()}</div>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:14px;color:var(--text)">${p.name}</div>
-        ${p.menu?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+p.menu.length+' ta bo\'lim</div>':''}
-      </div>
-      ${active?'<span style="color:var(--accent);font-size:16px">✓</span>':''}
-    </div>`;
+    const bg=active?'var(--accent)':'var(--bg3)';
+    const fg=active?'#fff':'var(--text2)';
+    return'<div class="spot-item'+(active?' spot-active':'')+'" style="display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-radius:10px" onclick="switchProject('+i+');this.closest(\'.overlay\').remove()">'
+      +'<div class="spot-ava" style="background:'+bg+';color:'+fg+'">'+p.name.charAt(0).toUpperCase()+'</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-weight:600;font-size:14px;color:var(--text)">'+p.name+'</div>'
+      +(p.menu?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+p.menu.length+' ta bo\'lim</div>':'')
+      +'</div>'
+      +(active?'<span style="color:var(--accent);font-size:16px">✓</span>':'')
+      +'</div>';
   }).join('');
   o.innerHTML=`<div class="modal" style="max-width:400px;padding:0">
     <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px">Loyihani tanlang</div>
