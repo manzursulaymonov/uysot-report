@@ -310,7 +310,7 @@ function showClientCard(name,cur){
     +'<div class="mono text-[17px] font-bold" style="color:'+(payPct>=80?'var(--green)':payPct>=50?'var(--amber)':'var(--red)')+'">'+payPct+'%</div>'
     +'<div class="h-1 rounded-sm mt-0.5" style="background:var(--border)"><div class="h-full rounded-sm" style="width:'+payPct+'%;background:'+(payPct>=80?'var(--green)':payPct>=50?'var(--amber)':'var(--red)')+';transition:width .3s"></div></div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
-    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Tugashga <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'days_exp\')">i</span></div>'
+    +'<div class="text-[10px] text-subtle font-semibold uppercase tracking-[0.4px]">Shartnoma tugashiga <span class="metric-info" onclick="event.stopPropagation();showMetricInfo(\'days_exp\')">i</span></div>'
     +'<div class="mono text-[17px] font-bold" style="color:'+(daysToEnd!=null&&daysToEnd>0&&daysToEnd<=30?'var(--amber)':daysToEnd!=null&&daysToEnd===-999?'var(--red)':'var(--text)')+'">'+( daysToEnd!=null?(daysToEnd===-999?'Tugagan':daysToEnd>999?'Belgilanmagan':daysToEnd+' kun'):'—')+'</div>'
     +'<div class="text-[10px] text-subtle">shartnoma muddati</div></div>'
     +'<div class="bg-hover border border-brd rounded-lg py-2.5 px-3.5 flex flex-col gap-[3px]">'
