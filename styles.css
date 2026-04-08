@@ -72,7 +72,8 @@ body{
   margin-left:228px;flex:1;padding:20px 36px 4px;min-width:0;
   transition:margin-left var(--transition-slow);
 }
-.logo{padding:22px 20px 24px;display:flex;align-items:center;gap:10px}
+.logo{padding:22px 20px 24px;display:flex;align-items:center;gap:10px;border-radius:var(--radius);transition:background var(--transition-fast)}
+.logo:hover{background:var(--sidebar-hover-bg)}
 .logo-mark{
   width:30px;height:30px;background:linear-gradient(135deg,var(--accent2),#4b7be5);
   border-radius:7px;display:flex;align-items:center;justify-content:center;

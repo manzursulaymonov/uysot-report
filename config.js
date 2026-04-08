@@ -143,7 +143,7 @@ o.innerHTML=`<div class="modal max-w-[520px] max-h-[90vh] overflow-y-auto">
 <div class="text-xs font-semibold text-muted mb-2">JSON config bilan yuklash</div>
 <div class="flex gap-2">
 <label class="btn cursor-pointer flex-1 justify-center p-2.5" style="background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent);font-weight:600"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
-${hasSaved?`<button class="btn p-2.5" onclick="if(S.config)loadFromConfig(S.config)">Qayta yuklash</button>`:''}
+${hasSaved?`<button class="btn p-2.5" onclick="if(S.config){this.closest('.overlay').remove();loadFromConfig(S.config)}">Qayta yuklash</button>`:''}
 </div>
 <div class="text-[10.5px] text-subtle mt-1.5 leading-normal"><b>uysot_config.json</b> fayli orqali Google Sheets havolalarini yuklang.</div></div>
 
@@ -169,7 +169,7 @@ ${EO_STYLES.map(s=>'<option value="'+s.id+'"'+((localStorage.getItem('uysot_styl
 
 ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
 <div class="flex gap-1.5 flex-wrap">
-<button class="btn text-danger border-danger text-[11px]" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn text-danger border-danger text-[11px]" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_projectIdx');for(let i=0;i<10;i++)localStorage.removeItem('uysot_data_'+i);localStorage.removeItem('uysot_data');S.config=null;S.projects=null;S.projectIdx=0;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();updateProjectUI();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
 <button class="btn text-[11px]" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
 </div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
@@ -507,11 +507,36 @@ async function loadFromConfig(config){
   }
 }
 
-function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem('uysot_data',JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
-function loadCache(){try{const raw=localStorage.getItem('uysot_data');if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
+function _cacheKey(){const p=S.projects&&S.projects[S.projectIdx];return p?'uysot_data_'+S.projectIdx:'uysot_data'}
+function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem(_cacheKey(),JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
+function loadCache(){try{const raw=localStorage.getItem(_cacheKey());if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
 
 function loadJsonConfig(input){const f=input.files[0];if(!f)return;
-const r=new FileReader();r.onload=e=>{try{const config=JSON.parse(e.target.result);if(!config.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');localStorage.setItem('uysot_config',e.target.result);S.config=config;loadFromConfig(config)}catch(e){alert('JSON xatolik: '+e.message)}};r.readAsText(f)}
+const r=new FileReader();r.onload=e=>{try{const raw=JSON.parse(e.target.result);
+  // Multi-project format
+  if(raw.projects&&Array.isArray(raw.projects)){
+    if(!raw.projects.length||!raw.projects[0].shartnomalar)throw new Error('projects[0].shartnomalar havolasi topilmadi');
+    S.projects=raw.projects;
+    const savedIdx=parseInt(localStorage.getItem('uysot_projectIdx'))||0;
+    S.projectIdx=savedIdx<raw.projects.length?savedIdx:0;
+    const p=raw.projects[S.projectIdx];
+    S.config=p;
+    localStorage.setItem('uysot_config',e.target.result);
+    updateProjectUI();
+    applyMenuVisibility();
+    loadFromConfig(p);
+  }
+  // Legacy single-project format
+  else{
+    if(!raw.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');
+    S.projects=null;S.projectIdx=0;
+    localStorage.setItem('uysot_config',e.target.result);
+    S.config=raw;
+    updateProjectUI();
+    applyMenuVisibility();
+    loadFromConfig(raw);
+  }
+}catch(e){alert('JSON xatolik: '+e.message)}};r.readAsText(f)}
 
 function errPage(title,detail){return`<div class="loading gap-3">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
@@ -975,17 +1000,31 @@ window.debugMRR=debugMRRcompare;
 
 // === INIT ===
 (function(){
+  const saved=localStorage.getItem('uysot_config');
+  if(saved){
+    try{
+      const raw=JSON.parse(saved);
+      // Restore multi-project state
+      if(raw.projects&&Array.isArray(raw.projects)){
+        S.projects=raw.projects;
+        const savedIdx=parseInt(localStorage.getItem('uysot_projectIdx'))||0;
+        S.projectIdx=savedIdx<raw.projects.length?savedIdx:0;
+        S.config=raw.projects[S.projectIdx];
+      }else{
+        S.config=raw;
+      }
+      updateProjectUI();
+      applyMenuVisibility();
+    }catch(e){}
+  }
   if(loadCache()){
-    const saved=localStorage.getItem('uysot_config');
-    if(saved){try{S.config=JSON.parse(saved)}catch(e){}}
-    const ts=JSON.parse(localStorage.getItem('uysot_data')||'{}').ts;
+    const ts=JSON.parse(localStorage.getItem(_cacheKey())||'{}').ts;
     const ago=ts?Math.round((Date.now()-ts)/60000):0;
     const lbl=ago<60?ago+' daq. oldin':ago<1440?Math.round(ago/60)+' soat oldin':Math.round(ago/1440)+' kun oldin';
     document.getElementById('upd').textContent=lbl;
     render();return;
   }
-  const saved=localStorage.getItem('uysot_config');
-  if(saved){try{const c=JSON.parse(saved);S.config=c;loadFromConfig(c);return}catch(e){}}
+  if(S.config){loadFromConfig(S.config);return}
   showWelcome();
 })();
 

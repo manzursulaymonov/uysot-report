@@ -6,7 +6,7 @@
 let _sc=localStorage.getItem('uysot_cards'); _sc=_sc?JSON.parse(_sc):{mrr:{s:1,arr:1,g:1},nrr:{s:1,n:1,c:1,e:1},cust:{s:1,g:1,c:1},arpa:{s:1,g:1},cac:{s:1,d:1},cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1}};
 // Migrate: backfill any missing card keys for existing users
 const _defs={cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1},tRenew:{s:1},tRegion:{s:1},tMgr:{s:1},tHealth:{s:1},cMrrGr:{s:1},cNetMov:{s:1}};Object.keys(_defs).forEach(k=>{if(!_sc[k])_sc[k]=_defs[k]});
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,projects:null,projectIdx:0,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
 
 // === THEME ===
 const EO_STYLES=[
@@ -458,6 +458,72 @@ function openSpotlight(initialChar){
     }
   });
 })();
+
+// === PROJECT SWITCHER ===
+function updateProjectUI(){
+  const el=document.getElementById('projectName');
+  if(!el)return;
+  const p=S.projects&&S.projects[S.projectIdx];
+  if(p){
+    el.innerHTML=p.name+'<span style="font-size:9px;opacity:.5;margin-left:4px">▼</span>';
+  }else{
+    el.textContent='UYSOT';
+  }
+}
+
+function applyMenuVisibility(){
+  const p=S.projects&&S.projects[S.projectIdx];
+  const menu=p&&p.menu;
+  const navItems=document.querySelectorAll('.nav-item[data-sec]');
+  navItems.forEach(item=>{
+    const sec=item.getAttribute('data-sec');
+    const sub=item.nextElementSibling;
+    if(!menu||!menu.length){
+      item.style.display='';
+      if(sub&&sub.classList.contains('nav-sub'))sub.style.display='';
+    }else{
+      const visible=menu.includes(sec);
+      item.style.display=visible?'':'none';
+      if(sub&&sub.classList.contains('nav-sub'))sub.style.display=visible?'':'none';
+    }
+  });
+  // If current page is hidden, switch to dashboard
+  if(menu&&menu.length&&!menu.includes(S.sec)){
+    S.sec=menu[0]||'dashboard';
+  }
+}
+
+function showProjectSwitcher(){
+  if(!S.projects||S.projects.length<2)return;
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+  const items=S.projects.map((p,i)=>{
+    const active=i===S.projectIdx;
+    return`<div class="spot-item${active?' spot-active':''}" style="display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-radius:10px" onclick="switchProject(${i});this.closest('.overlay').remove()">
+      <div class="spot-ava" style="background:${active?'var(--accent)':'var(--bg3)');color:${active?'#fff':'var(--text2)'}">${p.name.charAt(0).toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:var(--text)">${p.name}</div>
+        ${p.menu?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+p.menu.length+' ta bo\'lim</div>':''}
+      </div>
+      ${active?'<span style="color:var(--accent);font-size:16px">✓</span>':''}
+    </div>`;
+  }).join('');
+  o.innerHTML=`<div class="modal" style="max-width:400px;padding:0">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px">Loyihani tanlang</div>
+    <div style="padding:8px">${items}</div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
+function switchProject(idx){
+  if(!S.projects||!S.projects[idx])return;
+  S.projectIdx=idx;
+  localStorage.setItem('uysot_projectIdx',idx);
+  const p=S.projects[idx];
+  S.config=p;
+  updateProjectUI();
+  applyMenuVisibility();
+  loadFromConfig(p);
+}
 
 // === AI METRIC RECOMMENDATION ===
 async function aiRecommend(metricKey){
