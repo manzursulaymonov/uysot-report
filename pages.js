@@ -1251,19 +1251,20 @@ function rMoliya(){
     const rateCol=dispRate>=90?'var(--green)':dispRate>=70?'var(--amber)':'var(--red)';
     const barW=Math.min(100,dispRate);
     const deltaCol=c.delta>=0?'var(--green)':'var(--red)';
-    // Per-client forecast
+    // Per-client discipline (intizom) — pure 6-month reliability, independent of current month
     const fd=fcMap[c.name];
-    let prob=0,probTip='';
-    if(c.rate>=100){prob=100;probTip='To\'liq to\'langan'}
-    else if(fd&&fd.h){
-      prob=fd.expected>0?Math.min(100,Math.round(fd.predicted/fd.expected*100)):0;
-      const rel=Math.round(fd.h.reliability*100);
-      probTip=`Odatiy kun: ${fd.h.avgDay}-sana · Ishonchlilik: ${rel}% · O'rtacha: ${fmt(fd.h.avgAmount)}`;
-    }else if(c.paid>0){
-      prob=Math.min(100,Math.round(c.paid/c.expected*100));
-      probTip='Tarix yo\'q — joriy to\'lovga asoslangan';
-    }else{probTip='To\'lov tarixi yo\'q'}
-    const probCol=prob>=80?'var(--green)':prob>=40?'var(--amber)':'var(--red)';
+    let intizom=-1,intTip='';
+    if(fd&&fd.h){
+      intizom=Math.round(fd.h.reliability*100);
+      intTip=`6 oydan ${fd.h.monthCount} tasida to'lagan · Odatiy kun: ${fd.h.avgDay}-sana · O'rtacha: ${fmt(fd.h.avgAmount)}`;
+    }else{intTip='6 oylik to\'lov tarixi yo\'q'}
+    const intCol=intizom>=80?'var(--green)':intizom>=50?'var(--amber)':intizom>=0?'var(--red)':'var(--text3)';
+    // Signal: compare current rate vs discipline
+    let signal='';
+    if(intizom>=0){
+      if(dispRate>=100&&intizom<50)signal=' <span title="Intizomi past lekin to\'liq undirdi — zo\'r!" style="font-size:12px">🔥</span>';
+      else if(dispRate<40&&intizom>=80)signal=' <span title="Intizomi yuqori lekin hali to\'lamagan — e\'tibor!" style="font-size:12px">⚠️</span>';
+    }
     fCrRows+=`<tr>
       <td class="font-medium">${cl(c.name)}</td>
       <td class="text-r mono text-[11px]">${fmt(c.expected)}</td>
@@ -1277,7 +1278,7 @@ function rMoliya(){
           <span style="font-size:10px;font-weight:700;color:${rateCol};min-width:30px;text-align:right">${dispRate}%</span>
         </div>
       </td>
-      <td class="text-r" style="min-width:50px" title="${probTip}"><span style="font-size:11px;font-weight:700;color:${probCol}">${prob}%</span></td>
+      <td class="text-r" style="min-width:50px" title="${intTip}"><span style="font-size:11px;font-weight:700;color:${intCol}">${intizom>=0?intizom+'%':'—'}</span>${signal}</td>
     </tr>`;
   });
   const inkMetrics=`<div class="ink-metrics" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
@@ -1304,7 +1305,7 @@ function rMoliya(){
     ${cr.length?`${inkMetrics}<div class="card shadow-lg"><div class="card-body p-0"><div class="tbl-scroll" style="max-height:calc(100vh - ${inkFs?'56':'156'}px)"><table><thead><tr>
         <th>Mijoz</th><th class="text-r" title="Oy boshidagi qarz + shu oy kutilgani">Kutilgan</th>
         <th class="text-r" title="Shu oy davomida to'langan">To'langan</th>
-        <th class="text-r">Farq</th><th>Bajarilish</th><th class="text-r" title="To'lov tarixiga asoslangan prognoz">Prognoz</th>
+        <th class="text-r">Farq</th><th>Bajarilish</th><th class="text-r" title="Oxirgi 6 oy to'lov intizomi">Intizom</th>
       </tr></thead><tbody>${fCrRows}</tbody></table></div></div></div>`
       :'<div class="text-center text-subtle p-6">Ma\'lumot yo\'q</div>'}
   </div>`;
