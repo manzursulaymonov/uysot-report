@@ -1065,6 +1065,107 @@ function calcMrrForecast(){
   });
 }
 
+// === INKASSO SMART FORECAST ===
+function calcCollectionForecast(crData){
+  return cached('inkForecast_v2',()=>{
+    const now=new Date();
+    const curY=now.getFullYear(),curM=now.getMonth(),curDay=now.getDate();
+    const daysInMonth=new Date(curY,curM+1,0).getDate();
+    const daysLeft=daysInMonth-curDay;
+
+    // Build per-client monthly payment history (last 6 months)
+    const hist={}; // {clientName: [{month,day,amount},...]}
+    const addHist=(rows,dateK,usdK)=>{
+      if(!rows)return;
+      rows.forEach(r=>{
+        const c=r.Client?.trim();if(!c)return;
+        const d=pd(r[dateK]);if(!d)return;
+        const amt=pn(r[usdK]||'0');if(amt<=0)return;
+        const mKey=d.getFullYear()*12+d.getMonth();
+        const nowKey=curY*12+curM;
+        // Last 6 months (not current month)
+        if(mKey>=nowKey-6&&mKey<nowKey){
+          if(!hist[c])hist[c]=[];
+          hist[c].push({mKey,day:d.getDate(),amount:amt});
+        }
+      });
+    };
+    addHist(S.payRows,'sanasi','USD');
+    addHist(S.y2024Rows,'sanasi','USD');
+
+    // Analyze each client
+    const nowKey=curY*12+curM;
+    const clientForecasts={};
+    Object.entries(hist).forEach(([name,payments])=>{
+      // Group by month
+      const byMonth={};
+      payments.forEach(p=>{
+        if(!byMonth[p.mKey])byMonth[p.mKey]={total:0,minDay:32,maxDay:0};
+        byMonth[p.mKey].total+=p.amount;
+        byMonth[p.mKey].minDay=Math.min(byMonth[p.mKey].minDay,p.day);
+        byMonth[p.mKey].maxDay=Math.max(byMonth[p.mKey].maxDay,p.day);
+      });
+      const months=Object.keys(byMonth).map(Number);
+      const monthCount=months.length;
+      // How many of the last 6 months had payments?
+      const reliability=monthCount/6;
+      // Average earliest payment day of month
+      const avgDay=Math.round(months.reduce((s,m)=>s+byMonth[m].minDay,0)/monthCount);
+      // Average monthly payment amount
+      const avgAmount=Math.round(months.reduce((s,m)=>s+byMonth[m].total,0)/monthCount);
+      clientForecasts[name]={reliability,avgDay,avgAmount,monthCount};
+    });
+
+    // Calculate forecast for each client in crData
+    let totalForecast=0;
+    let totalExpected=0;
+    const details=[];
+    crData.forEach(c=>{
+      totalExpected+=c.expected;
+      const h=clientForecasts[c.name];
+      let predicted=c.paid; // already paid this month = certain
+
+      if(c.paid>=c.expected){
+        // Already fulfilled
+        predicted=c.paid;
+      }else if(h){
+        // Has history — predict based on patterns
+        const remaining=c.expected-c.paid;
+        if(c.paid>0){
+          // Already started paying this month — likely will pay more
+          // Scale: if avg monthly is close to expected, high confidence
+          const expectedMore=Math.min(remaining,Math.max(0,h.avgAmount-c.paid));
+          predicted=c.paid+Math.round(expectedMore*h.reliability);
+        }else{
+          // Haven't paid yet this month
+          if(curDay<h.avgDay){
+            // Their usual pay day hasn't come yet — high probability
+            predicted=Math.round(Math.min(c.expected,h.avgAmount)*h.reliability);
+          }else if(curDay<h.avgDay+10){
+            // Slightly late but within grace period
+            predicted=Math.round(Math.min(c.expected,h.avgAmount)*h.reliability*0.6);
+          }else{
+            // Significantly late — low probability
+            predicted=Math.round(Math.min(c.expected,h.avgAmount)*h.reliability*0.2);
+          }
+        }
+      }else{
+        // No history at all — use simple daily pace for this client
+        if(c.paid>0&&curDay>0){
+          predicted=Math.round(c.paid/curDay*daysInMonth);
+        }
+        // else: no history, no payment = 0 predicted
+      }
+      predicted=Math.min(predicted,c.expected); // cap at expected
+      totalForecast+=predicted;
+      details.push({name:c.name,expected:c.expected,paid:c.paid,predicted,h});
+    });
+
+    const forecastPct=totalExpected>0?Math.min(999,Math.round(totalForecast/totalExpected*100)):0;
+    return{totalForecast,totalExpected,forecastPct,daysLeft,details};
+  });
+}
+
 // === INKASSO / COLLECTION RATE ===
 function calcCollectionRate(mode){
   mode=mode||S.inkassoMode||'oy';

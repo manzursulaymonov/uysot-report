@@ -1231,13 +1231,8 @@ function rMoliya(){
   const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
   const avgRate=collPct;
   const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
-  // Forecast: based on daily collection pace this month
-  const today=new Date();
-  const dayOfMonth=today.getDate();
-  const daysInMonth=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
-  const dailyPace=dayOfMonth>0?totalPaidInk/dayOfMonth:0;
-  const forecast=Math.round(dailyPace*daysInMonth);
-  const forecastPct=totalExpected>0?Math.min(999,Math.round(forecast/totalExpected*100)):0;
+  const fc=calcCollectionForecast(cr);
+  const forecastPct=fc.forecastPct;
   const forecastCol=forecastPct>=90?'var(--green)':forecastPct>=60?'var(--amber)':'var(--red)';
   const remaining=Math.max(0,totalExpected-totalPaidInk);
   const inkFlt=S.inkassoFilter||'all';
@@ -1270,7 +1265,7 @@ function rMoliya(){
   const inkMetrics=`<div class="ink-metrics" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
     <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg" style="background:var(--bg3)"><span class="text-[10px] text-subtle">Kutilgan</span><span class="mono font-bold text-[15px]">${fmt(totalExpected)}</span><span class="text-[10px] text-subtle">${cr.length} mijoz</span></div>
     <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg cursor-pointer${inkFlt==='paid'?' outline outline-2 outline-offset-[-2px]':''}" style="background:var(--bg3);${inkFlt==='paid'?'outline-color:var(--teal)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='paid'?'all':'paid';render()"><span class="text-[10px] text-subtle">To'langan</span><span class="mono font-bold text-[15px]" style="color:var(--teal)">${fmt(totalPaidInk)}</span><span class="text-[10px]" style="color:${collPctCol}">${collPct}%</span></div>
-    <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg" style="background:var(--bg3)"><span class="text-[10px] text-subtle">Qoldiq</span><span class="mono font-bold text-[15px]" style="color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?fmt(remaining):'✓'}</span><span class="text-[10px] text-subtle">~${forecastPct}% · ${daysInMonth-dayOfMonth}k</span></div>
+    <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg" style="background:var(--bg3)"><span class="text-[10px] text-subtle">Qoldiq</span><span class="mono font-bold text-[15px]" style="color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?fmt(remaining):'✓'}</span><span class="text-[10px]" style="color:${forecastCol}" title="Har bir mijozning to'lov tarixi va odatiga asoslangan prognoz">~${forecastPct}% · ${fc.daysLeft}k</span></div>
     <div class="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg cursor-pointer${inkFlt==='full'?' outline outline-2 outline-offset-[-2px]':''}" style="background:var(--bg3);${inkFlt==='full'?'outline-color:var(--green)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><span style="color:var(--green);font-weight:700;font-size:14px">${fulfilled}</span><span class="text-[10px] text-subtle">to'liq</span></div>
     <div class="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg cursor-pointer${inkFlt==='partial'?' outline outline-2 outline-offset-[-2px]':''}" style="background:var(--bg3);${inkFlt==='partial'?'outline-color:var(--amber)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><span style="color:var(--amber);font-weight:700;font-size:14px">${partial}</span><span class="text-[10px] text-subtle">qisman</span></div>
     <div class="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg cursor-pointer${inkFlt==='none'?' outline outline-2 outline-offset-[-2px]':''}" style="background:var(--bg3);${inkFlt==='none'?'outline-color:var(--red)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><span style="color:var(--red);font-weight:700;font-size:14px">${noPay}</span><span class="text-[10px] text-subtle">to'lamagan</span></div>
