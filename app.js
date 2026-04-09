@@ -620,11 +620,14 @@ function calcCumExpected(year,renewal){
             if(isFirst&&isLast){amt=Math.round(ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim);if(ct.sTotal>0)amt=ct.sTotal-ct._added}
             else if(isFirst){amt=ct._fmp}
             else if(isLast){
-              if(renewal){
-                // Inkasso: renewal assumption — to'liq oy hisoblanadi
+              // Renewal faqat shu oy yoki kelajakda tugaydiganlar uchun
+              const now=new Date();
+              const curMonthStart=new Date(now.getFullYear(),now.getMonth(),1);
+              if(renewal&&ct.endD>=curMonthStart){
+                // Inkasso: renewal assumption — to'liq oy
                 amt=ct.musd;
               }else{
-                // Qarz/boshqa: pro-rata oxirgi oy
+                // O'tgan oylar yoki qarz jadvali: pro-rata
                 if(ct.sTotal>0){amt=ct.sTotal-ct._added}
                 else if(!ct.isQ){amt=ct._lmp}
                 else{amt=Math.round(ct.musd*Math.max(1,ct.endD.getDate())/dim)}
