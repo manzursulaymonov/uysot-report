@@ -1067,18 +1067,18 @@ function calcMrrForecast(){
 
 // === INKASSO SMART FORECAST ===
 function calcCollectionForecast(crData){
-  return cached('inkForecast_v4',()=>{
+  return cached('inkForecast_v5',()=>{
     const now=new Date();
     const curY=now.getFullYear(),curM=now.getMonth(),curDay=now.getDate();
     const daysInMonth=new Date(curY,curM+1,0).getDate();
     const daysLeft=daysInMonth-curDay;
 
-    // === DISCIPLINE: cumExpected vs cumPaid at each month-end (last 6 months) ===
+    // === DISCIPLINE: shu oy majburiyatini bajarganmi (last 6 months) ===
+    // Har oy uchun: shu oyda to'langan >= shu oylik kutilgan * 90%
     const cumExp=calcCumExpected(curY);
     const prevCumExp=calcCumExpected(curY-1);
-    const pm=calcPayments();
-    // Per-client cumulative paid at each month-end
-    const payByMonth={};
+    // Per-client per-month payment totals
+    const monthlyPaid={};// {client: {mKey: totalPaidInThatMonth}}
     const addPay=(rows,dateK,usdK)=>{
       if(!rows)return;
       rows.forEach(r=>{
@@ -1086,44 +1086,39 @@ function calcCollectionForecast(crData){
         const d=pd(r[dateK]);if(!d)return;
         const amt=pn(r[usdK]||'0');if(amt<=0)return;
         const mKey=d.getFullYear()*12+d.getMonth();
-        if(!payByMonth[c])payByMonth[c]=[];
-        payByMonth[c].push({mKey,amt});
+        if(!monthlyPaid[c])monthlyPaid[c]={};
+        monthlyPaid[c][mKey]=(monthlyPaid[c][mKey]||0)+amt;
       });
     };
     addPay(S.payRows,'sanasi','USD');
     addPay(S.y2024Rows,'sanasi','USD');
-    // Sort and build cumulative
-    const cumPaidAt={};// {client: {mKey: cumPaid}}
-    Object.entries(payByMonth).forEach(([name,pays])=>{
-      pays.sort((a,b)=>a.mKey-b.mKey);
-      let cum=0;const map={};
-      pays.forEach(p=>{cum+=p.amt;map[p.mKey]=cum});
-      cumPaidAt[name]=map;
-    });
 
     const nowKey=curY*12+curM;
     const clientDisc={};
 
-    // For each client with cumExp, check last 6 months
     Object.entries(cumExp).forEach(([name,data])=>{
-      const cpMap=cumPaidAt[name];
-      if(!cpMap)return;
+      const mp=monthlyPaid[name];
       let onTrack=0,total=0;
       for(let i=1;i<=6;i++){
         const ck=nowKey-i;
         const cm=ck%12,cy=Math.floor(ck/12);
-        // cumExpected at end of that month
-        let ce=0;
-        if(cy===curY){ce=data.cum[cm]||0}
-        else if(cy===curY-1){const p=prevCumExp[name];if(p)ce=p.cum[cm]||0;else continue}
-        else continue;
-        if(ce<=0)continue;
-        // cumPaid at end of that month
-        let cp=0;
-        const keys=Object.keys(cpMap).map(Number).filter(k=>k<=ck).sort((a,b)=>a-b);
-        if(keys.length)cp=cpMap[keys[keys.length-1]];
+        // Shu oylik majburiyat = cumExp[oy] - cumExp[oy-1]
+        let ceThis=0,cePrev=0;
+        if(cy===curY){
+          ceThis=data.cum[cm]||0;
+          cePrev=cm>0?(data.cum[cm-1]||0):data.preYear;
+        }else if(cy===curY-1){
+          const p=prevCumExp[name];
+          if(!p)continue;
+          ceThis=p.cum[cm]||0;
+          cePrev=cm>0?(p.cum[cm-1]||0):p.preYear;
+        }else continue;
+        const monthObligation=ceThis-cePrev;
+        if(monthObligation<=0)continue;
+        // Shu oyda to'langan
+        const paid=mp?mp[ck]||0:0;
         total++;
-        if(cp>=ce*0.9)onTrack++;// 90%+ = on track
+        if(paid>=monthObligation*0.9)onTrack++;
       }
       if(total>0)clientDisc[name]={score:Math.round(onTrack/total*100),months:total,onTrack};
     });
