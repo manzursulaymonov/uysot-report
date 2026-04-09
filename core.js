@@ -448,6 +448,11 @@ function openSpotlight(initialChar){
     const t=e.target.tagName;
     if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
     if(document.querySelector('.overlay')||document.querySelector('.spot-overlay'))return;
+    // Esc — clear search input
+    if(e.key==='Escape'){
+      const si=document.querySelector('.search input');
+      if(si&&si.value){e.preventDefault();si.value='';si.dispatchEvent(new Event('input'));si.blur();return}
+    }
     // Ctrl/Cmd+K — always spotlight
     if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSpotlight();return}
     // Single printable character
