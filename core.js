@@ -446,13 +446,13 @@ function openSpotlight(initialChar){
 (function(){
   document.addEventListener('keydown',function(e){
     const t=e.target.tagName;
-    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
-    if(document.querySelector('.overlay')||document.querySelector('.spot-overlay'))return;
-    // Esc — clear search input
+    // Esc — clear search input (works even when input is focused)
     if(e.key==='Escape'){
       const si=document.querySelector('.search input');
       if(si&&si.value){e.preventDefault();si.value='';si.dispatchEvent(new Event('input'));si.blur();return}
+      if(t==='INPUT'){e.target.blur();return}
     }
+    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
     // Ctrl/Cmd+K — always spotlight
     if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSpotlight();return}
     // Single printable character
