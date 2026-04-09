@@ -1231,6 +1231,15 @@ function rMoliya(){
   const collPctCol=collPct>=90?'var(--green)':collPct>=70?'var(--amber)':'var(--red)';
   const avgRate=collPct;
   const avgRateCol=avgRate>=90?'var(--green)':avgRate>=70?'var(--amber)':'var(--red)';
+  // Forecast: based on daily collection pace this month
+  const today=new Date();
+  const dayOfMonth=today.getDate();
+  const daysInMonth=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+  const dailyPace=dayOfMonth>0?totalPaidInk/dayOfMonth:0;
+  const forecast=Math.round(dailyPace*daysInMonth);
+  const forecastPct=totalExpected>0?Math.min(999,Math.round(forecast/totalExpected*100)):0;
+  const forecastCol=forecastPct>=90?'var(--green)':forecastPct>=60?'var(--amber)':'var(--red)';
+  const remaining=Math.max(0,totalExpected-totalPaidInk);
   const inkFlt=S.inkassoFilter||'all';
   let filteredCr=cr;
   if(inkFlt==='full')filteredCr=cr.filter(c=>c.rate>=100);
@@ -1258,9 +1267,12 @@ function rMoliya(){
       </td>
     </tr>`;
   });
-  const inkMetrics=`<div class="metrics grid-cols-5 mb-2">
-    <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono">${fk(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
-    <div class="metric" style="cursor:pointer;${inkFlt==='paid'?'outline:2px solid var(--teal);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='paid'?'all':'paid';render()"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="color:var(--teal)">${fk(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% umumiy</div></div>
+  const inkMetrics=`<div class="metrics mb-2" style="grid-template-columns:repeat(3,1fr)">
+    <div class="metric"><div class="metric-lbl">Jami kutilgan</div><div class="metric-val mono" style="font-size:24px">${fmt(totalExpected)}</div><div class="metric-foot">${cr.length} ta mijoz</div></div>
+    <div class="metric" style="cursor:pointer;${inkFlt==='paid'?'outline:2px solid var(--teal);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='paid'?'all':'paid';render()"><div class="metric-lbl">Jami to'langan</div><div class="metric-val mono" style="font-size:24px;color:var(--teal)">${fmt(totalPaidInk)}</div><div class="metric-foot" style="color:${collPctCol}">${collPct}% bajarildi</div></div>
+    <div class="metric"><div class="metric-lbl">Qoldiq</div><div class="metric-val mono" style="font-size:24px;color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?fmt(remaining):'✓'}</div><div class="metric-foot">Prognoz: <span style="color:${forecastCol};font-weight:600">${forecastPct}%</span> · ${daysInMonth-dayOfMonth} kun qoldi</div></div>
+  </div>
+  <div class="metrics grid-cols-3 mb-2">
     <div class="metric" style="cursor:pointer;${inkFlt==='full'?'outline:2px solid var(--green);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='full'?'all':'full';render()"><div class="metric-lbl">To'liq to'lagan</div><div class="metric-val" style="color:var(--green)">${fulfilled}</div><div class="metric-foot">${cr.length?Math.round(fulfilled/cr.length*100):0}%</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='partial'?'outline:2px solid var(--amber);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='partial'?'all':'partial';render()"><div class="metric-lbl">Qisman to'lagan</div><div class="metric-val" style="color:var(--amber)">${partial}</div><div class="metric-foot">${cr.length?Math.round(partial/cr.length*100):0}%</div></div>
     <div class="metric" style="cursor:pointer;${inkFlt==='none'?'outline:2px solid var(--red);outline-offset:-2px;border-radius:var(--rlg)':''}" onclick="S.inkassoFilter=S.inkassoFilter==='none'?'all':'none';render()"><div class="metric-lbl">To'lamagan</div><div class="metric-val" style="color:var(--red)">${noPay}</div><div class="metric-foot">${cr.length?Math.round(noPay/cr.length*100):0}%</div></div>
@@ -1272,7 +1284,6 @@ function rMoliya(){
       <div class="flex gap-2 items-center">
         ${modeToggle}
         <button class="btn${capRate?' btn-primary':''}" style="padding:4px 10px;font-size:11px" onclick="S.inkassoCap=!S.inkassoCap;render()" title="100% dan oshmasin">Cap 100%</button>
-        <span style="font-size:13px;font-weight:700;color:${avgRateCol}">${avgRate}% o'rtacha</span>
       </div>
       <div class="flex gap-1.5 items-center" style="margin-left:auto">
         <button class="btn-outline" style="padding:6px 10px" onclick="showDlMenu(this,'collection')" title="Yuklab olish">${_dlSvg}</button>
