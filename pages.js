@@ -1258,6 +1258,7 @@ function rMoliya(){
       intizom=fd.disc.score;
       intTip=`6 oydan ${fd.disc.onTrack}/${fd.disc.months} oyda to'lov intizomida`;
     }else{intTip='6 oylik tarix yo\'q'}
+    const intCol=intizom>=80?'var(--green)':intizom>=50?'var(--amber)':intizom>=0?'var(--red)':'var(--text3)';
     fCrRows+=`<tr>
       <td class="font-medium">${cl(c.name)}</td>
       <td class="text-r mono text-[11px]">${fmt(c.expected)}</td>
