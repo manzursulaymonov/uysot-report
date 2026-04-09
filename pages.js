@@ -433,7 +433,7 @@ function showMetricInfo(k){
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>ARR</b> = MRR × 12. Yillik darajadagi bashorat. Investorlar va moliyaviy rejalashtirishda ishlatiladi.<br>
-        <b>⚠️ Risk:</b> Agar bir nechta yirik shartnoma tugashi yaqin bo'lsa, MRR keskin tushishi mumkin. Revenue Konsentratsiya kartasini kuzating.
+        <b>⚠️ Risk:</b> Agar bir nechta yirik shartnoma tugashi yaqin bo'lsa, MRR keskin tushishi mumkin. Revenue Concentration kartasini kuzating.
       </div>`,
 
     'nrr': `<h4 class="mb-2.5">♻️ NRR — Net Revenue Retention</h4>
@@ -447,27 +447,27 @@ function showMetricInfo(k){
         <b>New:</b> Yangi mijozlardan kelayotgan daromad.<br>
         <b>Expansion:</b> Mavjud mijozlar tarifni ko'tardi. <b>Contraction:</b> Pasaytirdi. <b>Net Exp = Expansion - Contraction.</b><br>
         <b>Churn:</b> Butunlay ketganlar.<br>
-        <b>⚠️ Risk:</b> NRR < 90% uzoq vaqt davom etsa, moliyaviy barqarorlik buziladi va investorlar ishonchini yo'qotiladi.
+        <b>⚠️ Risk:</b> NRR < 90% uzoq vaqt davom etsa, moliyaviy barqarorlik buziladi va investorlar ishonchi yo'qotiladi.
       </div>`,
 
     'cust': `<h4 class="mb-2.5">👥 Active Customers — Faol Mijozlar</h4>
       <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Ayni daqiqada<b> faol shartnomaga ega</b>, to'lovi joriy yoki muzlatilmagan korxonalar soni.</div>
       <div class="mb-3.5">
-        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> Faol mijozlar doimiy oshib borsa — sog\'lom baza. Har chorakda <b>+5% </b>va undan yuqori o\'sish idealddir.')}
-        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> Baza bir joyda tursa — yangi sotuvlar churn bilan tenglanmoqda. <b>Sotuv samaradorligi pastlikka</b> ishora.')}
+        ${bx('#2ecc96','🟢','<b>Yaxshi:</b> Faol mijozlar doimiy oshib borsa — sog\'lom baza. Har chorakda <b>+5% </b>va undan yuqori o\'sish idealdir.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> Baza bir joyda tursa — yangi sotuvlar churn bilan tenglanmoqda. <b>Sotuv samaradorligi pastligi</b>ga ishora.')}
         ${bx('#e74c3c','🔴','<b>Xavfli:</b> Baza kamaysa — ketayotgan mijozlar yangilaridan ko\'proq. <b>Mahsulot sifati va xizmatni tezda tekshiring.</b>')}
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>Churn Rate:</b> Har oyda bazangizning necha %i ketmoqda.<br>
         <b>Yaxshi:</b> < 3% oylik | <b>O'rtacha:</b> 3-5% | <b>Xavfli:</b> > 5%<br>
-        <b>⚠️ Risk:</b> Agar kichik mijozlar ko'p ketsa va yirik qolsa — soni kamayadi lekin MRR saqlanadi. Bu vaqtinchalik! Shunday paytda Revenue Konsentratsiya xavfi oshadi.
+        <b>⚠️ Risk:</b> Agar kichik mijozlar ko'p ketsa va yirik qolsa — soni kamayadi lekin MRR saqlanadi. Bu vaqtinchalik! Shunday paytda Revenue Concentration xavfi oshadi.
       </div>`,
 
     'arpa': `<h4 class="mb-2.5">💳 ARPA — Average Revenue Per Account</h4>
       <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Bitta mijoz hisobiga <b>o'rtacha qancha oylik daromad</b> tushayotgani. ARPA = MRR / Aktiv mijozlar soni.</div>
       <div class="mb-3.5">
         ${bx('#2ecc96','🟢','<b>Yaxshi:</b> ARPA o\'sib borsa — siz <b>qimmatroq xizmatlarni sotmoqdasiz</b> yoki kattaroq korxonalarga xizmat qilmoqdasiz.')}
-        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> ARPA bir joyda tursa — daromad faqat yangi mijozlar hisobiga o\'sadi, lekin <b>har bir mijoz az pul olib keladi.</b>')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha:</b> ARPA bir joyda tursa — daromad faqat yangi mijozlar hisobiga o\'sadi, lekin <b>har bir mijoz kam pul olib keladi.</b>')}
         ${bx('#e74c3c','🔴','<b>Xavfli:</b> ARPA tushsa — yirik mijozlar ketmoqda yoki barchaga arzon narxda sotilmoqda. <b>Narx siyosatini qayta ko\'ring.</b>')}
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
@@ -507,7 +507,7 @@ function showMetricInfo(k){
         <b>⚠️ Risk:</b> DSO oshib borsa — bu churnning "yashirin belgisi" bo'lishi mumkin. To'lamaydigan mijoz ertaga ketadigan mijozdir.
       </div>`,
 
-    'conc': `<h4 class="mb-2.5">🏢 Revenue Konsentratsiya — Daromad Konsentratsiyasi</h4>
+    'conc': `<h4 class="mb-2.5">🏢 Revenue Concentration — Daromad Konsentratsiyasi</h4>
       <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Umumiy daromadning <b>eng yirik mijozlarga qanchalik bog'liq</b> ekanligini ko'rsatadi. Top 5 va Top 10 ulushini o'lchaydi.</div>
       <div class="mb-3.5">
         ${bx('#2ecc96','🟢','<b>Yaxshi (Top 5 < 25%):</b> Daromad <b>keng tarqalgan.</b> Birorta yirik mijoz ketsa ham biznesga jiddiy zarar yetmaydi.')}
@@ -565,7 +565,7 @@ function showMetricInfo(k){
         ${bx('#e74c3c','🔴','<b>Xavfli:</b> Logo Churn <b>> 5%</b> yoki Revenue Churn <b>> 5%.</b> Jiddiy mijoz yo\'qotish. <b>Sabab tahlili zudlik bilan kerak.</b>')}
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
-        <b>Logo > Revenue:</b> Ko'p kichik mijozlar ketmoqda, lekin yiriklari qolmoqda — <b>Revenue Konsentratsiya</b> xavfi oshadi.<br>
+        <b>Logo > Revenue:</b> Ko'p kichik mijozlar ketmoqda, lekin yiriklari qolmoqda — <b>Revenue Concentration</b> xavfi oshadi.<br>
         <b>Logo < Revenue:</b> Kam, lekin <b>yirik mijozlar</b> ketmoqda — bu eng xavfli senariy!<br>
         <b>⚠️ Risk:</b> Revenue Churn yuqori, Logo Churn past bo'lsa — portfelingizning eng qimmatli qismi ketayotganini anglatadi.
       </div>`,
