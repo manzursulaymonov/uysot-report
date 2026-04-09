@@ -524,7 +524,18 @@ function switchProject(idx){
   S.config=p;
   updateProjectUI();
   applyMenuVisibility();
-  loadFromConfig(p);
+  clearCache();
+  // Keshdan yuklash — fetch qilmasdan tez almashish
+  if(loadCache()){
+    const ts=JSON.parse(localStorage.getItem(_cacheKey())||'{}').ts;
+    const ago=ts?Math.round((Date.now()-ts)/60000):0;
+    const lbl=ago<60?ago+' daq. oldin':ago<1440?Math.round(ago/60)+' soat oldin':Math.round(ago/1440)+' kun oldin';
+    document.getElementById('upd').textContent=lbl;
+    render();
+  }else{
+    // Kesh yo'q — fetch qilish shart
+    loadFromConfig(p);
+  }
 }
 
 // === AI METRIC RECOMMENDATION ===
