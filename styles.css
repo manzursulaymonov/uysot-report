@@ -288,8 +288,8 @@ td{
   transition:background var(--transition-fast);
 }
 .has-tip{position:relative;cursor:help!important}
-.has-tip::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--bg3);color:var(--text);padding:6px 10px;font-size:11px;border-radius:4px;white-space:pre;opacity:0;pointer-events:none;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:100;border:1px solid var(--border)}
-.has-tip:hover::after{opacity:1;bottom:calc(100% + 4px)}
+.has-tip::after{content:attr(data-tip);position:absolute;top:100%;left:0;transform:none;background:var(--bg3);color:var(--text);padding:6px 10px;font-size:11px;border-radius:4px;white-space:pre;opacity:0;pointer-events:none;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:100;border:1px solid var(--border);max-width:280px}
+.has-tip:hover::after{opacity:1;top:calc(100% + 4px)}
 [data-theme="light"] td{border-bottom-color:#f0efeb}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:var(--bg4)}

@@ -1098,6 +1098,8 @@ let h='';
 
 if(view==='jadval'){
   S.debtMobCol=S.debtMobCol||'oy';
+  const debtCur=S.debtCur||'usd';
+  const isUZS=debtCur==='uzs';
   window.switchDMC=function(c){S.debtMobCol=c;render()};
   const isM=window.innerWidth<=768;
   let filtered=dt;
@@ -1106,42 +1108,59 @@ if(view==='jadval'){
   if(isM){const tabs=[{k:'sh',l:'Sh. qoldiq'},{k:'oy',l:'Oy oxiri'},{k:'kel',l:'Kelishuv'},{k:'lp',l:"Oxirgi to'lov"}];mobTabs='<div style="display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px">'+tabs.map(t=>`<button class="btn" style="flex-shrink:0;${S.debtMobCol===t.k?'background:var(--accent);color:#fff;border-color:var(--accent)':''}" onclick="switchDMC('${t.k}')">${t.l}</button>`).join('')+'</div>';}
   const fsIcon=S.debtFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
   h+=`<div id="debtContainer"${S.debtFs?' class="debt-fs-active"':''}>`;
-  h+=`<div class="toolbar mb-3 gap-2.5">
+  h+=`<div class="toolbar mb-2 gap-2.5">
 <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz nomi..." value="${S.debtQ||''}" oninput="onSearch('debtQ',this.value)"><button class="search-clear" onclick="onSearch('debtQ','');render()" type="button">&times;</button></div>
 <div class="flex gap-1.5 items-center" style="margin-left:auto">
+<div class="flex gap-0.5 bg-hover rounded-md p-0.5">
+<button class="btn${!isUZS?' btn-primary':''}" style="padding:3px 10px;font-size:11px" onclick="S.debtCur='usd';render()">$</button>
+<button class="btn${isUZS?' btn-primary':''}" style="padding:3px 10px;font-size:11px" onclick="S.debtCur='uzs';render()">so'm</button>
+</div>
 <input type="date" class="flt text-xs py-1.5 px-2.5" value="${dateStr(repDate)}" onchange="S.debtDate=toDate(this.value);clearCache();render()">
 <button class="btn-outline py-[7px] px-[11px]" onclick="showDlMenu(this,'debts')" title="Yuklab olish">${_dlSvg}</button>
 <button class="btn${S.debtFs?' btn-primary':''} py-2 px-3" onclick="toggleDebtFs()" title="${S.debtFs?'Kichraytirish':'To\'liq ekran'}">${fsIcon}</button>
 </div>
 </div>`;
-  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'60':'140'}px)"><table><thead><tr><th>Mijoz</th>
-${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq</th>`:''}
-${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Oy oxiri</th>`:''}
-${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Kelishuv</th>`:''}
+  // UZS data: build from rows
+  const uzsMap={};
+  if(isUZS){
+    S.rows.forEach(r=>{if(!r.Client)return;const c=r.Client.trim();if(!uzsMap[c])uzsMap[c]={sUZS:0,mUZS:0};uzsMap[c].sUZS+=r._sUZS||0;uzsMap[c].mUZS+=r._mUZS||0});
+    S.qRows.forEach(r=>{if(!r.Client)return;const c=r.Client.trim();if(!uzsMap[c])uzsMap[c]={sUZS:0,mUZS:0};uzsMap[c].sUZS+=pn(r['sum UZS']||'0');uzsMap[c].mUZS+=pn(r['oylik UZS']||'0')});
+    const pmUZS=calcPaymentsUZS();
+    Object.values(pmUZS).forEach(v=>{if(uzsMap[v.client])uzsMap[v.client].paid=(uzsMap[v.client].paid||0)+v.total});
+  }
+  const ccy=isUZS?"so'm":'$';
+  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'56':'120'}px)"><table><thead><tr><th>Mijoz</th>
+${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq ${ccy}</th>`:''}
+${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Oy oxiri ${ccy}</th>`:''}
+${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Kelishuv ${ccy}</th>`:''}
 ${(!isM||S.debtMobCol==='lp')?`<th class="text-r">Oxirgi to'lov</th>`:''}
 </tr></thead><tbody>${filtered.length?filtered.map(r=>{
-const oyC=r.oyQarz>0?'var(--amber)':'var(--green)';const kelC=r.kelQarz>0?'var(--red)':'var(--green)';
+const uz=uzsMap[r.name];
+const qoldiq=isUZS?(uz?Math.round(uz.sUZS-(uz.paid||0)):0):r.qoldiq;
+const oyQ=isUZS?qoldiq:r.oyQarz;
+const kelQ=isUZS?qoldiq:r.kelQarz;
+const oyC=oyQ>0?'var(--amber)':'var(--green)';const kelC=kelQ>0?'var(--red)':'var(--green)';
 const lp=r.lastPay;
 let lpCell='<td class="text-r text-[11px] text-subtle">—</td>';
 if(lp){
   const ds=fmtD(lp.date);
   const tips=lp.allOnDate.map(p=>{
-    const isUsd=p.val==='USD';const ks=p.kassa?String(p.kassa).trim():'';const origS=String(p.origSum).trim();
-    let amtStr=isUsd?`${origS}$`:`${origS} UZS`;
+    const ks=p.kassa?String(p.kassa).trim():'';const origS=String(p.origSum).trim();
+    let amtStr=p.val==='USD'?`${origS}$`:`${origS} so'm`;
     if(p.type==='perevod'&&p.val==='UZS'&&(!origS||origS==='0'))amtStr=`${fmt(p.usdSum)}$`;
     let txt='';const t=p.type;
-    if(t==='naqd')txt=ks?`${ks}ga naqd bergan`:`naqd bergan`;
-    else if(t==='karta')txt=ks?`${ks} kartasiga tushirgan`:`kartasiga tushirgan`;
-    else if(t==='bank'||t==='perevod')txt=ks?`${ks}ga tushirgan`:`Bank orqali`;
+    if(t==='naqd')txt=ks?`${ks}ga naqd`:`naqd`;
+    else if(t==='karta')txt=ks?`${ks} karta`:`karta`;
+    else if(t==='bank'||t==='perevod')txt=ks||'Bank';
     else txt=t||"to'lov";
-    return`${amtStr} - ${txt}`;
+    return`${amtStr} · ${txt}`;
   }).filter(Boolean).join('&#10;');
-  lpCell='<td class="text-r has-tip" data-tip="'+(tips||ds)+'" style="font-size:11px;color:var(--accent);cursor:default">'+ds+'</td>';
+  lpCell='<td class="text-r has-tip" data-tip="'+(tips||ds)+'" style="font-size:11px;color:var(--accent)">'+ds+'</td>';
 }
 return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
-((!isM||S.debtMobCol==='sh')?`<td class="text-r mono text-[11px] text-subtle">${r.qoldiq>0?fmt(r.qoldiq):'—'}</td>`:'')+
-((!isM||S.debtMobCol==='oy')?`<td class="text-r mono" style="font-size:11px;color:${oyC};font-weight:${r.oyQarz>0?'600':'400'}">${r.oyQarz>0?fmt(r.oyQarz):'—'}</td>`:'')+
-((!isM||S.debtMobCol==='kel')?`<td class="text-r mono" style="font-size:11px;color:${kelC};font-weight:${r.kelQarz>0?'700':'400'}">${r.kelQarz>0?fmt(r.kelQarz):'—'}</td>`:'')+
+((!isM||S.debtMobCol==='sh')?`<td class="text-r mono text-[11px] text-subtle">${qoldiq>0?fmt(qoldiq):'—'}</td>`:'')+
+((!isM||S.debtMobCol==='oy')?`<td class="text-r mono" style="font-size:11px;color:${oyC};font-weight:${oyQ>0?'600':'400'}">${oyQ>0?fmt(oyQ):'—'}</td>`:'')+
+((!isM||S.debtMobCol==='kel')?`<td class="text-r mono" style="font-size:11px;color:${kelC};font-weight:${kelQ>0?'700':'400'}">${kelQ>0?fmt(kelQ):'—'}</td>`:'')+
 ((!isM||S.debtMobCol==='lp')?lpCell:'')+'</tr>'}).join(''):`<tr><td colspan="${isM?2:5}" class="text-center text-subtle p-5">—</td></tr>`}</tbody></table></div></div>`;
   h+=`</div>`;
 }else{
