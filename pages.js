@@ -441,13 +441,13 @@ function showMetricInfo(k){
       <div class="mb-3.5">
         ${bx('#2ecc96','🟢','<b>Yaxshi (100%+):</b> Kengayish (Expansion) churnga ustun. Biznes organik ravishda kengaymoqda — <b>eng sog\'lom holat.</b>')}
         ${bx('#f0b020','🟡','<b>O\'rtacha (90-100%):</b> Biroz daromad yo\'qotilmoqda. Churn va contraction kuchaymoqda, sotuvlar bilan qoplash kerak.')}
-        ${bx('#e74c3c','🔴','<b>Xavfli (<90%):</b> Keskin daromad yo\'qotilish! Bazaning katta qismi ketmoqda yoki pasaymoqda. <b>Zudlik bilan sabablarni aniqlang.</b>')}
+        ${bx('#e74c3c','🔴','<b>Xavfli (<90%):</b> Keskin daromad yo\'qotilishi! Bazaning katta qismi ketmoqda yoki pasaymoqda. <b>Zudlik bilan sabablarni aniqlang.</b>')}
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>New:</b> Yangi mijozlardan kelayotgan daromad.<br>
         <b>Expansion:</b> Mavjud mijozlar tarifni ko'tardi. <b>Contraction:</b> Pasaytirdi. <b>Net Exp = Expansion - Contraction.</b><br>
         <b>Churn:</b> Butunlay ketganlar.<br>
-        <b>⚠️ Risk:</b> NRR < 90% uzoq vaqt davom etsa, moliyaviy barqarorlik buziladi va investorlar ishonchi yo'qotiladi.
+        <b>⚠️ Risk:</b> NRR < 90% uzoq vaqt davom etsa, moliyaviy barqarorlik buziladi va investorlar ishonchini yo'qotasiz.
       </div>`,
 
     'cust': `<h4 class="mb-2.5">👥 Active Customers — Faol Mijozlar</h4>
@@ -479,7 +479,7 @@ function showMetricInfo(k){
       <div class="mb-3.5">
         ${bx('#2ecc96','🟢','<b>Yaxshi:</b> CAC <b>3 oy ichida qoplanadi</b> — mijoz ARPA si bilan xarajat juda tez qaytadi.')}
         ${bx('#f0b020','🟡','<b>O\'rtacha:</b> CAC <b>6-12 oy ichida qoplanadi</b> — rentabel, lekin naqd pul muammolari yuzaga kelishi mumkin.')}
-        ${bx('#e74c3c','🔴','<b>Xavfli:</b> CAC <b>12+ oyda qoplanadi</b> — har bir yangi mijoz zarar olib keladi, biznes skallanmas holga tushadi.')}
+        ${bx('#e74c3c','🔴','<b>Xavfli:</b> CAC <b>12+ oyda qoplanadi</b> — har bir yangi mijoz zarar olib keladi, biznes kengaymas holga tushadi.')}
       </div>
       <div class="text-xs p-2.5 bg-card text-subtle rounded-md border border-brd">⚠️ Hozirda tizimga <b>Marketing xarajatlari bazasi</b> kiritilmagan. Modul yoqilishi uchun marketing ma'lumotlari kerak.</div>`,
 
@@ -499,7 +499,7 @@ function showMetricInfo(k){
       <div class="text-[12.5px] text-muted mb-3.5 leading-relaxed">Mijozlardan to'lovni yig'ish <b>o'rtacha necha kun</b> davom etishini ko'rsatadi. DSO qancha kichik bo'lsa — naqd pul oqimi shuncha tez va sog'lom.</div>
       <div class="mb-3.5">
         ${bx('#2ecc96','🟢','<b>Yaxshi (< 30 kun):</b> Mijozlar to\'lovni <b>o\'z vaqtida</b> qilmoqda. Kassada doim naqd bor — operatsion muammolar yo\'q.')}
-        ${bx('#f0b020','🟡','<b>O\'rtacha (30-60 kun):</b> Ba\'zi mijozlar <b>kechiktirmoqda.</b> Eslatma va sanksiya tizimini kuchaytirish kerak.')}
+        ${bx('#f0b020','🟡','<b>O\'rtacha (30-60 kun):</b> Ba\'zi mijozlar <b>kechiktirmoqda.</b> Eslatma va jazo tizimini kuchaytirish kerak.')}
         ${bx('#e74c3c','🔴','<b>Xavfli (60+ kun):</b> Jiddiy qarzdorlik! Daromadning katta qismi <b>yig\'ilmagan qarz</b> holida yotmoqda. Ish haqi va server xarajatlariga pul yetishmasligi xavfi.')}
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
@@ -554,7 +554,7 @@ function showMetricInfo(k){
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>GRR vs NRR:</b> NRR Expansion ni ham hisoblaydi, GRR esa faqat yo'qotishlarni ko'rsatadi. GRR har doim NRR dan ≤.<br>
         <b>Formula:</b> (Oldingi MRR − Churn MRR − Contraction MRR) ÷ Oldingi MRR × 100<br>
-        <b>⚠️ Risk:</b> GRR past bo'lsa, Expansion bilan yashirinadi — NRR yaxshi ko'rinsa ham aslida mijozlar bazasi emirilmoqda.
+        <b>⚠️ Risk:</b> GRR past bo'lsa, Expansion bilan yashirinadi — NRR yaxshi ko'rinsa ham aslida mijozlar bazasi yemirilmoqda.
       </div>`,
 
     'lc': `<h4 class="mb-2.5">🔄 Logo vs Revenue Churn</h4>
@@ -566,7 +566,7 @@ function showMetricInfo(k){
       </div>
       <div class="text-[11.5px] leading-relaxed text-muted">
         <b>Logo > Revenue:</b> Ko'p kichik mijozlar ketmoqda, lekin yiriklari qolmoqda — <b>Revenue Concentration</b> xavfi oshadi.<br>
-        <b>Logo < Revenue:</b> Kam, lekin <b>yirik mijozlar</b> ketmoqda — bu eng xavfli senariy!<br>
+        <b>Logo < Revenue:</b> Kam, lekin <b>yirik mijozlar</b> ketmoqda — bu eng xavfli stsenariy!<br>
         <b>⚠️ Risk:</b> Revenue Churn yuqori, Logo Churn past bo'lsa — portfelingizning eng qimmatli qismi ketayotganini anglatadi.
       </div>`,
 
