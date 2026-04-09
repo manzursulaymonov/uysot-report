@@ -1251,20 +1251,13 @@ function rMoliya(){
     const rateCol=dispRate>=90?'var(--green)':dispRate>=70?'var(--amber)':'var(--red)';
     const barW=Math.min(100,dispRate);
     const deltaCol=c.delta>=0?'var(--green)':'var(--red)';
-    // Per-client discipline (intizom) — pure 6-month reliability, independent of current month
+    // Per-client discipline — 6 oy: har oy oxirida cumPaid >= cumExpected*90% bo'lganmi
     const fd=fcMap[c.name];
     let intizom=-1,intTip='';
-    if(fd&&fd.h){
-      intizom=Math.round(fd.h.reliability*100);
-      intTip=`6 oydan ${fd.h.monthCount} tasida to'lagan · Odatiy kun: ${fd.h.avgDay}-sana · O'rtacha: ${fmt(fd.h.avgAmount)}`;
-    }else{intTip='6 oylik to\'lov tarixi yo\'q'}
-    const intCol=intizom>=80?'var(--green)':intizom>=50?'var(--amber)':intizom>=0?'var(--red)':'var(--text3)';
-    // Signal: compare current rate vs discipline
-    let signal='';
-    if(intizom>=0){
-      if(dispRate>=100&&intizom<50)signal=' <span title="Intizomi past lekin to\'liq undirdi — zo\'r!" style="font-size:12px">🔥</span>';
-      else if(dispRate<40&&intizom>=80)signal=' <span title="Intizomi yuqori lekin hali to\'lamagan — e\'tibor!" style="font-size:12px">⚠️</span>';
-    }
+    if(fd&&fd.disc){
+      intizom=fd.disc.score;
+      intTip=`6 oydan ${fd.disc.onTrack}/${fd.disc.months} oyda to'lov intizomida`;
+    }else{intTip='6 oylik tarix yo\'q'}
     fCrRows+=`<tr>
       <td class="font-medium">${cl(c.name)}</td>
       <td class="text-r mono text-[11px]">${fmt(c.expected)}</td>
@@ -1278,7 +1271,7 @@ function rMoliya(){
           <span style="font-size:10px;font-weight:700;color:${rateCol};min-width:30px;text-align:right">${dispRate}%</span>
         </div>
       </td>
-      <td class="text-r" style="min-width:50px" title="${intTip}"><span style="font-size:11px;font-weight:700;color:${intCol}">${intizom>=0?intizom+'%':'—'}</span>${signal}</td>
+      <td class="text-r" style="min-width:50px" title="${intTip}"><span style="font-size:11px;font-weight:700;color:${intCol}">${intizom>=0?intizom+'%':'—'}</span></td>
     </tr>`;
   });
   const inkMetrics=`<div class="ink-metrics" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
