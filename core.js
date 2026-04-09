@@ -442,17 +442,25 @@ function openSpotlight(initialChar){
   inp.focus();
 }
 
-// Global keyboard listener — open spotlight on typing
+// Global keyboard listener — open spotlight or focus search on typing
 (function(){
   document.addEventListener('keydown',function(e){
-    // Skip if already in an input, textarea, overlay, or modal
     const t=e.target.tagName;
     if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
     if(document.querySelector('.overlay')||document.querySelector('.spot-overlay'))return;
-    // Ctrl/Cmd+K shortcut
+    // Ctrl/Cmd+K — always spotlight
     if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSpotlight();return}
-    // Single printable character — open spotlight with that char
+    // Single printable character
     if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&/[a-zA-Z0-9\u0400-\u04FF\u0600-\u06FF]/.test(e.key)){
+      // Pages with search input — focus it instead of spotlight
+      const searchInput=document.querySelector('.search input[type="text"], .search input:not([type])');
+      if(searchInput&&(S.sec==='mrrtable'||S.sec==='debts'||S.sec==='contracts'||S.sec==='clients')){
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.value+=e.key;
+        searchInput.dispatchEvent(new Event('input'));
+        return;
+      }
       e.preventDefault();
       openSpotlight(e.key);
     }
