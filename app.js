@@ -1186,6 +1186,8 @@ function calcCollectionRate(mode){
       const cumCur=data.cum[curM]||0;
       const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
       const totalPaid=clientPaid[name]||0;
+      // Agar jami to'langan >= jami kutilgan — qarz yo'q, o'tkazish
+      if(totalPaid>=cumCur)return null;
       const mPaid=Math.round(monthPaid[name]||0);
       // Oy boshidagi qarz (oldingi oygacha kutilgan - oy boshigacha to'langan)
       const paidBeforeMonth=totalPaid-mPaid; // shu oydan oldin to'langan
