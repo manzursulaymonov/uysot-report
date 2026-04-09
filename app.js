@@ -599,11 +599,11 @@ function calcCumExpected(year,renewal){
       cts.forEach(ct=>{
         const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
         const on1st=ct.st.getDate()===1;
-        ct._fmp=on1st?ct.musd:Math.round(ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate());
+        ct._fmp=on1st?ct.musd:ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate();
         if(!ct.isQ){
           const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);
           ct._lmp=on1st
-            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:Math.round(ct.musd*ct.endD.getDate()/lmE.getDate()))
+            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:ct.musd*ct.endD.getDate()/lmE.getDate())
             :ct.musd-ct._fmp;
         }
         ct._added=0; // track running sum of monthly amounts (excluding tadbiq)
@@ -617,7 +617,7 @@ function calcCumExpected(year,renewal){
           cts.forEach(ct=>{if(ct.st>mE||ct.endD<mS)return;const isFirst=(ct.st>=mS&&ct.st<=mE),isLast=(ct.endD>=mS&&ct.endD<=mE);
             if(isFirst)monthExp+=ct.tUSD||0;
             let amt=0;
-            if(isFirst&&isLast){amt=Math.round(ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim);if(ct.sTotal>0)amt=ct.sTotal-ct._added}
+            if(isFirst&&isLast){amt=ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim;if(ct.sTotal>0)amt=ct.sTotal-ct._added}
             else if(isFirst){amt=ct._fmp}
             else if(isLast){
               // Renewal faqat shu oy yoki kelajakda tugaydiganlar uchun
@@ -630,15 +630,15 @@ function calcCumExpected(year,renewal){
                 // O'tgan oylar yoki qarz jadvali: pro-rata
                 if(ct.sTotal>0){amt=ct.sTotal-ct._added}
                 else if(!ct.isQ){amt=ct._lmp}
-                else{amt=Math.round(ct.musd*Math.max(1,ct.endD.getDate())/dim)}
+                else{amt=ct.musd*Math.max(1,ct.endD.getDate())/dim}
               }
             }
             else{amt=ct.musd}
             ct._added+=amt;monthExp+=amt;
           });
-          cumTotal+=monthExp;if(y===year)cum12[m]=Math.round(cumTotal);
+          cumTotal+=monthExp;if(y===year)cum12[m]=cumTotal;
         }
-        if(y===year-1)preYear=Math.round(cumTotal);
+        if(y===year-1)preYear=cumTotal;
       }
       result[name]={cum:cum12,preYear};
     });
@@ -656,11 +656,11 @@ function calcCumExpectedUZS(year){
       cts.forEach(ct=>{
         const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
         const on1st=ct.st.getDate()===1;
-        ct._fmp=on1st?ct.musd:Math.round(ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate());
+        ct._fmp=on1st?ct.musd:ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate();
         if(!ct.isQ){
           const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);
           ct._lmp=on1st
-            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:Math.round(ct.musd*ct.endD.getDate()/lmE.getDate()))
+            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:ct.musd*ct.endD.getDate()/lmE.getDate())
             :ct.musd-ct._fmp;
         }
         ct._added=0; // track running sum of monthly amounts (excluding tadbiq)
@@ -674,7 +674,7 @@ function calcCumExpectedUZS(year){
           cts.forEach(ct=>{if(ct.st>mE||ct.endD<mS)return;const isFirst=(ct.st>=mS&&ct.st<=mE),isLast=(ct.endD>=mS&&ct.endD<=mE);
             if(isFirst)monthExp+=ct.tUSD||0;
             let amt=0;
-            if(isFirst&&isLast){amt=Math.round(ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim);if(ct.sTotal>0)amt=ct.sTotal-ct._added}
+            if(isFirst&&isLast){amt=ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/dim;if(ct.sTotal>0)amt=ct.sTotal-ct._added}
             else if(isFirst){amt=ct._fmp}
             else if(isLast){
               if(ct.sTotal>0){amt=ct.sTotal-ct._added}
@@ -684,9 +684,9 @@ function calcCumExpectedUZS(year){
             else{amt=ct.musd}
             ct._added+=amt;monthExp+=amt;
           });
-          cumTotal+=monthExp;if(y===year)cum12[m]=Math.round(cumTotal);
+          cumTotal+=monthExp;if(y===year)cum12[m]=cumTotal;
         }
-        if(y===year-1)preYear=Math.round(cumTotal);
+        if(y===year-1)preYear=cumTotal;
       }
       result[name]={cum:cum12,preYear};
     });
@@ -1175,12 +1175,12 @@ function calcCollectionRate(mode){
       // Kelishuv bo'yicha: calcDebtTable dan
       const dt=calcDebtTable(now);
       return dt.map(d=>{
-        const mPaid=Math.round(monthPaid[d.name]||0);
-        const oyBoshi=d.kelQarz+mPaid; // oy boshida qarz = hozirgi qarz + shu oyda to'langan
+        const mPaid=monthPaid[d.name]||0;
+        const oyBoshi=d.kelQarz+mPaid;
         const expected=Math.max(0,oyBoshi);
         if(expected<1)return null;
         const rate=expected>0?Math.round(mPaid/expected*100):0;
-        return{name:d.name,expected,paid:mPaid,rate,delta:mPaid-expected};
+        return{name:d.name,expected:Math.round(expected),paid:Math.round(mPaid),rate,delta:Math.round(mPaid-expected)};
       }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
     }
 
@@ -1190,18 +1190,15 @@ function calcCollectionRate(mode){
       const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
       const totalPaid=clientPaid[name]||0;
       // Agar jami to'langan >= jami kutilgan — qarz yo'q, o'tkazish
-      if(totalPaid>=cumCur)return null;
-      const mPaid=Math.round(monthPaid[name]||0);
-      // Oy boshidagi qarz (oldingi oygacha kutilgan - oy boshigacha to'langan)
-      const paidBeforeMonth=totalPaid-mPaid; // shu oydan oldin to'langan
-      const oyBoshiQarz=Math.round(cumPrev-paidBeforeMonth);
-      // Shu oy kutilgani
-      const oyKutilgan=Math.round(cumCur-cumPrev);
-      // Agar oy boshida ortiqcha to'langan bo'lsa, kutilgandan ayirish
+      if(totalPaid>=cumCur-0.5)return null;
+      const mPaid=monthPaid[name]||0;
+      const paidBeforeMonth=totalPaid-mPaid;
+      const oyBoshiQarz=cumPrev-paidBeforeMonth;
+      const oyKutilgan=cumCur-cumPrev;
       const expected=Math.max(0,oyBoshiQarz+oyKutilgan);
       if(expected<1)return null;
       const rate=expected>0?Math.round(mPaid/expected*100):0;
-      return{name,expected,paid:mPaid,rate,delta:mPaid-expected};
+      return{name,expected:Math.round(expected),paid:Math.round(mPaid),rate,delta:Math.round(mPaid-expected)};
     }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
   });
 }
