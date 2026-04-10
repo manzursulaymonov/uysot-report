@@ -1266,7 +1266,8 @@ function pag(p,t,c,n,k){if(t<=1)return'';return`<div class="pager"><span>${p*n+1
 
 // === DEBOUNCED SEARCH HANDLERS ===
 const _debouncedSearch=debounce(()=>{clearCache();render()},250);
-function onSearch(field,val){S[field]=val;S.cP=0;S.clP=0;if(val&&val.length>1)_A.search(val,S.sec);_debouncedSearch()}
+const _debouncedSearchLog=debounce((val,sec)=>{if(val&&val.length>1)_A.search(val,sec)},1500);
+function onSearch(field,val){S[field]=val;S.cP=0;S.clP=0;_debouncedSearchLog(val,S.sec);_debouncedSearch()}
 function toggleAgingFilter(label){if(!S.arAgingFilter)S.arAgingFilter=[];var i=S.arAgingFilter.indexOf(label);if(i>=0)S.arAgingFilter.splice(i,1);else S.arAgingFilter.push(label);render()}
 
 // === NAV ===
