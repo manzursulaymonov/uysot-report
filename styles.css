@@ -819,6 +819,7 @@ body:has(.overlay){overflow:hidden}
   .page-title{font-size:18px}
   .toast-container{left:16px;right:16px}
   .toast{max-width:100%}
+  .has-tip::after{display:none!important}
 }
 @media(max-width:480px){
   .metrics{grid-template-columns:1fr}
