@@ -65,6 +65,121 @@ function exportEncryptedConfig(){
   });
 }
 
+// === ANALYTICS PAGE ===
+function showAnalytics(){
+  const d=_A.getData();
+  const now=Date.now();
+  const day=864e5;
+
+  // === Page views ===
+  const pagesSorted=Object.entries(d.pages).sort((a,b)=>b[1]-a[1]);
+  const pageNames={dashboard:'Dashboard',mrrtable:'MRR jadval',managers:'Menejerlar',clients:'Mijozlar',topmrr:'Top MRR',debts:'Qarzdorlik',moliya:'Finance',contracts:'Shartnomalar'};
+  let pagesHtml=pagesSorted.map(([k,v])=>`<tr><td class="font-medium">${pageNames[k]||k}</td><td class="text-r mono font-bold">${v}</td></tr>`).join('');
+
+  // === Top clients ===
+  const clientsSorted=Object.entries(d.clients).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  let clientsHtml=clientsSorted.map(([k,v],i)=>`<tr><td class="text-subtle text-[11px]">${i+1}</td><td class="font-medium">${k}</td><td class="text-r mono font-bold">${v}</td></tr>`).join('');
+
+  // === Features ===
+  const featSorted=Object.entries(d.features).sort((a,b)=>b[1]-a[1]);
+  let featHtml=featSorted.map(([k,v])=>{
+    const label=k.replace('export_csv_','CSV: ').replace('ai_recommend_','AI: ').replace('theme_','Tema: ').replace('project_switch_','Loyiha: ');
+    return`<tr><td class="font-medium">${label}</td><td class="text-r mono font-bold">${v}</td></tr>`;
+  }).join('');
+
+  // === Recent searches ===
+  const recentSearches=d.searches.slice(-20).reverse();
+  let searchHtml=recentSearches.map(s=>{
+    const ago=Math.round((now-s.t)/60000);
+    const agoStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+    return`<tr><td class="font-medium">"${s.q}"</td><td class="text-subtle text-[11px]">${s.s||''}</td><td class="text-r text-subtle text-[11px]">${agoStr}</td></tr>`;
+  }).join('');
+
+  // === Fetch performance ===
+  const recentFetches=d.fetches.slice(-30).reverse();
+  const avgMs=recentFetches.length?Math.round(recentFetches.reduce((s,f)=>s+f.ms,0)/recentFetches.length):0;
+  const failCount=recentFetches.filter(f=>!f.ok).length;
+  let fetchHtml=recentFetches.slice(0,15).map(f=>{
+    const ago=Math.round((now-f.t)/60000);
+    const agoStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+    const col=f.ok?(f.ms<2000?'var(--green)':f.ms<5000?'var(--amber)':'var(--red)'):'var(--red)';
+    return`<tr><td class="font-medium">${f.l}</td><td class="text-r mono" style="color:${col}">${f.ok?f.ms+'ms':'XATO'}</td><td class="text-r text-subtle text-[11px]">${agoStr}</td></tr>`;
+  }).join('');
+
+  // === Errors ===
+  const recentErrors=d.errors.slice(-15).reverse();
+  let errHtml=recentErrors.map(e=>{
+    const ago=Math.round((now-e.t)/60000);
+    const agoStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+    return`<tr><td class="text-danger text-[11px]" style="max-width:300px;word-break:break-all">${e.m}</td><td class="text-subtle text-[11px]">${e.s}</td><td class="text-r text-subtle text-[11px]">${agoStr}</td></tr>`;
+  }).join('');
+
+  // === Sessions ===
+  const sessions=d.sessions.slice(-30).reverse();
+  const avgDur=sessions.filter(s=>s.end).length?Math.round(sessions.filter(s=>s.end).reduce((sum,s)=>sum+(s.end-s.start),0)/sessions.filter(s=>s.end).length/60000):0;
+  const totalEvents=d.events.length;
+
+  // === Render ===
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+  o.innerHTML=`<div class="modal" style="max-width:900px;max-height:92vh;padding:0;display:flex;flex-direction:column">
+    <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div><div style="font-weight:700;font-size:16px">📊 App Analytics</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${totalEvents} ta event · ${sessions.length} ta sessiya · O'rtacha ${avgDur} daqiqa</div></div>
+      <div class="flex gap-2">
+        <button class="btn text-[11px] text-danger border-danger" onclick="if(confirm('Barcha analytics tozalansinmi?')){_A.clear();this.closest('.overlay').remove();showAnalytics()}">Tozalash</button>
+        <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
+      </div>
+    </div>
+    <div style="padding:20px 24px;overflow-y:auto;flex:1">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Sahifa ko'rishlar</div>
+          <div style="font-size:24px;font-weight:700;margin-top:4px">${pagesSorted.reduce((s,p)=>s+p[1],0)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Mijoz kartalari</div>
+          <div style="font-size:24px;font-weight:700;color:var(--accent);margin-top:4px">${clientsSorted.reduce((s,c)=>s+c[1],0)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">O'rtacha fetch</div>
+          <div style="font-size:24px;font-weight:700;margin-top:4px" style="color:${avgMs<2000?'var(--green)':'var(--amber)'}">${avgMs>0?avgMs+'ms':'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Xatolar</div>
+          <div style="font-size:24px;font-weight:700;color:${d.errors.length?'var(--red)':'var(--green)'};margin-top:4px">${d.errors.length||'0'}</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">📄 Sahifalar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden">${pagesHtml?'<table class="w-full"><tbody>'+pagesHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Ma\'lumot yo\'q</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">🔧 Funksiyalar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden">${featHtml?'<table class="w-full"><tbody>'+featHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Hali ishlatilmagan</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">👤 Top mijozlar (karta ochilgan)</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${clientsHtml?'<table class="w-full"><thead><tr><th>#</th><th>Mijoz</th><th class="text-r">Marta</th></tr></thead><tbody>'+clientsHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Ma\'lumot yo\'q</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">🔍 So'nggi qidiruvlar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${searchHtml?'<table class="w-full"><thead><tr><th>So\'rov</th><th>Sahifa</th><th class="text-r">Vaqt</th></tr></thead><tbody>'+searchHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Hali qidirilmagan</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">🌐 Fetch tezligi <span style="font-weight:400;color:var(--text3)">(o'rtacha ${avgMs}ms${failCount?' · <span style="color:var(--red)">'+failCount+' xato</span>':''})</span></div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto">${fetchHtml?'<table class="w-full"><thead><tr><th>Manba</th><th class="text-r">Vaqt</th><th class="text-r">Qachon</th></tr></thead><tbody>'+fetchHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Hali fetch qilinmagan</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">❌ Xatolar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto">${errHtml?'<table class="w-full"><thead><tr><th>Xabar</th><th>Manba</th><th class="text-r">Vaqt</th></tr></thead><tbody>'+errHtml+'</tbody></table>':'<div class="text-center p-4 text-[12px]" style="color:var(--green)">Xato yo\'q ✓</div>'}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
 // === CHARTS ===
 function iC(){
 const s=getComputedStyle(document.documentElement);
@@ -235,6 +350,7 @@ ${EO_STYLES.map(s=>'<option value="'+s.id+'"'+((localStorage.getItem('uysot_styl
 ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
 <div class="flex gap-1.5 flex-wrap">
 <button class="btn text-danger border-danger text-[11px]" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_projectIdx');for(let i=0;i<10;i++)localStorage.removeItem('uysot_data_'+i);localStorage.removeItem('uysot_data');S.config=null;S.projects=null;S.projectIdx=0;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();updateProjectUI();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn text-[11px]" onclick="this.closest('.overlay').remove();showAnalytics()">📊 Analytics</button>
 <button class="btn text-[11px]" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
 </div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
@@ -530,13 +646,17 @@ function hideSmartLoader(){
 
 // === DATA LOADING ===
 async function fetchCsv(url,label){
+  const t0=performance.now();
   console.log('['+label+'] Yuklanmoqda: '+url);
   try{const r=await fetch(url);if(r.ok){const t=await r.text();
   if(t.startsWith('<!') || t.startsWith('<html')){throw new Error('HTML')}
-  if(t.length>10){return t}}}catch(e){console.warn('['+label+'] Direct:',e.message)}
+  if(t.length>10){_A.fetch(url,label,performance.now()-t0,true);return t}}}catch(e){console.warn('['+label+'] Direct:',e.message)}
   try{const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url));
-  if(r.ok){const j=await r.json();if(j.contents&&j.contents.length>10&&!j.contents.startsWith('<!'))return j.contents}
+  if(r.ok){const j=await r.json();if(j.contents&&j.contents.length>10&&!j.contents.startsWith('<!'))
+  {_A.fetch(url,label,performance.now()-t0,true);return j.contents}}
   }catch(e){console.warn('['+label+'] allorigins:',e.message)}
+  _A.fetch(url,label,performance.now()-t0,false);
+  _A.error('['+label+'] Yuklab bo\'lmadi','fetch');
   throw new Error('['+label+'] Yuklab bo\'lmadi.')
 }
 

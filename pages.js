@@ -48,6 +48,7 @@ function cl(n){if(!n)return'—';const s=JSON.stringify(n).replace(/"/g,'&quot;'
 // === CLIENT CARD MODAL ===
 function showClientCard(name,cur){
   const n=name.trim();
+  _A.client(n);
   const isUZS=(cur||S._cardCur||'usd')==='uzs';
   const ccy=isUZS?'':'$';
   const ccyKey=isUZS?'uzs':'usd';

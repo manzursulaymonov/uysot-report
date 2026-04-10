@@ -1215,6 +1215,7 @@ function _render(){
   const savedLeft=tbl?tbl.scrollLeft:0;
   const root=document.getElementById('root');
   const secChanged=_lastSec!==S.sec;
+  if(secChanged)_A.page(S.sec);
   _lastSec=S.sec;
   const html=(f[S.sec]||rD)();
   root.innerHTML=secChanged?'<div class="page-enter">'+html+'</div>':html;
@@ -1265,7 +1266,7 @@ function pag(p,t,c,n,k){if(t<=1)return'';return`<div class="pager"><span>${p*n+1
 
 // === DEBOUNCED SEARCH HANDLERS ===
 const _debouncedSearch=debounce(()=>{clearCache();render()},250);
-function onSearch(field,val){S[field]=val;S.cP=0;S.clP=0;_debouncedSearch()}
+function onSearch(field,val){S[field]=val;S.cP=0;S.clP=0;if(val&&val.length>1)_A.search(val,S.sec);_debouncedSearch()}
 function toggleAgingFilter(label){if(!S.arAgingFilter)S.arAgingFilter=[];var i=S.arAgingFilter.indexOf(label);if(i>=0)S.arAgingFilter.splice(i,1);else S.arAgingFilter.push(label);render()}
 
 // === NAV ===

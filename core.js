@@ -19,6 +19,7 @@ const EO_STYLES=[
   {id:'cyber',name:'Cyber Neon'}
 ];
 function applyThemeStyle(styleId){
+  if(typeof _A!=='undefined')_A.feature('theme_'+styleId);
   const html=document.documentElement;
   if(styleId&&styleId!=='default')html.setAttribute('data-style',styleId);
   else html.removeAttribute('data-style');
@@ -72,6 +73,76 @@ function showToast(msg,type='info'){
 
 // === DEBOUNCE ===
 function debounce(fn,ms=250){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms)}}
+
+// === ANALYTICS TRACKER ===
+const _A=(function(){
+  const KEY='uysot_analytics';
+  let data;
+  try{data=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){data={}}
+  if(!data.events)data.events=[];
+  if(!data.pages)data.pages={};
+  if(!data.clients)data.clients={};
+  if(!data.searches)data.searches=[];
+  if(!data.fetches)data.fetches=[];
+  if(!data.errors)data.errors=[];
+  if(!data.features)data.features={};
+  if(!data.sessions)data.sessions=[];
+  // Session start
+  const sessId=Date.now();
+  data.sessions.push({start:sessId,pages:0});
+  // Cap arrays to prevent localStorage overflow
+  const cap=(arr,max)=>{if(arr.length>max)arr.splice(0,arr.length-max)};
+
+  function save(){
+    cap(data.events,500);cap(data.searches,200);cap(data.fetches,200);cap(data.errors,100);cap(data.sessions,90);
+    try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+  }
+  function track(cat,action,label,value){
+    data.events.push({t:Date.now(),c:cat,a:action,l:label||'',v:value||0});
+    // Update session page count
+    const s=data.sessions[data.sessions.length-1];
+    if(s)s.pages++;
+    save();
+  }
+  function page(name){
+    data.pages[name]=(data.pages[name]||0)+1;
+    track('page','view',name);
+  }
+  function client(name){
+    data.clients[name]=(data.clients[name]||0)+1;
+    track('client','open',name);
+  }
+  function search(query,source){
+    if(query&&query.length>1)data.searches.push({t:Date.now(),q:query,s:source||'search'});
+    save();
+  }
+  function fetch_(url,label,ms,ok){
+    data.fetches.push({t:Date.now(),l:label,ms:Math.round(ms),ok});
+    save();
+  }
+  function error(msg,source){
+    data.errors.push({t:Date.now(),m:msg,s:source||''});
+    save();
+  }
+  function feature(name){
+    data.features[name]=(data.features[name]||0)+1;
+    track('feature','use',name);
+  }
+  function getData(){return data}
+  function clear(){
+    data={events:[],pages:{},clients:{},searches:[],fetches:[],errors:[],features:{},sessions:[]};
+    save();
+  }
+  // Auto-save session end on unload
+  window.addEventListener('beforeunload',()=>{
+    const s=data.sessions[data.sessions.length-1];
+    if(s)s.end=Date.now();
+    save();
+  });
+  return{track,page,client,search,fetch:fetch_,error,feature,getData,clear,save};
+})();
+window.addEventListener('error',e=>{_A.error(e.message||'Unknown','js')});
+window.addEventListener('unhandledrejection',e=>{_A.error(e.reason?.message||String(e.reason)||'Promise','promise')});
 
 // === MEMOIZATION ===
 function clearCache(){S._cache={}}
@@ -337,6 +408,7 @@ function toDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 // === SPOTLIGHT CLIENT SEARCH ===
 function openSpotlight(initialChar){
   if(document.querySelector('.spot-overlay'))return;
+  _A.feature('spotlight');
   const {all,qAll}=buildContracts();
   const now=new Date();
   const snap=mrrOnDate(now,all,qAll);
@@ -531,6 +603,7 @@ function showProjectSwitcher(){
 
 function switchProject(idx){
   if(!S.projects||!S.projects[idx])return;
+  _A.feature('project_switch_'+S.projects[idx].name);
   S.projectIdx=idx;
   localStorage.setItem('uysot_projectIdx',idx);
   const p=S.projects[idx];
@@ -553,6 +626,7 @@ function switchProject(idx){
 
 // === AI METRIC RECOMMENDATION ===
 async function aiRecommend(metricKey){
+  _A.feature('ai_recommend_'+metricKey);
   // Auto-detect provider based on available keys
   if(S.aiProvider==='none'||(S.aiProvider==='gemini'&&!S.geminiKey)||(S.aiProvider==='claude'&&!S.apiKey)){
     if(S.geminiKey)S.aiProvider='gemini';
@@ -774,6 +848,7 @@ function showPeriodPicker(){
 }
 
 function downloadCSV(rows,filename){
+  _A.feature('export_csv_'+filename);
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return}
   const hs=Object.keys(rows[0]);
   const esc=v=>{const s=v==null?'':String(v);return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s};
