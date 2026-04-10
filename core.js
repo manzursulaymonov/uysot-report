@@ -544,6 +544,89 @@ function openSpotlight(initialChar){
   });
 })();
 
+// === TABLE ROW SELECTION + CELL COPY ===
+(function(){
+  let selRow=null,selCell=null;
+
+  function clearSel(){
+    if(selRow)selRow.classList.remove('tr-sel');
+    if(selCell)selCell.classList.remove('td-sel');
+    selRow=null;selCell=null;
+  }
+
+  function selectRow(tr,td){
+    clearSel();
+    if(!tr)return;
+    tr.classList.add('tr-sel');
+    selRow=tr;
+    if(td){td.classList.add('td-sel');selCell=td}
+    // Scroll into view if needed
+    tr.scrollIntoView({block:'nearest'});
+  }
+
+  function moveRow(dir){
+    if(!selRow)return false;
+    const next=dir>0?selRow.nextElementSibling:selRow.previousElementSibling;
+    if(!next||next.tagName!=='TR')return false;
+    const cellIdx=selCell?Array.from(selRow.children).indexOf(selCell):0;
+    selectRow(next,next.children[cellIdx]||null);
+    return true;
+  }
+
+  function moveCell(dir){
+    if(!selRow)return false;
+    if(!selCell){selectRow(selRow,selRow.children[0]);return true}
+    const cells=Array.from(selRow.children);
+    const idx=cells.indexOf(selCell);
+    const next=cells[idx+dir];
+    if(!next)return false;
+    selCell.classList.remove('td-sel');
+    next.classList.add('td-sel');
+    selCell=next;
+    return true;
+  }
+
+  // Click on table row/cell
+  document.addEventListener('click',function(e){
+    const td=e.target.closest('tbody td');
+    if(!td)return;
+    const tr=td.closest('tr');
+    if(!tr||!tr.closest('tbody'))return;
+    // Don't interfere with client links
+    if(e.target.closest('.client-link'))return;
+    selectRow(tr,td);
+  });
+
+  // Arrow keys + Ctrl+C
+  document.addEventListener('keydown',function(e){
+    if(!selRow)return;
+    // Skip if in input
+    const t=e.target.tagName;
+    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
+    if(document.querySelector('.overlay')||document.querySelector('.spot-overlay'))return;
+
+    if(e.key==='ArrowDown'){e.preventDefault();moveRow(1)}
+    else if(e.key==='ArrowUp'){e.preventDefault();moveRow(-1)}
+    else if(e.key==='ArrowRight'){e.preventDefault();moveCell(1)}
+    else if(e.key==='ArrowLeft'){e.preventDefault();moveCell(-1)}
+    else if((e.ctrlKey||e.metaKey)&&e.key==='c'&&selCell){
+      e.preventDefault();
+      const text=selCell.textContent.trim();
+      navigator.clipboard.writeText(text).then(()=>{
+        showToast('Nusxalandi: '+text,'success');
+      });
+    }
+    else if(e.key==='Escape'){clearSel()}
+  });
+
+  // Clear selection on re-render
+  const _origRender=window.render;
+  if(typeof render==='function'){
+    const _obs=new MutationObserver(()=>{selRow=null;selCell=null});
+    _obs.observe(document.getElementById('root')||document.body,{childList:true,subtree:false});
+  }
+})();
+
 // === PROJECT SWITCHER ===
 function updateProjectUI(){
   const el=document.getElementById('projectName');
