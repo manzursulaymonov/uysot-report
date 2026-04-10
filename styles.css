@@ -296,6 +296,13 @@ tbody tr:hover td{background:var(--bg4)}
 tbody tr{transition:background var(--transition-fast);cursor:pointer}
 tbody tr.tr-sel>td{background:var(--accent-bg)!important}
 tbody tr.tr-sel>td.td-sel{outline:2px solid var(--accent);outline-offset:-2px;border-radius:2px}
+/* MRR table: selection preserves payment colors */
+.mrr-tbl tbody tr.tr-sel>td{background:var(--accent-bg)!important}
+.mrr-tbl tbody tr.tr-sel>.mcell-g{background:rgba(17,122,82,0.14)!important}
+.mrr-tbl tbody tr.tr-sel>.mcell-y{background:rgba(163,98,7,0.14)!important}
+.mrr-tbl tbody tr.tr-sel>.sticky-col{background:var(--bg3)!important;border-left:3px solid var(--accent)}
+[data-theme="dark"] .mrr-tbl tbody tr.tr-sel>.mcell-g{background:rgba(46,204,148,0.12)!important}
+[data-theme="dark"] .mrr-tbl tbody tr.tr-sel>.mcell-y{background:rgba(240,176,32,0.12)!important}
 
 /* === TEXT UTILITIES === */
 .text-r{text-align:right}.text-c{text-align:center}
@@ -691,13 +698,22 @@ body:has(.overlay){overflow:hidden}
 
 /* ── ROW HOVER ── */
 .mrr-tbl tbody tr:hover td {
-  background:var(--bg4) !important;
+  background:rgba(0,0,0,.02) !important;
+}
+[data-theme="dark"] .mrr-tbl tbody tr:hover td {
+  background:rgba(255,255,255,.03) !important;
 }
 .mrr-tbl tbody tr:hover .mcell-g {
-  background:rgba(17,122,82,0.10) !important;
+  background:rgba(17,122,82,0.12) !important;
 }
 .mrr-tbl tbody tr:hover .mcell-y {
-  background:rgba(163,98,7,0.10) !important;
+  background:rgba(163,98,7,0.12) !important;
+}
+[data-theme="dark"] .mrr-tbl tbody tr:hover .mcell-g {
+  background:rgba(46,204,148,0.10) !important;
+}
+[data-theme="dark"] .mrr-tbl tbody tr:hover .mcell-y {
+  background:rgba(240,176,32,0.10) !important;
 }
 .mrr-tbl tbody tr:hover .sticky-col {
   background:var(--bg3) !important;
