@@ -893,14 +893,15 @@ if(view==='muddatlar'){
   });else h+=`<tr><td colspan="5" class="text-center text-subtle p-5">Yaqinda tugaydigan shartnoma yo'q ✅</td></tr>`;
   h+=`</tbody></table></div></div></div>`;
 }else if(view==='qoshimcha'){
-  // Qo'shimcha kelishuvlar jadvali
   let qd=[...S.qRows];
   if(S.cQ){const q=S.cQ.toLowerCase();qd=qd.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q))}
+  if(S.cR)qd=qd.filter(r=>r.Hudud===S.cR);
   const qt=qd.length;
   h+=`<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, firma..." value="${S.cQ}" oninput="onSearch('cQ',this.value)"><button class="search-clear" onclick="onSearch('cQ','');render()" type="button">&times;</button></div>
+<select class="flt" onchange="S.cR=this.value;S.cP=0;clearCache();render()"><option value="">Barcha hududlar</option>${uq('Hudud').map(r=>`<option value="${r}"${S.cR===r?' selected':''}>${r}</option>`).join('')}</select>
 <span class="text-[11px] text-subtle">${qt} ta kelishuv</span></div>`;
-  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Mijoz</th><th>Sana</th><th>Tugash</th><th class="text-r">Tadbiq $</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th></tr></thead><tbody>${qd.length?qd.map(r=>{
-return`<tr><td class="mono text-[10px] text-subtle">${r.raqami||'—'}</td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${pn(r['Tadbiq USD'])?fmt(pn(r['Tadbiq USD'])):'—'}</td><td class="text-r mono">${fmt(pn(r['Oylik USD']))}</td><td class="text-r mono">${fmt(pn(r['sum USD']))}</td></tr>`}).join(''):'<tr><td colspan="7" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
+  h+=`<div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Mijoz</th><th>Firma</th><th>Hudud</th><th>Sana</th><th>Tugash</th><th class="text-r">Tadbiq $</th><th class="text-r">Oylik $</th><th class="text-r">Jami $</th><th>Status</th></tr></thead><tbody>${qd.length?qd.map(r=>{
+return`<tr><td class="mono text-[10px] text-subtle">${r.raqami||'—'}</td><td class="font-semibold">${r.Client?cl(r.Client):'—'}</td><td style="color:var(--text2);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${r['Firma nomi']||'—'}</td><td class="text-[11px]">${r.Hudud||'—'}</td><td class="mono" style="font-size:10.5px">${r.sanasi||'—'}</td><td class="mono" style="font-size:10.5px">${r['amal qilishi']||'—'}</td><td class="text-r mono">${pn(r['Tadbiq USD'])?fmt(pn(r['Tadbiq USD'])):'—'}</td><td class="text-r mono">${fmt(pn(r['Oylik USD']))}</td><td class="text-r mono">${fmt(pn(r['sum USD']))}</td><td>${sb(r.status||'')}</td></tr>`}).join(''):'<tr><td colspan="10" class="text-center text-subtle p-5">—</td></tr>'}</tbody></table></div></div>`;
 }else{
   h+=`<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Mijoz, firma, INN..." value="${S.cQ}" oninput="onSearch('cQ',this.value)"><button class="search-clear" onclick="onSearch('cQ','');render()" type="button">&times;</button></div>
 <select class="flt" onchange="S.cS=this.value;S.cP=0;clearCache();render()">${so.map(o=>`<option value="${o.v}"${S.cS===o.v?' selected':''}>${o.l}</option>`).join('')}</select>
