@@ -856,7 +856,7 @@ function _pageTabs(tabs,cur,key){
 function _rCBody(){
 const pm=calcPayments();const qm={};
 S.qRows.forEach(r=>{const c=r.Client?.trim(),sh=r.raqami?.trim();if(!c||!sh)return;const k=c+'|'+sh;qm[k]=(qm[k]||0)+pn(r['sum USD'])});
-let d=[...S.rows];
+let d=[...S.rows].sort((a,b)=>{const da=pd(a.sanasi),db=pd(b.sanasi);return(db||0)-(da||0)});
 if(S.cQ){const q=S.cQ.toLowerCase();d=d.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q)||(r.INN||'').includes(q))}
 if(S.cS)d=d.filter(r=>sc(r.status)===S.cS);if(S.cM)d=d.filter(r=>r.Manager===S.cM);if(S.cR)d=d.filter(r=>r.Hudud===S.cR);
 const t=d.length,pg=Math.ceil(t/S.cN),sl=d.slice(S.cP*S.cN,(S.cP+1)*S.cN);
@@ -893,7 +893,7 @@ if(view==='muddatlar'){
   });else h+=`<tr><td colspan="5" class="text-center text-subtle p-5">Yaqinda tugaydigan shartnoma yo'q ✅</td></tr>`;
   h+=`</tbody></table></div></div></div>`;
 }else if(view==='qoshimcha'){
-  let qd=[...S.qRows];
+  let qd=[...S.qRows].sort((a,b)=>{const da=pd(a.sanasi),db=pd(b.sanasi);return(db||0)-(da||0)});
   if(S.cQ){const q=S.cQ.toLowerCase();qd=qd.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q))}
   if(S.cR)qd=qd.filter(r=>r.Hudud===S.cR);
   const qt=qd.length;
@@ -916,7 +916,7 @@ return h;
 
 // === CONTRACTS ===
 function rC(){
-let d=[...S.rows];
+let d=[...S.rows].sort((a,b)=>{const da=pd(a.sanasi),db=pd(b.sanasi);return(db||0)-(da||0)});
 if(S.cQ){const q=S.cQ.toLowerCase();d=d.filter(r=>(r.Client||'').toLowerCase().includes(q)||(r['Firma nomi']||'').toLowerCase().includes(q)||(r.INN||'').includes(q))}
 if(S.cS)d=d.filter(r=>sc(r.status)===S.cS);if(S.cM)d=d.filter(r=>r.Manager===S.cM);if(S.cR)d=d.filter(r=>r.Hudud===S.cR);
 const t=d.length;
