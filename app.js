@@ -1294,19 +1294,9 @@ function initNav(){
     allSubs.forEach(s=>s.classList.remove('open'));
 
     if(sub){
-      // Sub-menu bor — toggle qilish, sahifaga o'tmaslik
+      // Sub-menu bor — faqat sub ochilsin, sahifaga o'tmaslik
       sub.classList.add('open');
-      if(S.sec!==sec){
-        // Birinchi marta bosilsa — faqat sub ochilsin
-        S.sec=sec;
-        // Sub ning birinchi active itemiga qarab renderlay
-        const firstSub=sub.querySelector('.nav-sub-item.active')||sub.querySelector('.nav-sub-item');
-        if(firstSub&&firstSub.dataset.subview){
-          const [key,val]=firstSub.dataset.subview.split(':');
-          S[key]=val;
-        }
-        clearCache();render();
-      }
+      // Sahifaga o'tmasdan faqat sub-menu ko'rsatish
     }else{
       S.sec=sec;
       clearCache();render();
