@@ -961,7 +961,7 @@ function _findQarzdorDate(name,totalPaid){
 
 // === YAGONA TO'LOV MANBASI (sana bilan) ===
 function _clientPaysByDate(){
-  return cached('clientPaysByDate_v1',()=>{
+  return cached('clientPaysByDate_v2',()=>{
     const pays=[];
     const add=(rows,dateK,usdK)=>{
       if(!rows)return;
@@ -971,8 +971,15 @@ function _clientPaysByDate(){
         const v=pn(r[usdK]||'0');if(v>0)pays.push({client:c,date:d,amount:v});
       });
     };
+    // payRows — sanali to'lovlar (2025+)
     add(S.payRows,'sanasi','USD');
-    add(S.y2024Rows,'sanasi','USD');
+    // y2024Rows — sanasi yo'q, jami to'lov → 31.12.2024 ga belgilash
+    const y24date=new Date(2024,11,31);
+    if(S.y2024Rows)S.y2024Rows.forEach(r=>{
+      const c=r.Client?.trim();if(!c)return;
+      const v=pn(r.USD||'0');if(v>0)pays.push({client:c,date:y24date,amount:v});
+    });
+    // perevodRows — Sanasi ustuni bor
     add(S.perevodRows,'Sanasi','Tolov(usd)');
     return pays;
   });
