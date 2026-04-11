@@ -1020,22 +1020,22 @@ function calcDebtTrend(from,to){
         else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
       });
 
-      // Undiruv: inkasso usuli — oyBoshiQarz + oylikMajburiyat
+      // Undiruv: calcCollectionRate bilan bir xil manba
       const curM=d.getMonth();
-      const cumExp=calcCumExpected(d.getFullYear());
-      // Per-client: oy boshigacha to'langan va shu oyda to'langan
-      const clPaidBefore={},clPaidMonth={};
+      const cumExpR=calcCumExpected(d.getFullYear(),true);// renewal=true
+      // paidBefore: calcPayments() jami - shu oydagi to'lov (inkasso usuli)
+      const clPaidMonth={};
       allPays.forEach(p=>{
-        if(p.date<mS){clPaidBefore[p.client]=(clPaidBefore[p.client]||0)+p.amount}
         if(p.date>=mS&&p.date<=repEnd){clPaidMonth[p.client]=(clPaidMonth[p.client]||0)+p.amount}
       });
       let collExp=0,mPaidTotal=0;
-      Object.entries(cumExp).forEach(([name,data])=>{
+      Object.entries(cumExpR).forEach(([name,data])=>{
         const cumCur=data.cum[curM]||0;
         const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
         const oyKut=cumCur-cumPrev;
-        const paidBefore=clPaidBefore[name]||0;
+        const totalPaid=clPay[name]||0;// calcPayments() jami (perevod bilan)
         const mPaid=clPaidMonth[name]||0;
+        const paidBefore=totalPaid-mPaid;
         const oyBoshiQarz=cumPrev-paidBefore;
         const expected=Math.max(0,oyBoshiQarz+oyKut);
         if(expected>=1){collExp+=expected;mPaidTotal+=mPaid}
