@@ -753,7 +753,9 @@ async function refreshData(){
   if(_refreshing||!S.config)return;
   _refreshing=true;
   const btn=document.getElementById('refreshBtn');
+  const lbl=btn?.querySelector('span');
   if(btn)btn.classList.add('bc-spin');
+  if(lbl)lbl.textContent='Yangilanmoqda...';
   try{
     const cfg=S.config;
     if(cfg.shartnomalar){try{const csv=await fetchCsv(cfg.shartnomalar,'Shartnomalar');S.rows=parse(csv)}catch(e){}}
@@ -772,6 +774,7 @@ async function refreshData(){
   }finally{
     _refreshing=false;
     if(btn)btn.classList.remove('bc-spin');
+    if(lbl)lbl.textContent='Yangilash';
   }
 }
 
