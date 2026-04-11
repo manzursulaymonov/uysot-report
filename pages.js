@@ -1192,14 +1192,18 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
     </div></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q ✅</div>'}
   </div></div>`;
 }
+if(view==='aging') return _rAgingSection();
+if(view==='inkasso') return _rInkassoSection();
 return h;
 }
 
-// === MOLIYA / CFO PAGE ===
-function rMoliya(){
-  const mos=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+// === TAHLIL (standalone) ===
+function rTahlil(){
+  return _rAuditSection();
+}
 
-  // === AR Aging ===
+// === SHARED SECTIONS ===
+function _rAgingSection(){
   const aging=calcARaging();
   const agingTotal=aging.reduce((s,b)=>s+b.total,0);
   if(!S.arAgingFilter)S.arAgingFilter=[];
@@ -1227,7 +1231,7 @@ function rMoliya(){
       <td class="text-[11px] text-subtle">${c.lastPayDate}</td>
     </tr>`;
   });
-  const agingSection=`<div>
+  return`<div>
     <div class="toolbar mb-2 gap-2.5">
       <span class="text-xs font-semibold text-subtle">${af.length?`Filter: ${af.join(', ')}`:allAging.length+' ta qarzdor'}</span>
       <div class="flex gap-1.5 items-center" style="margin-left:auto">
@@ -1240,8 +1244,9 @@ function rMoliya(){
         <th>Mijoz</th><th>Muddat</th><th class="text-r">Oy qarzi</th><th class="text-r">Kelishuv</th><th class="text-r">Kechikish</th><th>Oxirgi to'lov</th>
       </tr></thead><tbody>${agingRows}</tbody></table></div></div></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q</div>'}
   </div>`;
+}
 
-  // === Collection Rate ===
+function _rInkassoSection(){
   const inkMode=S.inkassoMode||'oy';
   const cr=calcCollectionRate(inkMode);
   const now=new Date();
@@ -1316,7 +1321,7 @@ function rMoliya(){
   </div>`;
   const inkFs=S.inkassoFs||false;
   const inkFsIcon=inkFs?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
-  const crSection=`<div id="inkContainer"${inkFs?' class="ink-fs-active"':''}>
+  return`<div id="inkContainer"${inkFs?' class="ink-fs-active"':''}>
     <div class="toolbar mb-2 gap-2.5">
       <div class="flex gap-2 items-center">
         ${modeToggle}
@@ -1334,8 +1339,9 @@ function rMoliya(){
       </tr></thead><tbody>${fCrRows}</tbody></table></div></div></div>`
       :'<div class="text-center text-subtle p-6">Ma\'lumot yo\'q</div>'}
   </div>`;
+}
 
-  // === Tahlil (Data Quality Audit) ===
+function _rAuditSection(){
   const audit=calcDataAudit();
   let auditRows='';
   audit.forEach(a=>{
@@ -1348,7 +1354,7 @@ function rMoliya(){
       <td style="font-size:12px;max-width:300px">${a.detail}</td>
     </tr>`;
   });
-  const auditSection=`<div>
+  return`<div>
     <div class="toolbar mb-2 gap-2.5">
       <span class="text-xs font-semibold text-subtle">${audit.length} ta xatolik</span>
       <div class="flex gap-1.5 items-center" style="margin-left:auto">
@@ -1359,10 +1365,27 @@ function rMoliya(){
         <th>Mijoz</th><th>Shartnoma</th><th>Xatolik turi</th><th>Tafsilot</th>
       </tr></thead><tbody>${auditRows}</tbody></table></div></div></div>`:'<div style="text-align:center;color:var(--green);padding:24px">Xatolik topilmadi</div>'}
   </div>`;
+}
 
-  const view=S.molView||'aging';
-  const header='';
-  if(view==='inkasso') return header+crSection;
-  if(view==='tahlil') return header+auditSection;
-  return header+agingSection;
+// === MOLIYA / FINANCE ===
+function rMoliya(){
+  const view=S.molView||'pnl';
+  if(view==='cashflow') return _rCashFlow();
+  return _rPnL();
+}
+
+function _rPnL(){
+  return`<div class="flex flex-col items-center justify-center min-h-[300px] gap-3 text-subtle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+    <div class="text-sm font-semibold">Profit & Loss</div>
+    <div class="text-xs">Tez kunda...</div>
+  </div>`;
+}
+
+function _rCashFlow(){
+  return`<div class="flex flex-col items-center justify-center min-h-[300px] gap-3 text-subtle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+    <div class="text-sm font-semibold">Cash Flow</div>
+    <div class="text-xs">Tez kunda...</div>
+  </div>`;
 }

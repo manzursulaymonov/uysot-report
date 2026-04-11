@@ -1209,26 +1209,34 @@ function _render(){
   if(!S.rows.length){showWelcome();return}
   const ae=document.activeElement;const isInput=ae&&ae.tagName==='INPUT'&&ae.type==='text';
   const sel=isInput?{s:ae.selectionStart,e:ae.selectionEnd,sec:S.sec,ph:ae.placeholder}:null;
-  const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT,debts:rDebt,moliya:rMoliya};
+  const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT,debts:rDebt,tahlil:rTahlil,moliya:rMoliya};
   // Save scroll positions before re-render
   const tbl=document.querySelector('.tbl-scroll');
   const savedTop=tbl?tbl.scrollTop:0;
   const savedLeft=tbl?tbl.scrollLeft:0;
   const root=document.getElementById('root');
   const secChanged=_lastSec!==S.sec;
-  if(secChanged)_A.page(S.sec);
+  if(secChanged){_A.page(S.sec);localStorage.setItem('uysot_sec',S.sec)}
   _lastSec=S.sec;
   const html=(f[S.sec]||rD)();
   root.innerHTML=secChanged?'<div class="page-enter">'+html+'</div>':html;
   iC();
-  // Sync sub-nav active states
+  // Sync nav active states
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active',el.dataset.sec===S.sec);
+  });
+  const subMap2={clients:'clients-sub',topmrr:'topmrr-sub',debts:'debts-sub',moliya:'moliya-sub'};
+  Object.entries(subMap2).forEach(([sec,id])=>{
+    const sub=document.getElementById(id);
+    if(sub)sub.classList.toggle('open',S.sec===sec);
+  });
   const clientsSub=document.getElementById('clients-sub');
   if(clientsSub&&S.sec==='clients'){
     clientsSub.querySelectorAll('.nav-sub-item').forEach(el=>{
       el.classList.toggle('active',el.dataset.clview===(S.clView||'umumiy'));
     });
   }
-  const syncSub={topmrr:{id:'topmrr-sub',key:'topView',def:'metrka'},debts:{id:'debts-sub',key:'debtView',def:'umumiy'},moliya:{id:'moliya-sub',key:'molView',def:'aging'}};
+  const syncSub={topmrr:{id:'topmrr-sub',key:'topView',def:'metrka'},debts:{id:'debts-sub',key:'debtView',def:'umumiy'},moliya:{id:'moliya-sub',key:'molView',def:'pnl'}};
   Object.entries(syncSub).forEach(([sec,cfg])=>{
     const sub=document.getElementById(cfg.id);
     if(sub)sub.querySelectorAll('.nav-sub-item[data-subview]').forEach(el=>{
@@ -1277,13 +1285,33 @@ function initNav(){
   const allSubs=Object.values(subMap).map(id=>document.getElementById(id)).filter(Boolean);
 
   document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>{
+    const sec=el.dataset.sec;
+    const subId=subMap[sec];
+    const sub=subId&&document.getElementById(subId);
+
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
     el.classList.add('active');
-    S.sec=el.dataset.sec;
     allSubs.forEach(s=>s.classList.remove('open'));
-    const sub=subMap[S.sec]&&document.getElementById(subMap[S.sec]);
-    if(sub)sub.classList.add('open');
-    clearCache();render();closeSidebar();
+
+    if(sub){
+      // Sub-menu bor — toggle qilish, sahifaga o'tmaslik
+      sub.classList.add('open');
+      if(S.sec!==sec){
+        // Birinchi marta bosilsa — faqat sub ochilsin
+        S.sec=sec;
+        // Sub ning birinchi active itemiga qarab renderlay
+        const firstSub=sub.querySelector('.nav-sub-item.active')||sub.querySelector('.nav-sub-item');
+        if(firstSub&&firstSub.dataset.subview){
+          const [key,val]=firstSub.dataset.subview.split(':');
+          S[key]=val;
+        }
+        clearCache();render();
+      }
+    }else{
+      S.sec=sec;
+      clearCache();render();
+    }
+    closeSidebar();
   }));
 
   // Clients sub (legacy data-clview)
