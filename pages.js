@@ -402,8 +402,7 @@ function toggleDebtFs(){
   window._fsKeyBound=true;
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
-      // Overlay ochiq bo'lsa — overlay o'zi handle qiladi, biz tegmaymiz
-      if(document.querySelectorAll('.overlay').length)return;
+      if(e._escHandled)return;
       if(S.debtFs){S.debtFs=false;clearCache();render();return}
       if(S.mrrFs){S.mrrFs=false;clearCache();render();return}
       if(S.inkassoFs){S.inkassoFs=false;clearCache();render();return}

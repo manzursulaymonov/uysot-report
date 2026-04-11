@@ -520,8 +520,16 @@ function openSpotlight(initialChar){
     const t=e.target.tagName;
     // Esc — clear search input (works even when input is focused)
     if(e.key==='Escape'){
+      // 1. Overlay ochiq bo'lsa — eng oxirgisini yopish
+      const overlays=document.querySelectorAll('.overlay');
+      if(overlays.length){e.preventDefault();overlays[overlays.length-1].remove();e._escHandled=true;return}
+      // 2. Spotlight ochiq bo'lsa
+      const spot=document.querySelector('.spot-overlay');
+      if(spot){e.preventDefault();spot.remove();e._escHandled=true;return}
+      // 3. Search input to'liq bo'lsa — tozalash
       const si=document.querySelector('.search input');
-      if(si&&si.value){e.preventDefault();si.value='';si.dispatchEvent(new Event('input'));si.blur();return}
+      if(si&&si.value){e.preventDefault();si.value='';si.dispatchEvent(new Event('input'));si.blur();e._escHandled=true;return}
+      // 4. Input fokusda — blur
       if(t==='INPUT'){e.target.blur();return}
     }
     if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
