@@ -1020,9 +1020,11 @@ function calcDebtTrend(from,to){
         else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
       });
 
-      // Undiruv: calcCollectionRate bilan bir xil manba
+      // Undiruv: shu oy=renewal, o'tgan oy=aniq
       const curM=d.getMonth();
-      const cumExpR=calcCumExpected(d.getFullYear(),true);// renewal=true
+      const now2=new Date();
+      const isCurMonth=(d.getFullYear()===now2.getFullYear()&&curM===now2.getMonth());
+      const cumExpR=calcCumExpected(d.getFullYear(),isCurMonth);
       // paidBefore: calcPayments() jami - shu oydagi to'lov (inkasso usuli)
       const clPaidMonth={};
       allPays.forEach(p=>{
