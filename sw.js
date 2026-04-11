@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uysot-v35';
+const CACHE_NAME = 'uysot-v36';
 const STATIC_ASSETS = [
   './',
   'index.html',
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
   'icon.svg',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
   'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
-  'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
@@ -76,7 +76,7 @@ self.addEventListener('fetch', event => {
   // Static assets: network-first, fallback to cache
   event.respondWith(
     fetch(event.request).then(response => {
-      if (response.ok && (url.origin === self.location.origin || url.hostname.includes('cdnjs') || url.hostname.includes('cdn.sheetjs'))) {
+      if (response.ok && (url.origin === self.location.origin || url.hostname.includes('cdnjs') || url.hostname.includes('cdn.jsdelivr'))) {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
       }
