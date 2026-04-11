@@ -37,7 +37,7 @@ function dashRange(){
         const inBase = mBase > 0 && firstEver.st < from;
         
         const joinedInPeriod = firstEver.st >= from && firstEver.st <= to;
-        const leftInPeriod = lastEver.endD >= baseDate && lastEver.endD <= to;
+        const leftInPeriod = lastEver.endD >= baseDate && lastEver.endD <= to && lastEver.endD < now;
         const renewedSoon = allData.some(c=>c.client===name && c.st.getTime() === lastEver.endD.getTime()+1);
         const actuallyLeft = leftInPeriod && !renewedSoon;
 
