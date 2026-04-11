@@ -137,10 +137,11 @@ function dashRange(){
                   }
               }
               if (intraReturn) {
-                  expM += mEnd;
-                  if(!seenExp.has(name)) {
+                  const intraExp = mEnd - mStart;
+                  if(intraExp > 0) expM += intraExp; else if(intraExp < 0) conM += Math.abs(intraExp);
+                  if(!seenExp.has(name) && intraExp > 0) {
                       seenExp.add(name);
-                      expClients.push({name, mrrStart: 0, mrrEnd: Math.round(mEnd), delta: Math.round(mEnd), mgr, date: intraReturn.st, isIntra: true, isRes: meta.cat === 'Resurrected'});
+                      expClients.push({name, mrrStart: Math.round(mStart), mrrEnd: Math.round(mEnd), delta: Math.round(intraExp), mgr, date: intraReturn.st, isIntra: true, isRes: meta.cat === 'Resurrected'});
                   }
               }
 
