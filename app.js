@@ -1020,19 +1020,25 @@ function calcDebtTrend(from,to){
         else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
       });
 
-      // Undiruv: shu oydagi to'lov / shu oylik majburiyat
+      // Undiruv: inkasso usuli — oyBoshiQarz + oylikMajburiyat
       const curM=d.getMonth();
       const cumExp=calcCumExpected(d.getFullYear());
-      let collExp=0;
+      // Per-client: oy boshigacha to'langan va shu oyda to'langan
+      const clPaidBefore={},clPaidMonth={};
+      allPays.forEach(p=>{
+        if(p.date<mS){clPaidBefore[p.client]=(clPaidBefore[p.client]||0)+p.amount}
+        if(p.date>=mS&&p.date<=repEnd){clPaidMonth[p.client]=(clPaidMonth[p.client]||0)+p.amount}
+      });
+      let collExp=0,mPaidTotal=0;
       Object.entries(cumExp).forEach(([name,data])=>{
         const cumCur=data.cum[curM]||0;
         const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
         const oyKut=cumCur-cumPrev;
-        if(oyKut>0)collExp+=oyKut;
-      });
-      let mPaidTotal=0;
-      allPays.forEach(p=>{
-        if(p.date>=mS&&p.date<=repEnd)mPaidTotal+=p.amount;
+        const paidBefore=clPaidBefore[name]||0;
+        const mPaid=clPaidMonth[name]||0;
+        const oyBoshiQarz=cumPrev-paidBefore;
+        const expected=Math.max(0,oyBoshiQarz+oyKut);
+        if(expected>=1){collExp+=expected;mPaidTotal+=mPaid}
       });
       const collPct=collExp>0?Math.min(100,Math.round(mPaidTotal/collExp*100)):0;
 

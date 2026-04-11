@@ -315,8 +315,12 @@ if(document.getElementById('chDebtTotal')){
   new Chart(document.getElementById('chDebtDso'),{...lineOpts('#f0b020','DSO',v=>v+' kun'),data:{labels,datasets:[{data:trend.map(m=>m.dso),borderColor:'#f0b020',borderWidth:2,backgroundColor:'rgba(240,176,32,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#f0b020',tension:.3}]}});
   // 3. Debt/MRR line
   new Chart(document.getElementById('chDebtMrr'),{...lineOpts('#6941b8','Qarz/MRR',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.debtMrr),borderColor:'#6941b8',borderWidth:2,backgroundColor:'rgba(105,65,184,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#6941b8',tension:.3}]}});
-  // 4. Collection rate line
-  new Chart(document.getElementById('chDebtColl'),{...lineOpts('#117a52','Undiruv',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.collPct),borderColor:'#117a52',borderWidth:2,backgroundColor:'rgba(17,122,82,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#117a52',tension:.3}]}});
+  // 4. Collection: kutilgan vs to'langan bar + % line
+  new Chart(document.getElementById('chDebtColl'),{type:'bar',data:{labels,datasets:[
+    {label:'Kutilgan',data:trend.map(m=>m.collExp),backgroundColor:'rgba(196,43,28,.25)',borderRadius:4,order:2},
+    {label:"To'langan",data:trend.map(m=>m.mPaid),backgroundColor:'rgba(17,122,82,.6)',borderRadius:4,order:2},
+    {label:'Undiruv %',data:trend.map(m=>m.collPct),type:'line',borderColor:'#117a52',borderWidth:2,pointRadius:3,pointBackgroundColor:'#117a52',tension:.3,yAxisID:'y1',order:1}
+  ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': '+(c.dataset.type==='line'?c.raw+'%':'$'+fmt(c.raw))}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true},y1:{position:'right',grid:{display:false},ticks:{color:'#117a52',font:{size:10},callback:v=>v+'%'},min:0,max:100}}}});
   // 5. AR Aging stacked bar
   new Chart(document.getElementById('chDebtAging'),{type:'bar',data:{labels,datasets:[
     {label:'0-30 kun',data:trend.map(m=>m.b0),backgroundColor:'#f0b020'},
