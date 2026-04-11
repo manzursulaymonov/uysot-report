@@ -1468,22 +1468,28 @@ function _rRevenue(){
   S.rows.forEach(r=>{const d=pd(r.sanasi);if(d){const y=d.getFullYear();if(y<minY)minY=y;if(y>maxY)maxY=y}});
   const years=[];for(let y=maxY;y>=minY;y--)years.push(y);
 
-  // Oyma-oy MRR va to'lovlar
-  const {all,qAll}=buildContracts();
+  // Oyma-oy Revenue: cumExp[oy] - cumExp[oy-1] = tadbiq + MRR
+  const cumExp=calcCumExpected(selY);
   const allPays=_clientPaysByDate();
-  let yearMRR=0,yearPaid=0;
+  let yearRev=0,yearPaid=0;
   const rows=[];
   for(let m=0;m<12;m++){
     const mE=new Date(selY,m+1,0);
     const mS=new Date(selY,m,1);
     if(mS>now)break;
-    const snap=mrrOnDate(mE,all,qAll);
-    const mrr=snap.total;
+    let rev=0;
+    Object.values(cumExp).forEach(data=>{
+      const cumCur=data.cum[m]||0;
+      const cumPrev=m>0?(data.cum[m-1]||0):data.preYear;
+      const oyRev=cumCur-cumPrev;
+      if(oyRev>0)rev+=oyRev;
+    });
+    rev=Math.round(rev);
     let paid=0;
     allPays.forEach(p=>{if(p.date>=mS&&p.date<=mE)paid+=p.amount});
     paid=Math.round(paid);
-    yearMRR+=mrr;yearPaid+=paid;
-    rows.push({label:mos[m],mrr,paid,clients:snap.active.size});
+    yearRev+=rev;yearPaid+=paid;
+    rows.push({label:mos[m],rev,paid});
   }
 
   // Toolbar
@@ -1491,31 +1497,29 @@ function _rRevenue(){
     <select class="flt text-xs py-1.5 px-2.5" onchange="_setRevYear(this.value)">
       ${years.map(y=>`<option value="${y}"${y===selY?' selected':''}>${y}</option>`).join('')}
     </select>
-    <span class="text-xs text-subtle">${selY} yil: MRR jami <b class="mono">${fk(yearMRR)}</b> · To'lovlar <b class="mono">${fk(yearPaid)}</b></span>
+    <span class="text-xs text-subtle">${selY} yil: Revenue <b class="mono">${fk(yearRev)}</b> · To'lovlar <b class="mono">${fk(yearPaid)}</b></span>
   </div>`;
 
   // Jadval
   h+=`<div class="card mb-3"><div class="card-body p-0"><div class="tbl-scroll"><table><thead><tr>
-    <th>Oy</th><th class="text-r">MRR</th><th class="text-r">To'lovlar</th><th class="text-r">Farq</th><th class="text-r">Mijozlar</th>
+    <th>Oy</th><th class="text-r">Revenue</th><th class="text-r">To'lovlar</th><th class="text-r">Farq</th>
   </tr></thead><tbody>`;
   rows.forEach(r=>{
-    const diff=r.paid-r.mrr;
+    const diff=r.paid-r.rev;
     const diffCol=diff>=0?'var(--green)':'var(--red)';
     h+=`<tr><td class="font-medium">${r.label}</td>
-      <td class="text-r mono text-[12px]">${fmt(r.mrr)}</td>
+      <td class="text-r mono text-[12px]">${fmt(r.rev)}</td>
       <td class="text-r mono text-[12px]">${fmt(r.paid)}</td>
-      <td class="text-r mono text-[12px]" style="color:${diffCol}">${diff>=0?'+':''}${fmt(diff)}</td>
-      <td class="text-r text-subtle">${r.clients}</td></tr>`;
+      <td class="text-r mono text-[12px]" style="color:${diffCol}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
   });
   // Jami
-  const totalDiff=yearPaid-yearMRR;
+  const totalDiff=yearPaid-yearRev;
   const tdCol=totalDiff>=0?'var(--green)':'var(--red)';
   h+=`<tr style="font-weight:600;border-top:2px solid var(--border2)">
     <td>Jami</td>
-    <td class="text-r mono">${fmt(yearMRR)}</td>
+    <td class="text-r mono">${fmt(yearRev)}</td>
     <td class="text-r mono">${fmt(yearPaid)}</td>
-    <td class="text-r mono" style="color:${tdCol}">${totalDiff>=0?'+':''}${fmt(totalDiff)}</td>
-    <td></td></tr>`;
+    <td class="text-r mono" style="color:${tdCol}">${totalDiff>=0?'+':''}${fmt(totalDiff)}</td></tr>`;
   h+=`</tbody></table></div></div></div>`;
 
   // Grafik

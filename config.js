@@ -339,19 +339,24 @@ if(eRev){
   const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
   const now=new Date();
   const selY=S.revYear||now.getFullYear();
-  const {all,qAll}=buildContracts();
+  const cumExpR=calcCumExpected(selY);
   const allPays=_clientPaysByDate();
-  const rLabels=[],rMrr=[],rPaid=[];
+  const rLabels=[],rRev=[],rPaid=[];
   for(let m=0;m<12;m++){
     const mE=new Date(selY,m+1,0);const mS=new Date(selY,m,1);
     if(mS>now)break;
     rLabels.push(mos[m]);
-    rMrr.push(mrrOnDate(mE,all,qAll).total);
+    let rev=0;
+    Object.values(cumExpR).forEach(data=>{
+      const cumCur=data.cum[m]||0;const cumPrev=m>0?(data.cum[m-1]||0):data.preYear;
+      const oyRev=cumCur-cumPrev;if(oyRev>0)rev+=oyRev;
+    });
+    rRev.push(Math.round(rev));
     let p=0;allPays.forEach(v=>{if(v.date>=mS&&v.date<=mE)p+=v.amount});
     rPaid.push(Math.round(p));
   }
   new Chart(eRev,{type:'bar',data:{labels:rLabels,datasets:[
-    {label:'MRR',data:rMrr,backgroundColor:'rgba(23,70,162,.5)',borderRadius:4},
+    {label:'Revenue',data:rRev,backgroundColor:'rgba(23,70,162,.5)',borderRadius:4},
     {label:"To'lovlar",data:rPaid,backgroundColor:'rgba(17,122,82,.5)',borderRadius:4}
   ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true}}}});
 }
