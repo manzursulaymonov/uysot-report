@@ -8,6 +8,10 @@ let _sc=localStorage.getItem('uysot_cards'); _sc=_sc?JSON.parse(_sc):{mrr:{s:1,a
 const _defs={cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1},tRenew:{s:1},tRegion:{s:1},tMgr:{s:1},tHealth:{s:1},cMrrGr:{s:1},cNetMov:{s:1}};Object.keys(_defs).forEach(k=>{if(!_sc[k])_sc[k]=_defs[k]});
 const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,projects:null,projectIdx:0,sec:localStorage.getItem('uysot_sec')||'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
 
+// === GLOBAL CONSTANTS ===
+const MOS=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+const MOS_FULL=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+
 // === THEME ===
 const EO_STYLES=[
   {id:'default',name:'Standart'},

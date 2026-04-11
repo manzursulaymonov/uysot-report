@@ -2,6 +2,39 @@
    UYSOT — UI: Dashboard Range, Render, Pages, Charts, Config
    ============================================================ */
 
+// === SHARED HELPERS ===
+function _precomputeMP(cts){
+  cts.forEach(ct=>{
+    const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
+    const on1st=ct.st.getDate()===1;
+    ct._fmp=on1st?ct.musd:ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate();
+    if(!ct.isQ){
+      const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);
+      ct._lmp=on1st
+        ?(ct.endD.getDate()===lmE.getDate()?ct.musd:ct.musd*ct.endD.getDate()/lmE.getDate())
+        :ct.musd-ct._fmp;
+    }
+    ct._added=0;
+  });
+}
+
+function _calcMonthlyRevenue(year){
+  return cached('monthlyRev_'+year,()=>{
+    const cumExp=calcCumExpected(year);
+    const result=[];
+    for(let m=0;m<12;m++){
+      let rev=0;
+      Object.values(cumExp).forEach(data=>{
+        const cur=data.cum[m]||0;
+        const prev=m>0?(data.cum[m-1]||0):data.preYear;
+        if(cur-prev>0)rev+=cur-prev;
+      });
+      result.push(Math.round(rev));
+    }
+    return result;
+  });
+}
+
 // === DASHBOARD RANGE ===
 function dashRange(){
   const cacheKey='dr_'+S.dashPre+'_'+S.dashFrom?.getTime()+'_'+S.dashTo?.getTime()+'_v3';
@@ -13,7 +46,7 @@ function dashRange(){
     if(!points.length)points.push(new Date(from));
     const labels=points.map(d=>{
       if(gran==='day')return fmtD(d);
-      const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+      const mos=MOS;
       const span=(to.getFullYear()-from.getFullYear())*12+(to.getMonth()-from.getMonth());
       return span>11?mos[d.getMonth()]+' '+(d.getFullYear()%100):mos[d.getMonth()];
     }); const {all, qAll} = buildContracts();
@@ -596,19 +629,7 @@ function calcCumExpected(year,renewal){
     S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUSD||r._mUSD<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUSD,tUSD:r._tUSD||0,sTotal:Math.max(0,(r._sUSD||0)-(r._tUSD||0)),st,endD,isQ:false})});
     S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUSD=pn(r['Tadbiq USD'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD,sTotal:Math.max(0,(pn(r['sum USD'])||0)-tUSD),st,endD,isQ:true})});
     Object.entries(allCts).forEach(([name,cts])=>{
-      // Precompute firstMP and lastMP per contract (mirrors calcDebtTable logic)
-      cts.forEach(ct=>{
-        const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
-        const on1st=ct.st.getDate()===1;
-        ct._fmp=on1st?ct.musd:ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate();
-        if(!ct.isQ){
-          const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);
-          ct._lmp=on1st
-            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:ct.musd*ct.endD.getDate()/lmE.getDate())
-            :ct.musd-ct._fmp;
-        }
-        ct._added=0; // track running sum of monthly amounts (excluding tadbiq)
-      });
+      _precomputeMP(cts);
       const minSt=cts.reduce((a,c)=>c.st<a?c.st:a,cts[0].st);
       let cumTotal=0,preYear=0;const cum12=new Array(12).fill(0);
       for(let y=minSt.getFullYear();y<=year;y++){
@@ -654,18 +675,7 @@ function calcCumExpectedUZS(year){
     S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUZS||r._mUZS<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUZS,tUSD:r._tUZS||0,sTotal:Math.max(0,(r._sUZS||0)-(r._tUZS||0)),st,endD,isQ:false})});
     S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['oylik UZS']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUZS=pn(r['Tadbiq UZS'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD:tUZS,sTotal:Math.max(0,(pn(r['sum UZS'])||0)-tUZS),st,endD,isQ:true})});
     Object.entries(allCts).forEach(([name,cts])=>{
-      cts.forEach(ct=>{
-        const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
-        const on1st=ct.st.getDate()===1;
-        ct._fmp=on1st?ct.musd:ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate();
-        if(!ct.isQ){
-          const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);
-          ct._lmp=on1st
-            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:ct.musd*ct.endD.getDate()/lmE.getDate())
-            :ct.musd-ct._fmp;
-        }
-        ct._added=0; // track running sum of monthly amounts (excluding tadbiq)
-      });
+      _precomputeMP(cts);
       const minSt=cts.reduce((a,c)=>c.st<a?c.st:a,cts[0].st);
       let cumTotal=0,preYear=0;const cum12=new Array(12).fill(0);
       for(let y=minSt.getFullYear();y<=year;y++){
@@ -985,14 +995,14 @@ function _clientPaysByDate(){
 
 // === DEBT TREND — har oy oxiridagi snapshot ===
 function calcDebtTrend(from,to){
-  const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+  const mos=MOS;
   return cached('debtTrend_v5_'+from.getTime()+'_'+to.getTime(),()=>{
     const months=[];
     const {all,qAll}=buildContracts();
     const pm=calcPayments();
     const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
     const allPays=_clientPaysByDate();
-    const now2=new Date();
+    const now=new Date();
 
     let d=new Date(from.getFullYear(),from.getMonth(),1);
     while(d<=to){
@@ -1001,20 +1011,15 @@ function calcDebtTrend(from,to){
       const curM=d.getMonth();
       const snap=mrrOnDate(repEnd,all,qAll);
       const mrr=snap.total||1;
-      const isCurMonth=(d.getFullYear()===now2.getFullYear()&&curM===now2.getMonth());
+      const isCurMonth=(d.getFullYear()===now.getFullYear()&&curM===now.getMonth());
       const cumExp=calcCumExpected(d.getFullYear(),isCurMonth);
 
       // Oy oxirigacha to'langan = jamiTo'lov - oyOxiridanKeyin
       // (perevod jamiTo'lovda bor, ayirmada qoladi)
-      const clPayAfter={};
+      const clPayAfter={},clPaidMonth={};
       allPays.forEach(p=>{
         if(p.date>repEnd){clPayAfter[p.client]=(clPayAfter[p.client]||0)+p.amount}
-      });
-
-      // Shu oyda to'langan (undiruv uchun)
-      const clPaidMonth={};
-      allPays.forEach(p=>{
-        if(p.date>=mS&&p.date<=repEnd){clPaidMonth[p.client]=(clPaidMonth[p.client]||0)+p.amount}
+        else if(p.date>=mS){clPaidMonth[p.client]=(clPaidMonth[p.client]||0)+p.amount}
       });
 
       // Har bir mijoz — oy oxiridagi snapshot
@@ -1114,21 +1119,7 @@ function calcDailyDebtKPIs(){
       allCts[c].push({musd,tUSD,sTotal:Math.max(0,(pn(r['sum USD'])||0)-tUSD),st,endD,isQ:true});
     });
 
-    // _fmp va _lmp — calcCumExpected bilan bir xil
-    Object.values(allCts).forEach(cts=>{
-      cts.forEach(ct=>{
-        const fmE=new Date(ct.st.getFullYear(),ct.st.getMonth()+1,0);
-        const on1st=ct.st.getDate()===1;
-        ct._fmp=on1st?ct.musd:ct.musd*Math.max(1,Math.round((fmE-ct.st)/864e5)+1)/fmE.getDate();
-        if(!ct.isQ){
-          const lmE=new Date(ct.endD.getFullYear(),ct.endD.getMonth()+1,0);
-          ct._lmp=on1st
-            ?(ct.endD.getDate()===lmE.getDate()?ct.musd:ct.musd*ct.endD.getDate()/lmE.getDate())
-            :ct.musd-ct._fmp;
-        }
-        ct._added=0;
-      });
-    });
+    Object.values(allCts).forEach(cts=>_precomputeMP(cts));
 
     let totalDailyDebt=0,debtorCount=0,totalClients=0;
     let dailyExpMonth=0;
@@ -1239,7 +1230,7 @@ function calcGrowthForecast(){
   return cached('growthForecast_v1',()=>{
     const now=new Date();
     const {all,qAll}=buildContracts();
-    const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+    const mos=MOS;
     // Analyze last 12 months: new clients, churn, MRR changes
     const monthlyNew=[], monthlyChurn=[], monthlyMRR=[];
     for(let i=12;i>=1;i--){
@@ -1292,7 +1283,7 @@ function calcMrrForecast(){
   return cached('mrrForecast_v1',()=>{
     const now=new Date();
     const {all,qAll}=buildContracts();
-    const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+    const mos=MOS;
     const months=[];
     for(let i=0;i<=5;i++){
       const absM=now.getMonth()+i;
@@ -1317,6 +1308,7 @@ function calcMrrForecast(){
 
 // === INKASSO SMART FORECAST ===
 function calcCollectionForecast(crData){
+  if(!crData||!crData.length)return{totalForecast:0,totalExpected:0,forecastPct:0,daysLeft:0,details:[]};
   return cached('inkForecast_v5',()=>{
     const now=new Date();
     const curY=now.getFullYear(),curM=now.getMonth(),curDay=now.getDate();
@@ -1325,8 +1317,8 @@ function calcCollectionForecast(crData){
 
     // === DISCIPLINE: shu oy majburiyatini bajarganmi (last 6 months) ===
     // Har oy uchun: shu oyda to'langan >= shu oylik kutilgan * 90%
-    const cumExp=calcCumExpected(curY);
-    const prevCumExp=calcCumExpected(curY-1);
+    const cumExp=calcCumExpected(curY,false);
+    const prevCumExp=calcCumExpected(curY-1,false);
     // Per-client per-month — yagona manbadan
     const monthlyPaid={};// {client: {mKey: totalPaidInThatMonth}}
     _clientPaysByDate().forEach(p=>{
@@ -1406,6 +1398,7 @@ function calcCollectionRate(mode){
     if(mode==='kelishuv'){
       // Kelishuv bo'yicha: calcDebtTable dan
       const dt=calcDebtTable(now);
+      if(!dt||!dt.length)return[];
       return dt.map(d=>{
         const mPaid=monthPaid[d.name]||0;
         const oyBoshi=d.kelQarz+mPaid;

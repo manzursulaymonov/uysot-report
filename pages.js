@@ -260,9 +260,11 @@ function showClientCard(name,cur){
   const daysToEnd=health?health.daysToEnd:null;
   const arpa=tenureM>0?Math.round(totalPaid/tenureM):0;
   // Currency toggle HTML
+  const _ne=n.replace(/"/g,'&quot;');
+  const _ccb='onclick="var sc=this.closest(\'.modal\').querySelector(\'.client-card-scroll\');S._cardScroll=sc?sc.scrollTop:0;this.closest(\'.overlay\').remove();showClientCard(this.dataset.cl,this.dataset.cur)"';
   const curToggle='<div class="flex gap-0.5 bg-hover rounded-md p-0.5 ml-2">'
-    +'<button class="btn'+(isUZS?'':' btn-primary')+' py-0.5 px-2 text-[11px]" onclick="var sc=this.closest(\'.modal\').querySelector(\'.client-card-scroll\');S._cardScroll=sc?sc.scrollTop:0;this.closest(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'usd\')">$</button>'
-    +'<button class="btn'+(isUZS?' btn-primary':'')+' py-0.5 px-2 text-[11px]" onclick="var sc=this.closest(\'.modal\').querySelector(\'.client-card-scroll\');S._cardScroll=sc?sc.scrollTop:0;this.closest(\'.overlay\').remove();showClientCard(\''+n.replace(/'/g,"\\'")+'\''+',\'uzs\')">so\'m</button>'
+    +'<button class="btn'+(isUZS?'':' btn-primary')+' py-0.5 px-2 text-[11px]" data-cl="'+_ne+'" data-cur="usd" '+_ccb+'>$</button>'
+    +'<button class="btn'+(isUZS?' btn-primary':'')+' py-0.5 px-2 text-[11px]" data-cl="'+_ne+'" data-cur="uzs" '+_ccb+">so'm</button>"
     +'</div>';
   const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
   o.innerHTML='<div class="modal p-0 flex flex-col" style="width:min(98vw,1160px);max-height:96vh">'
@@ -942,7 +944,6 @@ function rMRR(){
   const view=S.mrrView||'main';
 const yr=S.mrrYear||2026;const d=mrrData(yr);const cumExp=calcCumExpected(yr);
 const _pm=calcPayments();const clPay={};Object.values(_pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
-const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
 const cc=S.mrrCols;let filtered=[...d.clients];
 if(S.mrrQ){const q=S.mrrQ.toLowerCase();filtered=filtered.filter(c=>c.name.toLowerCase().includes(q)||c.mgr.toLowerCase().includes(q)||(c.hudud||'').toLowerCase().includes(q))}
 const colDefs=[{k:'mgr',l:'Manager'},{k:'hudud',l:'Hudud'},{k:'mrr',l:'MRR'},{k:'deal',l:'Deal boshi'},{k:'end',l:'Deal tugashi'}];
@@ -1099,8 +1100,7 @@ const now=new Date();const repDate=S.debtDate||now;const dt=calcDebtTable(repDat
 const dr=dashRange();
 const totalKel=dt.reduce((s,r)=>s+(r.kelQarz>0?r.kelQarz:0),0);
 const totalOy=dt.reduce((s,r)=>s+(r.oyQarz>0?r.oyQarz:0),0);
-const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-const repLabel=mos[repDate.getMonth()]+' '+repDate.getFullYear();
+const repLabel=MOS[repDate.getMonth()]+' '+repDate.getFullYear();
 const dsoVal=Math.round(dr.dso||0),conc5=Math.round(dr.top5Conc||0);
 const dsoColor=dsoVal<35?'var(--green)':dsoVal<60?'var(--amber)':'var(--red)';
 const concColor=conc5<30?'var(--green)':conc5<50?'var(--amber)':'var(--red)';
@@ -1225,8 +1225,7 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
   const progFcPct=fc.forecastPct;
   const progBarCol=progPct>=90?'var(--green)':progPct>=60?'var(--amber)':'var(--red)';
   const progFcCol=progFcPct>=90?'var(--green)':progFcPct>=60?'var(--amber)':'var(--red)';
-  const mosFull=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
-  const progMonLabel=mosFull[now.getMonth()]+' '+now.getFullYear();
+  const progMonLabel=MOS_FULL[now.getMonth()]+' '+now.getFullYear();
   const timePct=Math.round(daily.dayOfMonth/daily.daysInMonth*100);
 
   h+=`<div class="card mb-3" style="border-top:3px solid ${progBarCol}">
@@ -1328,7 +1327,7 @@ function _rAgingSection(){
 }
 
 function _rInkassoSection(){
-  const mos=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const mos=MOS_FULL;
   const inkMode=S.inkassoMode||'oy';
   const cr=calcCollectionRate(inkMode);
   const now=new Date();
@@ -1458,7 +1457,7 @@ function rMoliya(){
 }
 
 function _rRevenue(){
-  const mos=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const mos=MOS_FULL;
   const now=new Date();
   const selY=S.revYear||now.getFullYear();
   window._setRevYear=function(y){S.revYear=+y;clearCache();render()};
@@ -1468,8 +1467,8 @@ function _rRevenue(){
   S.rows.forEach(r=>{const d=pd(r.sanasi);if(d){const y=d.getFullYear();if(y<minY)minY=y;if(y>maxY)maxY=y}});
   const years=[];for(let y=maxY;y>=minY;y--)years.push(y);
 
-  // Oyma-oy Revenue: cumExp[oy] - cumExp[oy-1] = tadbiq + MRR
-  const cumExp=calcCumExpected(selY);
+  // Oyma-oy Revenue
+  const revArr=_calcMonthlyRevenue(selY);
   const allPays=_clientPaysByDate();
   let yearRev=0,yearPaid=0;
   const rows=[];
@@ -1477,14 +1476,7 @@ function _rRevenue(){
     const mE=new Date(selY,m+1,0);
     const mS=new Date(selY,m,1);
     if(mS>now)break;
-    let rev=0;
-    Object.values(cumExp).forEach(data=>{
-      const cumCur=data.cum[m]||0;
-      const cumPrev=m>0?(data.cum[m-1]||0):data.preYear;
-      const oyRev=cumCur-cumPrev;
-      if(oyRev>0)rev+=oyRev;
-    });
-    rev=Math.round(rev);
+    const rev=revArr[m]||0;
     let paid=0;
     allPays.forEach(p=>{if(p.date>=mS&&p.date<=mE)paid+=p.amount});
     paid=Math.round(paid);

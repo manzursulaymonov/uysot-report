@@ -288,7 +288,8 @@ const e6=document.getElementById('chT');if(e6){if(Chart.getChart(e6)) Chart.getC
 
 const e7=document.getElementById('chK');if(e7){if(Chart.getChart(e7)) Chart.getChart(e7)?.destroy();const a=activeR().sort((x,y)=>y._mUSD-x._mUSD);const t=a.reduce((s,r)=>s+r._mUSD,0);const s=[a.slice(0,5),a.slice(5,10),a.slice(10,20),a.slice(20)].map(g=>g.reduce((s,r)=>s+r._mUSD,0));new Chart(e7,{type:'doughnut',data:{labels:['Top 5','Top 6-10','Top 11-20','Qolgan'],datasets:[{data:s,backgroundColor:['#c42b1c','#a36207','#1746a2','#cccbc5'],borderWidth:0}]},options:{...bo,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11},color:tc}}}}})}
 
-// MRR tooltip
+// MRR tooltip — eski tooltip tozalash
+const _oldTip=document.getElementById('mrrTip');if(_oldTip)_oldTip.remove();
 document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
   el.addEventListener('mouseenter',e=>{
     let t=document.getElementById('mrrTip');
@@ -336,27 +337,20 @@ if(document.getElementById('chDebtTotal')){
 const eRev=document.getElementById('chRevenue');
 if(eRev){
   if(Chart.getChart(eRev))Chart.getChart(eRev).destroy();
-  const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
   const now=new Date();
   const selY=S.revYear||now.getFullYear();
-  const cumExpR=calcCumExpected(selY);
+  const rRev=_calcMonthlyRevenue(selY);
   const allPays=_clientPaysByDate();
-  const rLabels=[],rRev=[],rPaid=[];
+  const rLabels=[],rPaid=[];
   for(let m=0;m<12;m++){
     const mE=new Date(selY,m+1,0);const mS=new Date(selY,m,1);
     if(mS>now)break;
-    rLabels.push(mos[m]);
-    let rev=0;
-    Object.values(cumExpR).forEach(data=>{
-      const cumCur=data.cum[m]||0;const cumPrev=m>0?(data.cum[m-1]||0):data.preYear;
-      const oyRev=cumCur-cumPrev;if(oyRev>0)rev+=oyRev;
-    });
-    rRev.push(Math.round(rev));
+    rLabels.push(MOS[m]);
     let p=0;allPays.forEach(v=>{if(v.date>=mS&&v.date<=mE)p+=v.amount});
     rPaid.push(Math.round(p));
   }
   new Chart(eRev,{type:'bar',data:{labels:rLabels,datasets:[
-    {label:'Revenue',data:rRev,backgroundColor:'rgba(23,70,162,.5)',borderRadius:4},
+    {label:'Revenue',data:rRev.slice(0,rLabels.length),backgroundColor:'rgba(23,70,162,.5)',borderRadius:4},
     {label:"To'lovlar",data:rPaid,backgroundColor:'rgba(17,122,82,.5)',borderRadius:4}
   ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true}}}});
 }
