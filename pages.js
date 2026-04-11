@@ -401,9 +401,13 @@ function toggleDebtFs(){
   if(window._fsKeyBound)return;
   window._fsKeyBound=true;
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&S.debtFs){if(document.querySelectorAll('.overlay').length)return;S.debtFs=false;clearCache();render();}
-    if(e.key==='Escape'&&S.mrrFs){if(document.querySelectorAll('.overlay').length)return;S.mrrFs=false;clearCache();render();}
-    if(e.key==='Escape'&&S.inkassoFs){if(document.querySelectorAll('.overlay').length)return;S.inkassoFs=false;clearCache();render();}
+    if(e.key==='Escape'){
+      // Overlay ochiq bo'lsa — overlay o'zi handle qiladi, biz tegmaymiz
+      if(document.querySelectorAll('.overlay').length)return;
+      if(S.debtFs){S.debtFs=false;clearCache();render();return}
+      if(S.mrrFs){S.mrrFs=false;clearCache();render();return}
+      if(S.inkassoFs){S.inkassoFs=false;clearCache();render();return}
+    }
     if(e.key==='f'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const tag=document.activeElement?.tagName;
       if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
