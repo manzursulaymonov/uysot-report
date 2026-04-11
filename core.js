@@ -997,44 +997,124 @@ function _dlRows(type){
 function exportMrrXLSX(){
   if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
   const wb=XLSX.utils.book_new();
-  // Yillar — birinchi shartnomadan hozirgi yilgacha
   const now=new Date();let minY=now.getFullYear(),maxY=now.getFullYear();
   S.rows.forEach(r=>{const d=pd(r.sanasi);if(d){const y=d.getFullYear();if(y<minY)minY=y;if(y>maxY)maxY=y}});
   const cc=S.mrrCols;
+  const pm=calcPayments();const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
+
+  // Style helpers
+  const brd={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'thin',color:{rgb:'CCCCCC'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
+  const brdB={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'medium',color:{rgb:'999999'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
+  const hdrS={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'center',vertical:'center'},border:brd};
+  const hdrL={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'},border:brd};
+  const jamiS={font:{bold:true,sz:11,name:'Calibri'},fill:{fgColor:{rgb:'E8EDF4'},patternType:'solid'},border:brdB,numFmt:'#,##0'};
+  const momGreen={font:{bold:false,color:{rgb:'117A52'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'F6FAF7'},patternType:'solid'},border:brd,alignment:{horizontal:'center'}};
+  const momRed={font:{bold:false,color:{rgb:'C42B1C'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FEF6F5'},patternType:'solid'},border:brd,alignment:{horizontal:'center'}};
+  const momNone={font:{color:{rgb:'999999'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FAFAFA'},patternType:'solid'},border:brd,alignment:{horizontal:'center'}};
+  const cellS={font:{sz:10,name:'Calibri'},border:brd,numFmt:'#,##0'};
+  const cellTxt={font:{sz:10,name:'Calibri'},border:brd};
+  const cellName={font:{sz:10,name:'Calibri',bold:true},border:brd};
+  const greenS={font:{sz:10,name:'Calibri',color:{rgb:'117A52'}},fill:{fgColor:{rgb:'E0F4EC'},patternType:'solid'},border:brd,numFmt:'#,##0'};
+  const yellowS={font:{sz:10,name:'Calibri',color:{rgb:'A06810'}},fill:{fgColor:{rgb:'FDF2DC'},patternType:'solid'},border:brd,numFmt:'#,##0'};
+  const emptyS={font:{sz:10,color:{rgb:'CCCCCC'},name:'Calibri'},border:brd,alignment:{horizontal:'center'}};
+
   for(let yr=minY;yr<=maxY;yr++){
     const d=mrrData(yr);
     const cumExp=calcCumExpected(yr);
-    const pm=calcPayments();const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
-    // Header
-    const headers=['Mijoz'];
-    if(cc.mgr)headers.push('Menejer');
-    if(cc.hudud)headers.push('Hudud');
-    if(cc.mrr)headers.push('MRR $');
-    if(cc.deal)headers.push('Boshi');
-    if(cc.end)headers.push('Tugashi');
-    MOS.forEach(m=>headers.push(m));
-    // Rows
-    const rows=[];
-    // JAMI row
-    const jamiRow={'Mijoz':'JAMI'};
-    if(cc.mgr)jamiRow['Menejer']='';if(cc.hudud)jamiRow['Hudud']='';
-    if(cc.mrr)jamiRow['MRR $']='';if(cc.deal)jamiRow['Boshi']='';if(cc.end)jamiRow['Tugashi']='';
-    MOS.forEach((m,i)=>jamiRow[m]=d.totals[i]||0);
-    rows.push(jamiRow);
-    // Client rows
+    // Qo'shimcha ustunlar soni
+    const extraCols=[];
+    if(cc.mgr)extraCols.push({k:'mgr',l:'Menejer',w:14});
+    if(cc.hudud)extraCols.push({k:'hudud',l:'Hudud',w:12});
+    if(cc.mrr)extraCols.push({k:'mrr',l:'MRR $',w:9});
+    if(cc.deal)extraCols.push({k:'deal',l:'Boshi',w:11});
+    if(cc.end)extraCols.push({k:'end',l:'Tugashi',w:11});
+    const nExtra=extraCols.length;
+    const monCol=1+nExtra;// oy ustunlari boshlanihi
+
+    // AOA qurilish
+    const aoa=[];
+    // 0: Header
+    const hdr=['Mijoz',...extraCols.map(c=>c.l),...MOS];
+    aoa.push(hdr);
+    // 1: MoM%
+    const momRow=['O\'sish %',...Array(nExtra).fill(''),...d.mom.map(v=>v?(v>0?'+':'')+v.toFixed(1)+'%':'—')];
+    aoa.push(momRow);
+    // 2: JAMI
+    const jamiRow=['JAMI',...Array(nExtra).fill(''),...d.totals.map(v=>v||0)];
+    aoa.push(jamiRow);
+    // 3+: Mijozlar
     d.clients.forEach(c=>{
-      const row={'Mijoz':c.name};
-      if(cc.mgr)row['Menejer']=c.mgr||'';
-      if(cc.hudud)row['Hudud']=c.hudud||'';
-      if(cc.mrr)row['MRR $']=c.mrr||0;
-      if(cc.deal)row['Boshi']=c.dealStart||'';
-      if(cc.end)row['Tugashi']=c.dealEnd||'';
-      MOS.forEach((m,i)=>row[m]=c.monthly[i]||0);
-      rows.push(row);
+      const row=[c.name];
+      extraCols.forEach(ec=>{
+        if(ec.k==='mrr')row.push(c.mrr||0);
+        else if(ec.k==='deal')row.push(c.dealStart||'');
+        else if(ec.k==='end')row.push(c.dealEnd||'');
+        else row.push(c[ec.k]||'');
+      });
+      c.monthly.forEach(v=>row.push(v||0));
+      aoa.push(row);
     });
-    const ws=XLSX.utils.json_to_sheet(rows,{header:headers});
-    // Ustun kengliklarini sozlash
-    ws['!cols']=[{wch:20},...(cc.mgr?[{wch:14}]:[]),...(cc.hudud?[{wch:12}]:[]),...(cc.mrr?[{wch:8}]:[]),...(cc.deal?[{wch:10}]:[]),...(cc.end?[{wch:10}]:[]),...MOS.map(()=>({wch:8}))];
+
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+
+    // Stillar
+    const R=aoa.length,C=hdr.length;
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r:0,c});
+      if(ws[addr])ws[addr].s=c===0?hdrL:hdrS;
+    }
+    // MoM% row (r=1)
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r:1,c});
+      if(!ws[addr])continue;
+      if(c<monCol){ws[addr].s=momNone;continue;}
+      const v=d.mom[c-monCol];
+      ws[addr].s=v>0?momGreen:v<0?momRed:momNone;
+    }
+    // JAMI row (r=2)
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r:2,c});
+      if(ws[addr]){ws[addr].s=jamiS;if(c>=monCol&&typeof ws[addr].v==='number')ws[addr].z='#,##0';}
+    }
+    // Mijoz rows (r=3+)
+    d.clients.forEach((client,ri)=>{
+      const r=ri+3;
+      const ce=cumExp[client.name];const paid=clPay[client.name]||0;
+      for(let c=0;c<C;c++){
+        const addr=XLSX.utils.encode_cell({r,c});
+        if(!ws[addr])continue;
+        if(c===0){ws[addr].s=cellName;continue;}
+        if(c<monCol){
+          // Extra ustunlar
+          const ec=extraCols[c-1];
+          if(ec&&ec.k==='mrr'){ws[addr].s=cellS;ws[addr].z='#,##0';}
+          else{ws[addr].s=cellTxt;}
+          continue;
+        }
+        // Oy ustunlari
+        const m=c-monCol;
+        const v=client.monthly[m];
+        if(!v){ws[addr].s=emptyS;continue;}
+        // To'lov rangi
+        let sty=cellS;
+        if(ce){
+          const cur=ce.cum[m]||0;const prev=m>0?(ce.cum[m-1]||0):ce.preYear;
+          if(cur>0){
+            const remaining=Math.round(cur-paid);
+            const paidThisMonth=Math.round(paid-prev);
+            if(remaining<=1)sty=greenS;
+            else if(paidThisMonth>0)sty=yellowS;
+          }
+        }
+        ws[addr].s=sty;ws[addr].z='#,##0';
+      }
+    });
+
+    // Ustun kengliklari
+    ws['!cols']=[{wch:22},...extraCols.map(c=>({wch:c.w})),...MOS.map(()=>({wch:9}))];
+    // Qatorlar: header balandroq
+    ws['!rows']=[{hpt:22},{hpt:18},{hpt:20}];
+
     XLSX.utils.book_append_sheet(wb,ws,String(yr));
   }
   XLSX.writeFile(wb,'MRR_jadval_'+new Date().toISOString().slice(0,10)+'.xlsx');
