@@ -1233,7 +1233,7 @@ function _render(){
   const clientsSub=document.getElementById('clients-sub');
   if(clientsSub&&S.sec==='clients'){
     clientsSub.querySelectorAll('.nav-sub-item').forEach(el=>{
-      el.classList.toggle('active',el.dataset.clview===(S.clView||'umumiy'));
+      el.classList.toggle('active',S.sec==='clients'&&el.dataset.clview===(S.clView||'umumiy'));
     });
   }
   const syncSub={topmrr:{id:'topmrr-sub',key:'topView',def:'metrka'},debts:{id:'debts-sub',key:'debtView',def:'umumiy'},moliya:{id:'moliya-sub',key:'molView',def:'pnl'}};
@@ -1241,7 +1241,7 @@ function _render(){
     const sub=document.getElementById(cfg.id);
     if(sub)sub.querySelectorAll('.nav-sub-item[data-subview]').forEach(el=>{
       const val=el.dataset.subview.split(':')[1];
-      el.classList.toggle('active',val===(S[cfg.key]||cfg.def));
+      el.classList.toggle('active',S.sec===sec&&val===(S[cfg.key]||cfg.def));
     });
   });
   // Restore scroll positions after re-render (prevents jitter)
