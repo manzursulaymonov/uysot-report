@@ -978,12 +978,14 @@ function _clientPaysByDate(){
   });
 }
 
-// === DEBT TREND (har oy oxiridagi haqiqiy holat) ===
+// === DEBT TREND — calcDebtTable bilan bir xil natija ===
 function calcDebtTrend(from,to){
   const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-  return cached('debtTrend_v3_'+from.getTime()+'_'+to.getTime(),()=>{
+  return cached('debtTrend_v4_'+from.getTime()+'_'+to.getTime(),()=>{
     const months=[];
     const {all,qAll}=buildContracts();
+    const pm=calcPayments();
+    const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
     const allPays=_clientPaysByDate();
 
     let d=new Date(from.getFullYear(),from.getMonth(),1);
@@ -992,49 +994,40 @@ function calcDebtTrend(from,to){
       const mS=new Date(d.getFullYear(),d.getMonth(),1);
       const snap=mrrOnDate(repEnd,all,qAll);
       const mrr=snap.total||1;
-      const curM=d.getMonth();
-      const cumExp=calcCumExpected(d.getFullYear());
 
-      // Shu oy oxirigacha to'langan summalar (tarixiy snapshot)
-      const clPayToDate={};
-      // Shu oy ichida to'langan (undiruv uchun)
-      let mPaidTotal=0;
-      allPays.forEach(p=>{
-        if(p.date<=repEnd){clPayToDate[p.client]=(clPayToDate[p.client]||0)+p.amount}
-        if(p.date>=mS&&p.date<=repEnd){mPaidTotal+=p.amount}
-      });
-
-      // Har bir mijoz uchun o'sha oydagi qarz = cumExp[oy] - shuOygachaTo'langan
-      let totalOy=0,debtors=0,totalClients=0;
-      let b0=0,b30=0,b60=0,b90=0;
-
-      Object.entries(cumExp).forEach(([name,data])=>{
-        const expected=data.cum[curM]||0;
-        if(expected<=0)return;
-        const paidToDate=clPayToDate[name]||0;
-        const oyQarz=Math.round(expected-paidToDate);
-        totalClients++;
-        if(oyQarz>0){
-          totalOy+=oyQarz;
-          debtors++;
-          // AR Aging — shu oydagi to'lov holatiga qarab
-          const qDate=_findQarzdorDate(name,paidToDate);
-          const days=qDate?Math.round((repEnd-qDate)/864e5):999;
-          if(days<=30)b0+=oyQarz;else if(days<=60)b30+=oyQarz;
-          else if(days<=90)b60+=oyQarz;else b90+=oyQarz;
-        }
-      });
+      // calcDebtTable bilan bir xil: cumExp - calcPayments() jami
+      const dt=calcDebtTable(d);
+      const totalOy=dt.reduce((s,r)=>s+(r.oyQarz>0?r.oyQarz:0),0);
+      const debtors=dt.filter(r=>r.oyQarz>0).length;
+      const total=dt.length;
 
       const dso=mrr>0?Math.round(totalOy/mrr*30):0;
       const debtMrr=mrr>0?Math.round(totalOy/mrr*100):0;
 
+      // AR Aging
+      let b0=0,b30=0,b60=0,b90=0;
+      dt.forEach(r=>{
+        if(r.oyQarz<=0)return;
+        const tp=clPay[r.name]||0;
+        const qDate=_findQarzdorDate(r.name,tp);
+        const days=qDate?Math.round((repEnd-qDate)/864e5):999;
+        if(days<=30)b0+=r.oyQarz;else if(days<=60)b30+=r.oyQarz;
+        else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
+      });
+
       // Undiruv: shu oydagi to'lov / shu oylik majburiyat
+      const curM=d.getMonth();
+      const cumExp=calcCumExpected(d.getFullYear());
       let collExp=0;
       Object.entries(cumExp).forEach(([name,data])=>{
         const cumCur=data.cum[curM]||0;
         const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
         const oyKut=cumCur-cumPrev;
         if(oyKut>0)collExp+=oyKut;
+      });
+      let mPaidTotal=0;
+      allPays.forEach(p=>{
+        if(p.date>=mS&&p.date<=repEnd)mPaidTotal+=p.amount;
       });
       const collPct=collExp>0?Math.min(100,Math.round(mPaidTotal/collExp*100)):0;
 
@@ -1044,8 +1037,8 @@ function calcDebtTrend(from,to){
 
       months.push({
         label:mos[d.getMonth()],
-        totalOy,debtors,total:totalClients,mrr,dso,debtMrr,
-        debtorPct:totalClients?Math.round(debtors/totalClients*100):0,
+        totalOy,debtors,total,mrr,dso,debtMrr,
+        debtorPct:total?Math.round(debtors/total*100):0,
         b0,b30,b60,b90,collPct,collExp,mPaid:Math.round(mPaidTotal),
         healthyPct:Math.max(0,Math.min(100,healthyPct))
       });

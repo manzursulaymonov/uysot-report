@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uysot-v15';
+const CACHE_NAME = 'uysot-v16';
 const STATIC_ASSETS = [
   './',
   'index.html',
