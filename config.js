@@ -304,7 +304,8 @@ document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
 // Debt dashboard charts
 const _debtChartIds=['chDebtTotal','chDebtDso','chDebtMrr','chDebtColl','chDebtAging','chDebtHealth'];
 if(document.getElementById('chDebtTotal')){
-  const trend=calcDebtTrend(S.dashFrom,S.dashTo);
+  const _now=new Date();
+  const trend=calcDebtTrend(new Date(_now.getFullYear()-1,_now.getMonth(),1),_now);
   const labels=trend.map(m=>m.label);
   _debtChartIds.forEach(id=>{const el=document.getElementById(id);if(el&&Chart.getChart(el))Chart.getChart(el).destroy()});
   const lineOpts=(color,label,cb)=>({type:'line',options:{...bo,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>label+': '+(cb?cb(c.raw):c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:cb||(v=>v)},beginAtZero:true}}}});

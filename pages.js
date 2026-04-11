@@ -1177,15 +1177,19 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
   h+=`</div>`;
 }else{
   // === DEBT DASHBOARD ===
-  const trend=calcDebtTrend(S.dashFrom,S.dashTo);
-  const cur=trend[trend.length-1]||{};
-  const prev=trend.length>1?trend[trend.length-2]:{};
+  // Trend: har doim oxirgi 12 oy (grafiklar uchun)
+  const now=new Date();
+  const t12from=new Date(now.getFullYear()-1,now.getMonth(),1);
+  const trend=calcDebtTrend(t12from,now);
+  // KPI: tanlangan davr bo'yicha (S.dashFrom — S.dashTo)
+  const kpiTrend=calcDebtTrend(S.dashFrom,S.dashTo);
+  const cur=kpiTrend[kpiTrend.length-1]||{};
+  const first=kpiTrend[0]||{};
   const pctCh=(c,p)=>p?(Math.round((c-p)/Math.abs(p)*100)):0;
   const arrow=(v,inv)=>{const good=inv?v<0:v>0;return v?`<span style="font-size:11px;color:${good?'var(--green)':'var(--red)'}">${v>0?'↑':'↓'} ${Math.abs(v)}%</span>`:''};
-  const arrowInv=(v)=>arrow(v,true); // for metrics where lower = better
+  const arrowInv=(v)=>arrow(v,true);
 
   const pre=S.dashPre||'y';const isWk=pre==='w';
-  // Date toolbar
   h+=`<div class="flex gap-1 flex-wrap mb-3 items-center">
 <div class="wk-pick-wrap"><button class="btn${isWk?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="toggleWeekPicker(this)">Hafta${isWk?' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>':''}</button></div>
 <button class="btn${pre==='p'?' btn-primary':''} py-[5px] px-3 text-[11.5px]" onclick="showPeriodPicker()">Davr</button>
@@ -1194,20 +1198,21 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
 <span class="text-subtle">→</span>
 <input type="date" class="flt text-[11px] p-[5px]" value="${dateStr(S.dashTo)}" onchange="S.dashPre='c';S.dashTo=toDate(this.value);clearCache();render()">
 </div>
-<span class="text-[10.5px] text-subtle ml-1">${trend.length} oy</span>
 </div>`;
 
-  // KPI cards with trend %
-  const collCol=cur.collPct>=90?'var(--green)':cur.collPct>=60?'var(--amber)':'var(--red)';
+  const collCol=(cur.collPct||0)>=90?'var(--green)':(cur.collPct||0)>=60?'var(--amber)':'var(--red)';
   const debtMrrCol=(cur.debtMrr||0)<50?'var(--green)':(cur.debtMrr||0)<100?'var(--amber)':'var(--red)';
   const dsoC=(cur.dso||0)<35?'var(--green)':(cur.dso||0)<60?'var(--amber)':'var(--red)';
+  // Undiruv summalari
+  const collPaidSum=kpiTrend.reduce((s,m)=>s+(m.mPaid||0),0);
+  const collExpSum=kpiTrend.reduce((s,m)=>s+(m.collExp||0),0);
 
   h+=`<div class="metrics mb-3" style="grid-template-columns:repeat(5,1fr)">
-  <div class="metric"><div class="metric-lbl">Jami qarzdorlik</div><div class="metric-val mono" style="font-size:20px;color:var(--red)">${fmt(cur.totalOy||0)}</div><div class="metric-foot">${arrowInv(pctCh(cur.totalOy,prev.totalOy))} ${cur.debtors||0} ta qarzdor</div></div>
-  <div class="metric"><div class="metric-lbl">DSO</div><div class="metric-val" style="color:${dsoC}">${cur.dso||0} <span style="font-size:12px">kun</span></div><div class="metric-foot">${arrowInv(pctCh(cur.dso,prev.dso))}</div></div>
-  <div class="metric"><div class="metric-lbl">Qarz / MRR</div><div class="metric-val" style="color:${debtMrrCol}">${cur.debtMrr||0}%</div><div class="metric-foot">${arrowInv(pctCh(cur.debtMrr,prev.debtMrr))}</div></div>
-  <div class="metric"><div class="metric-lbl">Undiruv darajasi</div><div class="metric-val" style="color:${collCol}">${cur.collPct||0}%</div><div class="metric-foot">${arrow(pctCh(cur.collPct,prev.collPct))}</div></div>
-  <div class="metric"><div class="metric-lbl">Qarzdorlar ulushi</div><div class="metric-val" style="color:${(cur.debtorPct||0)>40?'var(--red)':(cur.debtorPct||0)>20?'var(--amber)':'var(--green)'}">${cur.debtorPct||0}%</div><div class="metric-foot">${arrowInv(pctCh(cur.debtorPct,prev.debtorPct))} ${cur.debtors||0}/${cur.total||0}</div></div>
+  <div class="metric"><div class="metric-lbl">Jami qarzdorlik</div><div class="metric-val mono" style="font-size:20px;color:var(--red)">${fmt(cur.totalOy||0)}</div><div class="metric-foot">${arrowInv(pctCh(cur.totalOy,first.totalOy))} ${cur.debtors||0} ta qarzdor</div></div>
+  <div class="metric"><div class="metric-lbl">DSO</div><div class="metric-val" style="color:${dsoC}">${cur.dso||0} <span style="font-size:12px">kun</span></div><div class="metric-foot">${arrowInv(pctCh(cur.dso,first.dso))}</div></div>
+  <div class="metric"><div class="metric-lbl">Qarz / MRR</div><div class="metric-val" style="color:${debtMrrCol}">${cur.debtMrr||0}%</div><div class="metric-foot">${arrowInv(pctCh(cur.debtMrr,first.debtMrr))} <span class="text-subtle text-[10px]">${fk(cur.totalOy||0)}/${fk(cur.mrr||0)}</span></div></div>
+  <div class="metric"><div class="metric-lbl">Undiruv darajasi</div><div class="metric-val" style="color:${collCol}">${cur.collPct||0}%</div><div class="metric-foot">${arrow(pctCh(cur.collPct,first.collPct))} <span class="text-subtle text-[10px]">${fk(cur.mPaid||0)}/${fk(cur.collExp||0)}</span></div></div>
+  <div class="metric"><div class="metric-lbl">Qarzdorlar ulushi</div><div class="metric-val" style="color:${(cur.debtorPct||0)>40?'var(--red)':(cur.debtorPct||0)>20?'var(--amber)':'var(--green)'}">${cur.debtorPct||0}%</div><div class="metric-foot">${arrowInv(pctCh(cur.debtorPct,first.debtorPct))} ${cur.debtors||0}/${cur.total||0}</div></div>
   </div>`;
 
   // Charts: 2x3 grid

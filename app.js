@@ -1018,7 +1018,7 @@ function calcDebtTrend(from,to){
         label:mos[d.getMonth()],
         totalOy,totalKel,debtors,total,mrr,dso,debtMrr,
         debtorPct:total?Math.round(debtors/total*100):0,
-        b0,b30,b60,b90,collPct,
+        b0,b30,b60,b90,collPct,collExp,mPaid:Math.round(mPaidTotal),
         healthyPct:Math.max(0,Math.min(100,healthyPct))
       });
       d=new Date(d.getFullYear(),d.getMonth()+1,1);
