@@ -301,6 +301,32 @@ document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
   el.addEventListener('mouseleave',()=>{const t=document.getElementById('mrrTip');if(t)t.style.display='none'});
 })}
 
+// Debt dashboard charts
+const _debtChartIds=['chDebtTotal','chDebtDso','chDebtMrr','chDebtColl','chDebtAging','chDebtHealth'];
+if(document.getElementById('chDebtTotal')){
+  const trend=calcDebtTrend(S.dashFrom,S.dashTo);
+  const labels=trend.map(m=>m.label);
+  _debtChartIds.forEach(id=>{const el=document.getElementById(id);if(el&&Chart.getChart(el))Chart.getChart(el).destroy()});
+  const lineOpts=(color,label,cb)=>({type:'line',options:{...bo,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>label+': '+(cb?cb(c.raw):c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:cb||(v=>v)},beginAtZero:true}}}});
+  // 1. Total debt bar
+  new Chart(document.getElementById('chDebtTotal'),{type:'bar',data:{labels,datasets:[{data:trend.map(m=>m.totalOy),backgroundColor:'rgba(196,43,28,.6)',borderRadius:4}]},options:{...bo,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Qarz: $'+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true}}}});
+  // 2. DSO line
+  new Chart(document.getElementById('chDebtDso'),{...lineOpts('#f0b020','DSO',v=>v+' kun'),data:{labels,datasets:[{data:trend.map(m=>m.dso),borderColor:'#f0b020',borderWidth:2,backgroundColor:'rgba(240,176,32,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#f0b020',tension:.3}]}});
+  // 3. Debt/MRR line
+  new Chart(document.getElementById('chDebtMrr'),{...lineOpts('#6941b8','Qarz/MRR',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.debtMrr),borderColor:'#6941b8',borderWidth:2,backgroundColor:'rgba(105,65,184,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#6941b8',tension:.3}]}});
+  // 4. Collection rate line
+  new Chart(document.getElementById('chDebtColl'),{...lineOpts('#117a52','Undiruv',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.collPct),borderColor:'#117a52',borderWidth:2,backgroundColor:'rgba(17,122,82,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#117a52',tension:.3}]}});
+  // 5. AR Aging stacked bar
+  new Chart(document.getElementById('chDebtAging'),{type:'bar',data:{labels,datasets:[
+    {label:'0-30 kun',data:trend.map(m=>m.b0),backgroundColor:'#f0b020'},
+    {label:'31-60 kun',data:trend.map(m=>m.b30),backgroundColor:'#e06050'},
+    {label:'61-90 kun',data:trend.map(m=>m.b60),backgroundColor:'#c42b1c'},
+    {label:'90+ kun',data:trend.map(m=>m.b90),backgroundColor:'#6941b8'}
+  ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{stacked:true,grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)}}}}});
+  // 6. Healthy % line
+  new Chart(document.getElementById('chDebtHealth'),{...lineOpts('#117a52','Sog\'lom',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.healthyPct),borderColor:'#20c997',borderWidth:2,backgroundColor:'rgba(32,201,151,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#20c997',tension:.3}]}});
+}
+
 // === CONFIG ===
 function showConfig(){
 const hasSaved=!!localStorage.getItem('uysot_config');

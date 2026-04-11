@@ -959,6 +959,77 @@ function _findQarzdorDate(name,totalPaid){
   return result;
 }
 
+// === DEBT TREND ===
+function calcDebtTrend(from,to){
+  const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+  return cached('debtTrend_'+from.getTime()+'_'+to.getTime(),()=>{
+    const months=[];
+    const pm=calcPayments();
+    const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
+    const {all,qAll}=buildContracts();
+    let d=new Date(from.getFullYear(),from.getMonth(),1);
+    while(d<=to){
+      const repEnd=new Date(d.getFullYear(),d.getMonth()+1,0);
+      const dt=calcDebtTable(d);
+      const snap=mrrOnDate(repEnd,all,qAll);
+      const mrr=snap.total||1;
+      const totalOy=dt.reduce((s,r)=>s+(r.oyQarz>0?r.oyQarz:0),0);
+      const totalKel=dt.reduce((s,r)=>s+(r.kelQarz>0?r.kelQarz:0),0);
+      const debtors=dt.filter(r=>r.oyQarz>0).length;
+      const total=dt.length;
+      // DSO: (totalOy / mrr) * 30
+      const dso=mrr>0?Math.round(totalOy/mrr*30):0;
+      // Qarz/MRR
+      const debtMrr=mrr>0?Math.round(totalOy/mrr*100):0;
+      // AR Aging buckets
+      let b0=0,b30=0,b60=0,b90=0;
+      dt.forEach(r=>{
+        if(r.oyQarz<=0)return;
+        const tp=clPay[r.name]||0;
+        const qDate=_findQarzdorDate(r.name,tp);
+        const days=qDate?Math.round((d-qDate)/864e5):999;
+        if(days<=30)b0+=r.oyQarz;else if(days<=60)b30+=r.oyQarz;
+        else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
+      });
+      // Collection rate (shu oy uchun oddiy hisob)
+      const cumExp=calcCumExpected(d.getFullYear(),true);
+      const curM=d.getMonth();
+      let collExp=0,collPaid=0;
+      Object.entries(cumExp).forEach(([name,data])=>{
+        const cumCur=data.cum[curM]||0;
+        const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
+        const tp=clPay[name]||0;
+        const oyKut=cumCur-cumPrev;
+        const oyBoshi=cumPrev-Math.max(0,tp);
+        const exp=Math.max(0,oyBoshi+oyKut);
+        if(exp<1)return;
+        collExp+=exp;
+      });
+      // monthPaid
+      const mS=new Date(d.getFullYear(),curM,1);
+      const mE=repEnd;
+      let mPaidTotal=0;
+      const addMP=(rows,dateK,usdK)=>{if(!rows)return;rows.forEach(r=>{const c=r.Client?.trim();if(!c)return;const pd2=pd(r[dateK]);if(!pd2)return;if(pd2>=mS&&pd2<=mE)mPaidTotal+=pn(r[usdK]||'0')})};
+      addMP(S.payRows,'sanasi','USD');addMP(S.y2024Rows,'sanasi','USD');
+      collPaid=Math.round(mPaidTotal);
+      const collPct=collExp>0?Math.min(100,Math.round(collPaid/collExp*100)):0;
+      // Health (simplified)
+      const activeClients=snap.active.size;
+      const healthyPct=activeClients?Math.round((activeClients-debtors)/Math.max(activeClients,debtors||1)*100):100;
+
+      months.push({
+        label:mos[d.getMonth()],
+        totalOy,totalKel,debtors,total,mrr,dso,debtMrr,
+        debtorPct:total?Math.round(debtors/total*100):0,
+        b0,b30,b60,b90,collPct,
+        healthyPct:Math.max(0,Math.min(100,healthyPct))
+      });
+      d=new Date(d.getFullYear(),d.getMonth()+1,1);
+    }
+    return months;
+  });
+}
+
 // === AR AGING ===
 function calcARaging(){
   return cached('arAging_v2',()=>{
