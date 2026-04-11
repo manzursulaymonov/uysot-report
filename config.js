@@ -702,16 +702,14 @@ function hideSmartLoader(){
 // === DATA LOADING ===
 async function fetchCsv(url,label){
   const t0=performance.now();
-  console.log('['+label+'] Yuklanmoqda: '+url);
   try{const r=await fetch(url);if(r.ok){const t=await r.text();
   if(t.startsWith('<!') || t.startsWith('<html')){throw new Error('HTML')}
-  if(t.length>10){_A.fetch(url,label,performance.now()-t0,true);return t}}}catch(e){console.warn('['+label+'] Direct:',e.message)}
+  if(t.length>10){_A.fetch('',label,performance.now()-t0,true);return t}}}catch(e){}
   try{const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url));
   if(r.ok){const j=await r.json();if(j.contents&&j.contents.length>10&&!j.contents.startsWith('<!'))
-  {_A.fetch(url,label,performance.now()-t0,true);return j.contents}}
-  }catch(e){console.warn('['+label+'] allorigins:',e.message)}
-  _A.fetch(url,label,performance.now()-t0,false);
-  _A.error('['+label+'] Yuklab bo\'lmadi','fetch');
+  {_A.fetch('',label,performance.now()-t0,true);return j.contents}}
+  }catch(e){}
+  _A.fetch('',label,performance.now()-t0,false);
   throw new Error('['+label+'] Yuklab bo\'lmadi.')
 }
 
