@@ -135,6 +135,8 @@ body{
 }
 .sidebar-bottom .bc:hover{color:var(--text)}
 .sidebar-bottom .bc svg{width:14px;height:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bc-spin svg{animation:spin .8s linear infinite}
 .sidebar-bottom .info{font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.4;opacity:.7}
 
 /* Dark mode toggle in sidebar */

@@ -747,6 +747,34 @@ async function loadFromConfig(config){
   }
 }
 
+// === BACKGROUND REFRESH ===
+let _refreshing=false;
+async function refreshData(){
+  if(_refreshing||!S.config)return;
+  _refreshing=true;
+  const btn=document.getElementById('refreshBtn');
+  if(btn)btn.classList.add('bc-spin');
+  try{
+    const cfg=S.config;
+    if(cfg.shartnomalar){try{const csv=await fetchCsv(cfg.shartnomalar,'Shartnomalar');S.rows=parse(csv)}catch(e){}}
+    if(cfg.qoshimcha){try{const csv=await fetchCsv(cfg.qoshimcha,"Qo'shimcha");S.qRows=parse(csv)}catch(e){}}
+    if(cfg.payments&&cfg.payments!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.payments,'Payments');S.payRows=parseRaw(csv)}catch(e){}}
+    if(cfg['2024']&&cfg['2024']!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg['2024'],'2024');S.y2024Rows=parseRaw(csv)}catch(e){}}
+    if(cfg.perevod&&cfg.perevod!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.perevod,'Perevod');S.perevodRows=parseRaw(csv)}catch(e){}}
+    if(cfg.mkt&&cfg.mkt!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.mkt,'Marketing');S.mktRows=parseMkt(csv)}catch(e){}}
+    if(cfg.menejerlar&&cfg.menejerlar!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.menejerlar,'Menejerlar');S.mgrRows=parseRaw(csv)}catch(e){}}
+    saveCache();clearCache();
+    document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');
+    render();
+    showToast('Yangilandi','success');
+  }catch(e){
+    showToast('Yangilashda xatolik','error');
+  }finally{
+    _refreshing=false;
+    if(btn)btn.classList.remove('bc-spin');
+  }
+}
+
 function _cacheKey(){const p=S.projects&&S.projects[S.projectIdx];return p?'uysot_data_'+S.projectIdx:'uysot_data'}
 function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem(_cacheKey(),JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
 function loadCache(){try{const raw=localStorage.getItem(_cacheKey());if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
