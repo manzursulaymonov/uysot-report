@@ -979,8 +979,6 @@ function _clientPaysByDate(){
       const c=r.Client?.trim();if(!c)return;
       const v=pn(r.USD||'0');if(v>0)pays.push({client:c,date:y24date,amount:v});
     });
-    // perevodRows — Sanasi ustuni bor
-    add(S.perevodRows,'Sanasi','Tolov(usd)');
     return pays;
   });
 }
