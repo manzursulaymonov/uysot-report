@@ -1176,21 +1176,99 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
 ((!isM||S.debtMobCol==='lp')?lpCell:'')+'</tr>'}).join(''):`<tr><td colspan="${isM?2:5}" class="text-center text-subtle p-5">—</td></tr>`}</tbody></table></div></div>`;
   h+=`</div>`;
 }else{
-  h+=`<div class="metrics grid-cols-4">
-  <div class="metric c6"><div class="metric-lbl">DSO</div><div class="metric-val" style="color:${dsoColor}">${dsoVal} <span class="text-sm">kun</span></div></div>
-  <div class="metric c2"><div class="metric-lbl">Konsentratsiya (Top 5)</div><div class="metric-val" style="color:${concColor}">${conc5}%</div></div>
-  <div class="metric c4"><div class="metric-lbl">Oy oxiri qarzi</div><div class="metric-val">${fmt(totalOy)}</div></div>
-  <div class="metric c4"><div class="metric-lbl">Kelishuv qarzi</div><div class="metric-val">${fmt(totalKel)}</div></div></div>
-  <div class="card mt-4"><div class="card-head"><span class="card-label">Qarz taqsimoti</span></div>
-  <div class="card-body">
-    ${dt.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div><div class="text-[11px] text-subtle mb-2">Oy oxiri qarz bo'yicha TOP 5</div>
-    ${dt.filter(r=>r.oyQarz>0).sort((a,b)=>b.oyQarz-a.oyQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span class="font-medium">${cl(r.name)}</span><span class="mono" style="color:var(--amber);font-weight:600">${fmt(r.oyQarz)}</span></div>`).join('')}
+  // === DEBT DASHBOARD ===
+  const aging=calcARaging();
+  const agingTotal=aging.reduce((s,b)=>s+b.total,0);
+  const ch=calcClientHealth();
+  const healthy=ch.filter(c=>c.status==='healthy').length;
+  const warning=ch.filter(c=>c.status==='warning').length;
+  const critical=ch.filter(c=>c.status==='critical').length;
+  const totalClients=ch.length;
+  const debtors=dt.filter(r=>r.oyQarz>0);
+  const debtorCount=debtors.length;
+  const debtorPct=totalClients?Math.round(debtorCount/totalClients*100):0;
+  const avgDebt=debtorCount?Math.round(totalOy/debtorCount):0;
+  const mrr=dr.totals[dr.totals.length-1]||0;
+  const debtToMrr=mrr?Math.round(totalOy/mrr*100):0;
+  const collRate=calcCollectionRate();
+  const collExpected=collRate.reduce((s,c)=>s+c.expected,0);
+  const collPaid=collRate.reduce((s,c)=>s+c.paid,0);
+  const collPct=collExpected?Math.round(collPaid/collExpected*100):0;
+  const collCol=collPct>=90?'var(--green)':collPct>=60?'var(--amber)':'var(--red)';
+  const debtMrrCol=debtToMrr<50?'var(--green)':debtToMrr<100?'var(--amber)':'var(--red)';
+
+  // KPI Row 1: main numbers
+  h+=`<div class="metrics mb-3" style="grid-template-columns:repeat(5,1fr)">
+  <div class="metric"><div class="metric-lbl">Jami qarzdorlik</div><div class="metric-val mono" style="font-size:22px;color:var(--red)">${fmt(totalOy)}</div><div class="metric-foot">${debtorCount} ta qarzdor</div></div>
+  <div class="metric"><div class="metric-lbl">DSO</div><div class="metric-val" style="color:${dsoColor}">${dsoVal} <span style="font-size:13px">kun</span></div><div class="metric-foot">${dsoVal<30?'Yaxshi':dsoVal<60?'O\'rtacha':'Xavfli'}</div></div>
+  <div class="metric"><div class="metric-lbl">Qarz / MRR</div><div class="metric-val" style="color:${debtMrrCol}">${debtToMrr}%</div><div class="metric-foot">${debtToMrr<50?'Sog\'lom':debtToMrr<100?'E\'tibor':'Kritik'}</div></div>
+  <div class="metric"><div class="metric-lbl">Undiruv darajasi</div><div class="metric-val" style="color:${collCol}">${collPct}%</div><div class="metric-foot">${fmt(collPaid)} / ${fmt(collExpected)}</div></div>
+  <div class="metric"><div class="metric-lbl">Qarzdorlar ulushi</div><div class="metric-val" style="color:${debtorPct>40?'var(--red)':debtorPct>20?'var(--amber)':'var(--green)'}">${debtorPct}%</div><div class="metric-foot">${debtorCount} / ${totalClients} mijoz</div></div>
+  </div>`;
+
+  // Row 2: AR Aging + Health distribution
+  h+=`<div class="grid-2 mb-3">
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--amber)"></span>AR Aging</span></div>
+  <div class="card-body p-0" style="padding:12px 16px!important">
+    <div style="display:flex;gap:8px;margin-bottom:12px">${aging.map(b=>{
+      const pct=agingTotal>0?Math.round(b.total/agingTotal*100):0;
+      return`<div style="flex:1;text-align:center;padding:8px;background:var(--bg3);border-radius:8px;border-top:3px solid ${b.color}">
+        <div style="font-size:10px;color:var(--text3)">${b.label}</div>
+        <div class="mono" style="font-size:16px;font-weight:700;color:${b.color}">${fk(b.total)}</div>
+        <div style="font-size:10px;color:var(--text3)">${b.clients.length} mijoz · ${pct}%</div>
+      </div>`;
+    }).join('')}</div>
+    <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--bg3)">${aging.map(b=>{
+      const pct=agingTotal>0?b.total/agingTotal*100:0;
+      return pct>0?`<div style="width:${pct}%;background:${b.color};min-width:2px"></div>`:'';
+    }).join('')}</div>
+  </div></div>
+
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-success"></span>Health Score</span></div>
+  <div class="card-body p-0" style="padding:12px 16px!important">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div style="flex:1;text-align:center;padding:8px;background:var(--bg3);border-radius:8px;border-top:3px solid var(--green)">
+        <div style="font-size:10px;color:var(--text3)">Healthy</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green)">${healthy}</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:8px;background:var(--bg3);border-radius:8px;border-top:3px solid var(--amber)">
+        <div style="font-size:10px;color:var(--text3)">Warning</div>
+        <div style="font-size:20px;font-weight:700;color:var(--amber)">${warning}</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:8px;background:var(--bg3);border-radius:8px;border-top:3px solid var(--red)">
+        <div style="font-size:10px;color:var(--text3)">Critical</div>
+        <div style="font-size:20px;font-weight:700;color:var(--red)">${critical}</div>
+      </div>
     </div>
-    <div><div class="text-[11px] text-subtle mb-2">Kelishuv qarz bo'yicha TOP 5</div>
-    ${dt.filter(r=>r.kelQarz>0).sort((a,b)=>b.kelQarz-a.kelQarz).slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span class="font-medium">${cl(r.name)}</span><span class="mono" style="color:var(--red);font-weight:600">${fmt(r.kelQarz)}</span></div>`).join('')}
-    </div></div>`:'<div class="text-center text-subtle p-6">Qarzdor mijozlar yo\'q ✅</div>'}
-  </div></div>`;
+    <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--bg3)">
+      ${totalClients?`<div style="width:${healthy/totalClients*100}%;background:var(--green)"></div>
+      <div style="width:${warning/totalClients*100}%;background:var(--amber)"></div>
+      <div style="width:${critical/totalClients*100}%;background:var(--red)"></div>`:''}
+    </div>
+  </div></div></div>`;
+
+  // Row 3: Top debtors + Debt trend chart
+  h+=`<div class="grid-2 mb-3">
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Eng katta qarzdorlar</span></div>
+  <div class="card-body dash-new-full p-0" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>#</th><th>Mijoz</th><th class="text-r">Oy qarzi</th><th class="text-r">Kelishuv</th></tr></thead><tbody>${debtors.sort((a,b)=>b.oyQarz-a.oyQarz).slice(0,10).map((r,i)=>{
+    const pct=totalOy?Math.round(r.oyQarz/totalOy*100):0;
+    return`<tr><td class="text-subtle text-[11px]">${i+1}</td><td class="font-medium">${cl(r.name)}</td><td class="text-r mono" style="color:var(--amber);font-weight:600">${fmt(r.oyQarz)} <span style="font-size:9px;color:var(--text3)">${pct}%</span></td><td class="text-r mono" style="color:var(--red);font-weight:600">${r.kelQarz>0?fmt(r.kelQarz):'—'}</td></tr>`;
+  }).join('')}</tbody></table></div></div>
+
+  <div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>Kelishuv qarz bo'yicha Top 10</span></div>
+  <div class="card-body dash-new-full p-0" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>#</th><th>Mijoz</th><th class="text-r">Kelishuv</th><th class="text-r">MRR</th></tr></thead><tbody>${dt.filter(r=>r.kelQarz>0).sort((a,b)=>b.kelQarz-a.kelQarz).slice(0,10).map((r,i)=>{
+    return`<tr><td class="text-subtle text-[11px]">${i+1}</td><td class="font-medium">${cl(r.name)}</td><td class="text-r mono" style="color:var(--red);font-weight:700">${fmt(r.kelQarz)}</td><td class="text-r mono text-subtle text-[11px]">${r.oyQarz>0?fmt(r.oyQarz):'—'}</td></tr>`;
+  }).join('')}</tbody></table></div></div></div>`;
+
+  // Row 4: Critical clients needing attention
+  const criticals=ch.filter(c=>c.status==='critical'&&c.debt>0).sort((a,b)=>b.debt-a.debt);
+  if(criticals.length){
+    h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Kritik holatdagi mijozlar (${criticals.length})</span></div>
+    <div class="card-body dash-new-full p-0" style="max-height:200px;overflow-y:auto"><table><thead><tr><th>Mijoz</th><th class="text-r">Health</th><th class="text-r">Qarz</th><th class="text-r">MRR</th><th class="text-r">Muddat</th></tr></thead><tbody>${criticals.slice(0,15).map(c=>{
+      const dStr=c.daysToEnd===-999?'<span class="text-danger">Tugagan</span>':(c.daysToEnd>999?'—':c.daysToEnd+' kun');
+      return`<tr><td class="font-medium">${cl(c.name)}</td><td class="text-r"><span style="font-size:12px;font-weight:700;color:var(--red)">${c.score}</span></td><td class="text-r mono" style="color:var(--red);font-weight:600">${fmt(c.debt)}</td><td class="text-r mono text-[11px]">${c.mrr?fmt(c.mrr):'—'}</td><td class="text-r text-[11px]">${dStr}</td></tr>`;
+    }).join('')}</tbody></table></div></div>`;
+  }
 }
 if(view==='aging') return _rAgingSection();
 if(view==='inkasso') return _rInkassoSection();
