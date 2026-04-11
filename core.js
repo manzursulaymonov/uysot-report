@@ -994,6 +994,54 @@ function _dlRows(type){
   return null;
 }
 
+function exportMrrXLSX(){
+  if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
+  const wb=XLSX.utils.book_new();
+  // Yillar — birinchi shartnomadan hozirgi yilgacha
+  const now=new Date();let minY=now.getFullYear(),maxY=now.getFullYear();
+  S.rows.forEach(r=>{const d=pd(r.sanasi);if(d){const y=d.getFullYear();if(y<minY)minY=y;if(y>maxY)maxY=y}});
+  const cc=S.mrrCols;
+  for(let yr=minY;yr<=maxY;yr++){
+    const d=mrrData(yr);
+    const cumExp=calcCumExpected(yr);
+    const pm=calcPayments();const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
+    // Header
+    const headers=['Mijoz'];
+    if(cc.mgr)headers.push('Menejer');
+    if(cc.hudud)headers.push('Hudud');
+    if(cc.mrr)headers.push('MRR $');
+    if(cc.deal)headers.push('Boshi');
+    if(cc.end)headers.push('Tugashi');
+    MOS.forEach(m=>headers.push(m));
+    // Rows
+    const rows=[];
+    // JAMI row
+    const jamiRow={'Mijoz':'JAMI'};
+    if(cc.mgr)jamiRow['Menejer']='';if(cc.hudud)jamiRow['Hudud']='';
+    if(cc.mrr)jamiRow['MRR $']='';if(cc.deal)jamiRow['Boshi']='';if(cc.end)jamiRow['Tugashi']='';
+    MOS.forEach((m,i)=>jamiRow[m]=d.totals[i]||0);
+    rows.push(jamiRow);
+    // Client rows
+    d.clients.forEach(c=>{
+      const row={'Mijoz':c.name};
+      if(cc.mgr)row['Menejer']=c.mgr||'';
+      if(cc.hudud)row['Hudud']=c.hudud||'';
+      if(cc.mrr)row['MRR $']=c.mrr||0;
+      if(cc.deal)row['Boshi']=c.dealStart||'';
+      if(cc.end)row['Tugashi']=c.dealEnd||'';
+      MOS.forEach((m,i)=>row[m]=c.monthly[i]||0);
+      rows.push(row);
+    });
+    const ws=XLSX.utils.json_to_sheet(rows,{header:headers});
+    // Ustun kengliklarini sozlash
+    ws['!cols']=[{wch:20},...(cc.mgr?[{wch:14}]:[]),...(cc.hudud?[{wch:12}]:[]),...(cc.mrr?[{wch:8}]:[]),...(cc.deal?[{wch:10}]:[]),...(cc.end?[{wch:10}]:[]),...MOS.map(()=>({wch:8}))];
+    XLSX.utils.book_append_sheet(wb,ws,String(yr));
+  }
+  XLSX.writeFile(wb,'MRR_jadval_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('MRR jadval XLSX yuklandi','success');
+  _A.feature('export_mrr_xlsx');
+}
+
 function exportXLSX(type){
   const rows=_dlRows(type);
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return;}
