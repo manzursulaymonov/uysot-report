@@ -970,7 +970,7 @@ ${cc.hudud?`<th>Hudud</th>`:''}
 ${cc.mrr?`<th class="text-r">MRR $</th>`:''}
 ${cc.deal?`<th class="text-c">Boshi</th>`:''}
 ${cc.end?`<th class="text-c">Tugashi</th>`:''}
-${mos.map(m=>`<th class="mcell">${m}</th>`).join('')}
+${MOS.map(m=>`<th class="mcell">${m}</th>`).join('')}
 </tr></thead><tbody>
 <tr class="summary-row row-mom"><td class="sticky-col col-name text-[10.5px] text-subtle">Month-over-Month %</td>${Array(exCols).fill('<td></td>').join('')}${d.mom.map(v=>{const c=v>0?'var(--green)':v<0?'var(--red)':'var(--text3)';return`<td class="mcell" style="color:${c}">${v?(v>0?'+':'')+v.toFixed(1)+'%':'—'}</td>`}).join('')}</tr>
 <tr class="summary-row row-total"><td class="sticky-col col-name">Davr yig'indisi (JAMI)</td>${Array(exCols).fill('<td></td>').join('')}${d.totals.map(v=>`<td class="mcell text-primary">${v?fmt(v):'—'}</td>`).join('')}</tr>
