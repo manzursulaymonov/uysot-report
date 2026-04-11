@@ -1451,9 +1451,78 @@ function _rAuditSection(){
 
 // === MOLIYA / FINANCE ===
 function rMoliya(){
-  const view=S.molView||'pnl';
+  const view=S.molView||'revenue';
   if(view==='cashflow') return _rCashFlow();
+  if(view==='revenue') return _rRevenue();
   return _rPnL();
+}
+
+function _rRevenue(){
+  const mos=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const now=new Date();
+  const selY=S.revYear||now.getFullYear();
+  window._setRevYear=function(y){S.revYear=+y;clearCache();render()};
+
+  // Yillar ro'yxati
+  let minY=now.getFullYear(),maxY=now.getFullYear();
+  S.rows.forEach(r=>{const d=pd(r.sanasi);if(d){const y=d.getFullYear();if(y<minY)minY=y;if(y>maxY)maxY=y}});
+  const years=[];for(let y=maxY;y>=minY;y--)years.push(y);
+
+  // Oyma-oy MRR va to'lovlar
+  const {all,qAll}=buildContracts();
+  const allPays=_clientPaysByDate();
+  let yearMRR=0,yearPaid=0;
+  const rows=[];
+  for(let m=0;m<12;m++){
+    const mE=new Date(selY,m+1,0);
+    const mS=new Date(selY,m,1);
+    if(mS>now)break;
+    const snap=mrrOnDate(mE,all,qAll);
+    const mrr=snap.total;
+    let paid=0;
+    allPays.forEach(p=>{if(p.date>=mS&&p.date<=mE)paid+=p.amount});
+    paid=Math.round(paid);
+    yearMRR+=mrr;yearPaid+=paid;
+    rows.push({label:mos[m],mrr,paid,clients:snap.active.size});
+  }
+
+  // Toolbar
+  let h=`<div class="flex gap-2 items-center mb-3">
+    <select class="flt text-xs py-1.5 px-2.5" onchange="_setRevYear(this.value)">
+      ${years.map(y=>`<option value="${y}"${y===selY?' selected':''}>${y}</option>`).join('')}
+    </select>
+    <span class="text-xs text-subtle">${selY} yil: MRR jami <b class="mono">${fk(yearMRR)}</b> · To'lovlar <b class="mono">${fk(yearPaid)}</b></span>
+  </div>`;
+
+  // Jadval
+  h+=`<div class="card mb-3"><div class="card-body p-0"><div class="tbl-scroll"><table><thead><tr>
+    <th>Oy</th><th class="text-r">MRR</th><th class="text-r">To'lovlar</th><th class="text-r">Farq</th><th class="text-r">Mijozlar</th>
+  </tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const diff=r.paid-r.mrr;
+    const diffCol=diff>=0?'var(--green)':'var(--red)';
+    h+=`<tr><td class="font-medium">${r.label}</td>
+      <td class="text-r mono text-[12px]">${fmt(r.mrr)}</td>
+      <td class="text-r mono text-[12px]">${fmt(r.paid)}</td>
+      <td class="text-r mono text-[12px]" style="color:${diffCol}">${diff>=0?'+':''}${fmt(diff)}</td>
+      <td class="text-r text-subtle">${r.clients}</td></tr>`;
+  });
+  // Jami
+  const totalDiff=yearPaid-yearMRR;
+  const tdCol=totalDiff>=0?'var(--green)':'var(--red)';
+  h+=`<tr style="font-weight:600;border-top:2px solid var(--border2)">
+    <td>Jami</td>
+    <td class="text-r mono">${fmt(yearMRR)}</td>
+    <td class="text-r mono">${fmt(yearPaid)}</td>
+    <td class="text-r mono" style="color:${tdCol}">${totalDiff>=0?'+':''}${fmt(totalDiff)}</td>
+    <td></td></tr>`;
+  h+=`</tbody></table></div></div></div>`;
+
+  // Grafik
+  h+=`<div class="card"><div class="card-head"><span class="card-label"><span class="dot bg-accent"></span>${selY} Revenue trend</span></div>
+    <div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="chRevenue"></canvas></div></div></div>`;
+
+  return h;
 }
 
 function _rPnL(){

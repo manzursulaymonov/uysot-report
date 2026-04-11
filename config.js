@@ -331,6 +331,30 @@ if(document.getElementById('chDebtTotal')){
   // 6. Healthy % line
   new Chart(document.getElementById('chDebtHealth'),{...lineOpts('#117a52','Sog\'lom',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.healthyPct),borderColor:'#20c997',borderWidth:2,backgroundColor:'rgba(32,201,151,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#20c997',tension:.3}]}});
 }
+
+// Revenue chart
+const eRev=document.getElementById('chRevenue');
+if(eRev){
+  if(Chart.getChart(eRev))Chart.getChart(eRev).destroy();
+  const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+  const now=new Date();
+  const selY=S.revYear||now.getFullYear();
+  const {all,qAll}=buildContracts();
+  const allPays=_clientPaysByDate();
+  const rLabels=[],rMrr=[],rPaid=[];
+  for(let m=0;m<12;m++){
+    const mE=new Date(selY,m+1,0);const mS=new Date(selY,m,1);
+    if(mS>now)break;
+    rLabels.push(mos[m]);
+    rMrr.push(mrrOnDate(mE,all,qAll).total);
+    let p=0;allPays.forEach(v=>{if(v.date>=mS&&v.date<=mE)p+=v.amount});
+    rPaid.push(Math.round(p));
+  }
+  new Chart(eRev,{type:'bar',data:{labels:rLabels,datasets:[
+    {label:'MRR',data:rMrr,backgroundColor:'rgba(23,70,162,.5)',borderRadius:4},
+    {label:"To'lovlar",data:rPaid,backgroundColor:'rgba(17,122,82,.5)',borderRadius:4}
+  ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true}}}});
+}
 }
 
 // === CONFIG ===
