@@ -1028,17 +1028,18 @@ function calcDebtTrend(from,to){
         const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
         const paidToDate=(clPay[name]||0)-(clPayAfter[name]||0);
         const oyQarz=Math.round(cumCur-paidToDate);
-        totalClients++;
+        const isActive=snap.active.has(name);
 
         if(oyQarz>0){
           totalOy+=oyQarz;
-          debtors++;
+          debtors++;totalClients++;
           // AR Aging
           const qDate=_findQarzdorDate(name,paidToDate);
           const days=qDate?Math.round((repEnd-qDate)/864e5):999;
           if(days<=30)b0+=oyQarz;else if(days<=60)b30+=oyQarz;
           else if(days<=90)b60+=oyQarz;else b90+=oyQarz;
-        }
+        }else if(isActive){totalClients++}
+        // churn + qarzsiz → hisoblanmaydi
 
         // Undiruv
         const oyKut=cumCur-cumPrev;
@@ -1181,8 +1182,10 @@ function calcDailyDebtKPIs(){
       const debt=dailyCumExp-paid;
 
       dailyExpMonth+=Math.max(0,monthProrata);
-      totalClients++;
-      if(debt>0){totalDailyDebt+=debt;debtorCount++}
+      const isActive=snap.active.has(name);
+      if(debt>0){totalDailyDebt+=debt;debtorCount++;totalClients++}
+      else if(isActive){totalClients++}
+      // churn + qarzsiz → hisoblanmaydi
     });
 
     totalDailyDebt=Math.round(totalDailyDebt);
