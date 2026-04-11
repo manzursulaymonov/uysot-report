@@ -520,6 +520,7 @@ function openSpotlight(initialChar){
     const t=e.target.tagName;
     // Esc — clear search input (works even when input is focused)
     if(e.key==='Escape'){
+      if(e._escHandled)return;
       // 1. Overlay ochiq bo'lsa — eng oxirgisini yopish
       const overlays=document.querySelectorAll('.overlay');
       if(overlays.length){e.preventDefault();overlays[overlays.length-1].remove();e._escHandled=true;return}
@@ -624,7 +625,7 @@ function openSpotlight(initialChar){
         showToast('Nusxalandi: '+text,'success');
       });
     }
-    else if(e.key==='Escape'){clearSel()}
+    else if(e.key==='Escape'&&!e._escHandled){clearSel()}
   });
 
   // Clear selection on re-render
