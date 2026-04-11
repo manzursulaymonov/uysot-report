@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uysot-v11';
+const CACHE_NAME = 'uysot-v12';
 const STATIC_ASSETS = [
   './',
   'index.html',
@@ -17,11 +17,14 @@ const STATIC_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-// Install: cache all static assets
+// Install: cache all static assets (bypass HTTP cache for local files)
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS);
+      return Promise.all(STATIC_ASSETS.map(url => {
+        const opts = url.startsWith('http') ? {} : {cache: 'reload'};
+        return fetch(url, opts).then(r => cache.put(url, r));
+      }));
     }).then(() => self.skipWaiting())
   );
 });

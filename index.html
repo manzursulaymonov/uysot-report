@@ -135,7 +135,8 @@ tailwind.config = {
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').then(r=>{
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{
+      r.update();
       console.log('[SW] Registered:', r.scope);
     }).catch(e=>console.warn('[SW] Registration failed:', e));
   });
