@@ -1215,6 +1215,52 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
   <div class="metric"><div class="metric-lbl">Qarzdorlar ulushi</div><div class="metric-val" style="color:${(cur.debtorPct||0)>40?'var(--red)':(cur.debtorPct||0)>20?'var(--amber)':'var(--green)'}">${cur.debtorPct||0}%</div><div class="metric-foot">${arrowInv(pctCh(cur.debtorPct,first.debtorPct))} ${cur.debtors||0}/${cur.total||0}</div></div>
   </div>`;
 
+  // === Shu oy undiruv progressi ===
+  const crOy=calcCollectionRate('oy');
+  const progExp=crOy.reduce((s,c)=>s+c.expected,0);
+  const progPaid=crOy.reduce((s,c)=>s+c.paid,0);
+  const progPct=progExp>0?Math.min(100,Math.round(progPaid/progExp*100)):0;
+  const fc=calcCollectionForecast(crOy);
+  const progDaysLeft=fc.daysLeft;
+  const progFcPct=fc.forecastPct;
+  const progBarCol=progPct>=90?'var(--green)':progPct>=60?'var(--amber)':'var(--red)';
+  const progFcCol=progFcPct>=90?'var(--green)':progFcPct>=60?'var(--amber)':'var(--red)';
+  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const dayOfMonth=now.getDate();
+  const mosFull=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const progMonLabel=mosFull[now.getMonth()]+' '+now.getFullYear();
+  const timePct=Math.round(dayOfMonth/daysInMonth*100);
+
+  h+=`<div class="card mb-3" style="border-top:3px solid ${progBarCol}">
+    <div class="card-body" style="padding:16px 20px">
+      <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+        <div>
+          <span class="text-xs font-semibold" style="color:var(--text2)">Shu oy undiruv progressi</span>
+          <span class="text-[11px] text-subtle ml-2">${progMonLabel}</span>
+        </div>
+        <div class="text-[11px] text-subtle">${dayOfMonth}/${daysInMonth} kun · ${progDaysLeft} kun qoldi</div>
+      </div>
+      <div style="position:relative;background:var(--border);border-radius:8px;height:28px;overflow:hidden">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${progPct}%;background:${progBarCol};border-radius:8px;transition:width .5s ease"></div>
+        <div style="position:absolute;left:${timePct}%;top:0;height:100%;width:2px;background:var(--text3);opacity:.5" title="Bugun: ${dayOfMonth}-kun"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text)">
+          ${progPct}%<span class="mono" style="font-size:11px;font-weight:500;margin-left:8px">${fk(progPaid)} / ${fk(progExp)}</span>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-2 flex-wrap gap-1">
+        <div class="text-[11px]" style="color:var(--text3)">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${progBarCol};margin-right:4px;vertical-align:middle"></span>Undirilgan
+          <span style="display:inline-block;width:8px;height:2px;background:var(--text3);margin:0 6px 0 12px;vertical-align:middle"></span>Vaqt chizig'i
+        </div>
+        <div class="text-[11px]">
+          <span style="color:var(--text3)">Prognoz:</span>
+          <span class="mono font-semibold" style="color:${progFcCol}">${progFcPct}%</span>
+          <span class="text-subtle">(${fk(fc.totalForecast)})</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
   // Charts: 2x3 grid
   h+=`<div class="grid-2 mb-3">
   <div class="card"><div class="card-head"><span class="card-label"><span class="dot" style="background:var(--red)"></span>Jami qarzdorlik</span></div><div class="card-body"><div class="chart-wrap" style="height:180px"><canvas id="chDebtTotal"></canvas></div></div></div>
