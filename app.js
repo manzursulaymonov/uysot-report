@@ -991,28 +991,25 @@ function calcDebtTrend(from,to){
         if(days<=30)b0+=r.oyQarz;else if(days<=60)b30+=r.oyQarz;
         else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
       });
-      // Collection rate (shu oy uchun oddiy hisob)
+      // Collection rate: shu oydagi to'lov / shu oylik majburiyat
       const cumExp=calcCumExpected(d.getFullYear(),true);
       const curM=d.getMonth();
-      let collExp=0,collPaid=0;
-      Object.entries(cumExp).forEach(([name,data])=>{
-        const cumCur=data.cum[curM]||0;
-        const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
-        const tp=clPay[name]||0;
-        const oyKut=cumCur-cumPrev;
-        const oyBoshi=cumPrev-Math.max(0,tp);
-        const exp=Math.max(0,oyBoshi+oyKut);
-        if(exp<1)return;
-        collExp+=exp;
-      });
-      // monthPaid
+      // Shu oydagi to'lovlar
       const mS=new Date(d.getFullYear(),curM,1);
       const mE=repEnd;
       let mPaidTotal=0;
-      const addMP=(rows,dateK,usdK)=>{if(!rows)return;rows.forEach(r=>{const c=r.Client?.trim();if(!c)return;const pd2=pd(r[dateK]);if(!pd2)return;if(pd2>=mS&&pd2<=mE)mPaidTotal+=pn(r[usdK]||'0')})};
+      const monthPaidByClient={};
+      const addMP=(rows,dateK,usdK)=>{if(!rows)return;rows.forEach(r=>{const c=r.Client?.trim();if(!c)return;const pd2=pd(r[dateK]);if(!pd2)return;if(pd2>=mS&&pd2<=mE){const v=pn(r[usdK]||'0');mPaidTotal+=v;monthPaidByClient[c]=(monthPaidByClient[c]||0)+v}})};
       addMP(S.payRows,'sanasi','USD');addMP(S.y2024Rows,'sanasi','USD');
-      collPaid=Math.round(mPaidTotal);
-      const collPct=collExp>0?Math.min(100,Math.round(collPaid/collExp*100)):0;
+      // Shu oylik majburiyatlar
+      let collExp=0;
+      Object.entries(cumExp).forEach(([name,data])=>{
+        const cumCur=data.cum[curM]||0;
+        const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
+        const oyKut=cumCur-cumPrev;
+        if(oyKut>0)collExp+=oyKut;
+      });
+      const collPct=collExp>0?Math.min(100,Math.round(mPaidTotal/collExp*100)):0;
       // Health (simplified)
       const activeClients=snap.active.size;
       const healthyPct=activeClients?Math.round((activeClients-debtors)/Math.max(activeClients,debtors||1)*100):100;
