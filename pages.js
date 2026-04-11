@@ -1215,11 +1215,11 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
   <div class="metric"><div class="metric-lbl">Qarzdorlar ulushi</div><div class="metric-val" style="color:${daily.debtorPct>40?'var(--red)':daily.debtorPct>20?'var(--amber)':'var(--green)'}">${daily.debtorPct}%</div><div class="metric-foot">${arrowInv(pctCh(daily.debtorPct,first.debtorPct))} ${daily.debtors}/${daily.totalClients}</div></div>
   </div>`;
 
-  // === Shu oy undiruv progressi — inkasso metodi ===
-  const crOy=calcCollectionRate('oy');
-  const progExp=crOy.reduce((s,c)=>s+c.expected,0);
-  const progPaid=crOy.reduce((s,c)=>s+c.paid,0);
+  // === Shu oy undiruv progressi — KPI/grafik bilan bir xil manba ===
+  const progExp=cur.collExp||0;
+  const progPaid=cur.mPaid||0;
   const progPct=progExp>0?Math.min(100,Math.round(progPaid/progExp*100)):0;
+  const crOy=calcCollectionRate('oy');
   const fc=calcCollectionForecast(crOy);
   const progDaysLeft=fc.daysLeft;
   const progFcPct=fc.forecastPct;
