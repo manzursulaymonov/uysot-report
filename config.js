@@ -299,7 +299,7 @@ document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
     t.style.top=(r.top-t.offsetHeight-6)+'px';
   });
   el.addEventListener('mouseleave',()=>{const t=document.getElementById('mrrTip');if(t)t.style.display='none'});
-})}
+})
 
 // Debt dashboard charts
 const _debtChartIds=['chDebtTotal','chDebtDso','chDebtMrr','chDebtColl','chDebtAging','chDebtHealth'];
@@ -326,6 +326,7 @@ if(document.getElementById('chDebtTotal')){
   ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{stacked:true,grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)}}}}});
   // 6. Healthy % line
   new Chart(document.getElementById('chDebtHealth'),{...lineOpts('#117a52','Sog\'lom',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.healthyPct),borderColor:'#20c997',borderWidth:2,backgroundColor:'rgba(32,201,151,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#20c997',tension:.3}]}});
+}
 }
 
 // === CONFIG ===
