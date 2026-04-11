@@ -1312,11 +1312,13 @@ function initNav(){
       clientsSub.querySelectorAll('.nav-sub-item').forEach(n=>n.classList.remove('active'));
       el.classList.add('active');
       S.clView=el.dataset.clview;
-      clearCache();render();
+      S.sec='clients';
+      clearCache();render();closeSidebar();
     }));
   }
 
   // Generic sub-menus (data-subview="key:value")
+  const subToSec={'topmrr-sub':'topmrr','debts-sub':'debts','moliya-sub':'moliya'};
   document.querySelectorAll('.nav-sub-item[data-subview]').forEach(el=>el.addEventListener('click',e=>{
     e.stopPropagation();
     const parent=el.closest('.nav-sub');
@@ -1324,7 +1326,10 @@ function initNav(){
     el.classList.add('active');
     const [key,val]=el.dataset.subview.split(':');
     S[key]=val;
-    clearCache();render();
+    // Set parent section active
+    const parentSec=subToSec[parent.id];
+    if(parentSec)S.sec=parentSec;
+    clearCache();render();closeSidebar();
   }));
 }
 
