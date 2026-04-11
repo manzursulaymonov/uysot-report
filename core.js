@@ -500,7 +500,7 @@ function openSpotlight(initialChar){
     if(e.key==='ArrowDown'){e.preventDefault();setActive(idx+1)}
     else if(e.key==='ArrowUp'){e.preventDefault();setActive(idx-1)}
     else if(e.key==='Enter'){e.preventDefault();openSelected()}
-    else if(e.key==='Escape'){e.preventDefault();o.remove()}
+    else if(e.key==='Escape'){e.preventDefault();e._escHandled=true;o.remove()}
   });
   o.addEventListener('click',e=>{
     if(e.target===o)o.remove();
