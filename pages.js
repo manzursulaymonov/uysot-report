@@ -1325,6 +1325,7 @@ function _rAgingSection(){
 }
 
 function _rInkassoSection(){
+  const mos=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
   const inkMode=S.inkassoMode||'oy';
   const cr=calcCollectionRate(inkMode);
   const now=new Date();
