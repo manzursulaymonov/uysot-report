@@ -959,49 +959,61 @@ function _findQarzdorDate(name,totalPaid){
   return result;
 }
 
-// === DEBT TREND ===
+// === DEBT TREND (har oy oxiridagi haqiqiy holat) ===
 function calcDebtTrend(from,to){
   const mos=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
-  return cached('debtTrend_'+from.getTime()+'_'+to.getTime(),()=>{
+  return cached('debtTrend_v3_'+from.getTime()+'_'+to.getTime(),()=>{
     const months=[];
-    const pm=calcPayments();
-    const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
     const {all,qAll}=buildContracts();
+
+    // Barcha to'lovlarni sanasi bilan yig'ish
+    const allPays=[];
+    const addPay=(rows,dateK,usdK)=>{if(!rows)return;rows.forEach(r=>{const c=r.Client?.trim();if(!c)return;const d2=pd(r[dateK]);if(!d2)return;const v=pn(r[usdK]||'0');if(v>0)allPays.push({client:c,date:d2,amount:v})})};
+    addPay(S.payRows,'sanasi','USD');addPay(S.y2024Rows,'sanasi','USD');
+
     let d=new Date(from.getFullYear(),from.getMonth(),1);
     while(d<=to){
       const repEnd=new Date(d.getFullYear(),d.getMonth()+1,0);
-      const dt=calcDebtTable(d);
+      const mS=new Date(d.getFullYear(),d.getMonth(),1);
       const snap=mrrOnDate(repEnd,all,qAll);
       const mrr=snap.total||1;
-      const totalOy=dt.reduce((s,r)=>s+(r.oyQarz>0?r.oyQarz:0),0);
-      const totalKel=dt.reduce((s,r)=>s+(r.kelQarz>0?r.kelQarz:0),0);
-      const debtors=dt.filter(r=>r.oyQarz>0).length;
-      const total=dt.length;
-      // DSO: (totalOy / mrr) * 30
-      const dso=mrr>0?Math.round(totalOy/mrr*30):0;
-      // Qarz/MRR
-      const debtMrr=mrr>0?Math.round(totalOy/mrr*100):0;
-      // AR Aging buckets
-      let b0=0,b30=0,b60=0,b90=0;
-      dt.forEach(r=>{
-        if(r.oyQarz<=0)return;
-        const tp=clPay[r.name]||0;
-        const qDate=_findQarzdorDate(r.name,tp);
-        const days=qDate?Math.round((d-qDate)/864e5):999;
-        if(days<=30)b0+=r.oyQarz;else if(days<=60)b30+=r.oyQarz;
-        else if(days<=90)b60+=r.oyQarz;else b90+=r.oyQarz;
-      });
-      // Collection rate: shu oydagi to'lov / shu oylik majburiyat
-      const cumExp=calcCumExpected(d.getFullYear(),true);
       const curM=d.getMonth();
-      // Shu oydagi to'lovlar
-      const mS=new Date(d.getFullYear(),curM,1);
-      const mE=repEnd;
+      const cumExp=calcCumExpected(d.getFullYear(),true);
+
+      // Shu oy oxirigacha to'langan summalar (tarixiy snapshot)
+      const clPayToDate={};
+      // Shu oy ichida to'langan (undiruv uchun)
       let mPaidTotal=0;
-      const monthPaidByClient={};
-      const addMP=(rows,dateK,usdK)=>{if(!rows)return;rows.forEach(r=>{const c=r.Client?.trim();if(!c)return;const pd2=pd(r[dateK]);if(!pd2)return;if(pd2>=mS&&pd2<=mE){const v=pn(r[usdK]||'0');mPaidTotal+=v;monthPaidByClient[c]=(monthPaidByClient[c]||0)+v}})};
-      addMP(S.payRows,'sanasi','USD');addMP(S.y2024Rows,'sanasi','USD');
-      // Shu oylik majburiyatlar
+      allPays.forEach(p=>{
+        if(p.date<=repEnd){clPayToDate[p.client]=(clPayToDate[p.client]||0)+p.amount}
+        if(p.date>=mS&&p.date<=repEnd){mPaidTotal+=p.amount}
+      });
+
+      // Har bir mijoz uchun o'sha oydagi qarz = cumExp[oy] - shuOygachaTo'langan
+      let totalOy=0,debtors=0,totalClients=0;
+      let b0=0,b30=0,b60=0,b90=0;
+
+      Object.entries(cumExp).forEach(([name,data])=>{
+        const expected=data.cum[curM]||0;
+        if(expected<=0)return;
+        const paidToDate=clPayToDate[name]||0;
+        const oyQarz=Math.round(expected-paidToDate);
+        totalClients++;
+        if(oyQarz>0){
+          totalOy+=oyQarz;
+          debtors++;
+          // AR Aging — shu oydagi to'lov holatiga qarab
+          const qDate=_findQarzdorDate(name,paidToDate);
+          const days=qDate?Math.round((repEnd-qDate)/864e5):999;
+          if(days<=30)b0+=oyQarz;else if(days<=60)b30+=oyQarz;
+          else if(days<=90)b60+=oyQarz;else b90+=oyQarz;
+        }
+      });
+
+      const dso=mrr>0?Math.round(totalOy/mrr*30):0;
+      const debtMrr=mrr>0?Math.round(totalOy/mrr*100):0;
+
+      // Undiruv: shu oydagi to'lov / shu oylik majburiyat
       let collExp=0;
       Object.entries(cumExp).forEach(([name,data])=>{
         const cumCur=data.cum[curM]||0;
@@ -1010,14 +1022,15 @@ function calcDebtTrend(from,to){
         if(oyKut>0)collExp+=oyKut;
       });
       const collPct=collExp>0?Math.min(100,Math.round(mPaidTotal/collExp*100)):0;
-      // Health (simplified)
+
+      // Sog'lom mijozlar
       const activeClients=snap.active.size;
       const healthyPct=activeClients?Math.round((activeClients-debtors)/Math.max(activeClients,debtors||1)*100):100;
 
       months.push({
         label:mos[d.getMonth()],
-        totalOy,totalKel,debtors,total,mrr,dso,debtMrr,
-        debtorPct:total?Math.round(debtors/total*100):0,
+        totalOy,debtors,total:totalClients,mrr,dso,debtMrr,
+        debtorPct:totalClients?Math.round(debtors/totalClients*100):0,
         b0,b30,b60,b90,collPct,collExp,mPaid:Math.round(mPaidTotal),
         healthyPct:Math.max(0,Math.min(100,healthyPct))
       });
