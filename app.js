@@ -969,7 +969,7 @@ function calcDebtTrend(from,to){
     // Barcha to'lovlarni sanasi bilan yig'ish
     const allPays=[];
     const addPay=(rows,dateK,usdK)=>{if(!rows)return;rows.forEach(r=>{const c=r.Client?.trim();if(!c)return;const d2=pd(r[dateK]);if(!d2)return;const v=pn(r[usdK]||'0');if(v>0)allPays.push({client:c,date:d2,amount:v})})};
-    addPay(S.payRows,'sanasi','USD');addPay(S.y2024Rows,'sanasi','USD');
+    addPay(S.payRows,'sanasi','USD');addPay(S.y2024Rows,'sanasi','USD');addPay(S.perevodRows,'Sanasi','Tolov(usd)');
 
     let d=new Date(from.getFullYear(),from.getMonth(),1);
     while(d<=to){
@@ -978,7 +978,7 @@ function calcDebtTrend(from,to){
       const snap=mrrOnDate(repEnd,all,qAll);
       const mrr=snap.total||1;
       const curM=d.getMonth();
-      const cumExp=calcCumExpected(d.getFullYear(),true);
+      const cumExp=calcCumExpected(d.getFullYear());
 
       // Shu oy oxirigacha to'langan summalar (tarixiy snapshot)
       const clPayToDate={};
@@ -1116,6 +1116,7 @@ function calcDailyDebtKPIs(){
     };
     addMP(S.payRows,'sanasi','USD');
     addMP(S.y2024Rows,'sanasi','USD');
+    addMP(S.perevodRows,'Sanasi','Tolov(usd)');
 
     Object.entries(cumExp).forEach(([name,data])=>{
       const cumPrev=month>0?(data.cum[month-1]||0):data.preYear;
@@ -1318,6 +1319,7 @@ function calcCollectionForecast(crData){
     };
     addPay(S.payRows,'sanasi','USD');
     addPay(S.y2024Rows,'sanasi','USD');
+    addPay(S.perevodRows,'Sanasi','Tolov(usd)');
 
     const nowKey=curY*12+curM;
     const clientDisc={};
@@ -1393,6 +1395,7 @@ function calcCollectionRate(mode){
     };
     addMonthPay(S.payRows,'sanasi','USD');
     addMonthPay(S.y2024Rows,'sanasi','USD');
+    addMonthPay(S.perevodRows,'Sanasi','Tolov(usd)');
 
     if(mode==='kelishuv'){
       // Kelishuv bo'yicha: calcDebtTable dan
