@@ -1215,15 +1215,14 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
   <div class="metric"><div class="metric-lbl">Qarzdorlar ulushi</div><div class="metric-val" style="color:${daily.debtorPct>40?'var(--red)':daily.debtorPct>20?'var(--amber)':'var(--green)'}">${daily.debtorPct}%</div><div class="metric-foot">${arrowInv(pctCh(daily.debtorPct,first.debtorPct))} ${daily.debtors}/${daily.totalClients}</div></div>
   </div>`;
 
-  // === Shu oy undiruv progressi (kunlik prorata) ===
-  const progPaid=daily.monthPaid;
-  const progExp=daily.dailyExp;
-  const progPct=progExp>0?Math.min(100,Math.round(progPaid/progExp*100)):0;
+  // === Shu oy undiruv progressi — inkasso metodi ===
   const crOy=calcCollectionRate('oy');
+  const progExp=crOy.reduce((s,c)=>s+c.expected,0);
+  const progPaid=crOy.reduce((s,c)=>s+c.paid,0);
+  const progPct=progExp>0?Math.min(100,Math.round(progPaid/progExp*100)):0;
   const fc=calcCollectionForecast(crOy);
   const progDaysLeft=fc.daysLeft;
   const progFcPct=fc.forecastPct;
-  const fullMonthExp=crOy.reduce((s,c)=>s+c.expected,0);
   const progBarCol=progPct>=90?'var(--green)':progPct>=60?'var(--amber)':'var(--red)';
   const progFcCol=progFcPct>=90?'var(--green)':progFcPct>=60?'var(--amber)':'var(--red)';
   const mosFull=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
@@ -1255,7 +1254,6 @@ return'<tr><td class="font-medium">'+cl(r.name)+'</td>'+
           <span style="color:var(--text3)">Prognoz:</span>
           <span class="mono font-semibold" style="color:${progFcCol}">${progFcPct}%</span>
           <span class="text-subtle">(${fk(fc.totalForecast)})</span>
-          <span class="text-subtle ml-2">Oy maqsadi: ${fk(progPaid)}/${fk(fullMonthExp)}</span>
         </div>
       </div>
     </div>
