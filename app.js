@@ -126,8 +126,8 @@ function dashRange(){
            else if (meta.cat === 'Retained' || meta.cat === 'Resurrected') {
               // Intra-period movement check
               const binCts = allData.filter(c => c.client === name && c.musd > 0 && c.st <= binEnd && c.endD >= binStart);
-              const intraChurn = binCts.find(c => c.endD >= binStart && c.endD < binEnd && !allData.some(c2 => c2.client===name && c2.musd>0 && c2.st.getTime() === c.endD.getTime()+1));
-              const intraReturn = binCts.find(c => c.st > binStart && c.st <= binEnd && !allData.some(c2 => c2.client===name && c2.musd>0 && c2.endD.getTime() === c.st.getTime()-1));
+              const intraChurn = binCts.find(c => c.endD >= binStart && c.endD < binEnd && !allData.some(c2 => c2.client===name && c2.musd>0 && c2!==c && c2.st<=new Date(c.endD.getTime()+864e5) && c2.endD>c.endD));
+              const intraReturn = binCts.find(c => c.st > binStart && c.st <= binEnd && !allData.some(c2 => c2.client===name && c2.musd>0 && c2!==c && c2.st<c.st && c2.endD>=new Date(c.st.getTime()-864e5)));
 
               if (intraChurn) {
                   conM += mStart;
@@ -145,7 +145,7 @@ function dashRange(){
                   }
               }
 
-              if (!intraReturn && Math.abs(delta) > 1) {
+              if (!intraReturn && !intraChurn && Math.abs(delta) > 1) {
                 if (delta > 0) expM += delta; else conM += Math.abs(delta);
                 if (!seenExp.has(name)) {
                    seenExp.add(name);
