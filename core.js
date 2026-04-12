@@ -994,6 +994,56 @@ function _dlRows(type){
   return null;
 }
 
+// === XLSX STYLE HELPERS ===
+const _xlsBrd={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'thin',color:{rgb:'CCCCCC'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
+const _xlsBrdB={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'medium',color:{rgb:'999999'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
+const _xlsHdrS={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'center',vertical:'center'},border:_xlsBrd};
+const _xlsHdrL={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'},border:_xlsBrd};
+const _xlsJami={font:{bold:true,sz:11,name:'Calibri'},fill:{fgColor:{rgb:'E8EDF4'},patternType:'solid'},border:_xlsBrdB,numFmt:'#,##0'};
+const _xlsCellN={font:{sz:10,name:'Calibri'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsCellT={font:{sz:10,name:'Calibri'},border:_xlsBrd};
+const _xlsCellName={font:{sz:10,name:'Calibri',bold:true},border:_xlsBrd};
+const _xlsGreen={font:{sz:10,name:'Calibri',color:{rgb:'117A52'}},fill:{fgColor:{rgb:'E0F4EC'},patternType:'solid'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsYellow={font:{sz:10,name:'Calibri',color:{rgb:'A06810'}},fill:{fgColor:{rgb:'FDF2DC'},patternType:'solid'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsRed={font:{sz:10,name:'Calibri',color:{rgb:'C42B1C'}},fill:{fgColor:{rgb:'FEF0EE'},patternType:'solid'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsEmpty={font:{sz:10,color:{rgb:'CCCCCC'},name:'Calibri'},border:_xlsBrd,alignment:{horizontal:'center'}};
+
+// Build styled worksheet from headers + rows.
+// opts: {numericCols: [col indices that are numbers], nameCol: index of name column (bold), colWidths: [widths]}
+function _styleWs(headers,dataRows,opts){
+  opts=opts||{};
+  const aoa=[headers,...dataRows];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  const C=headers.length,R=aoa.length;
+  const numSet=new Set(opts.numericCols||[]);
+  const nameCol=opts.nameCol!=null?opts.nameCol:0;
+  // Header
+  for(let c=0;c<C;c++){
+    const addr=XLSX.utils.encode_cell({r:0,c});
+    if(ws[addr])ws[addr].s=c===nameCol?_xlsHdrL:_xlsHdrS;
+  }
+  // Data rows
+  for(let r=1;r<R;r++){
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r,c});
+      if(!ws[addr])continue;
+      const v=ws[addr].v;
+      if(v===''||v==null){ws[addr].s=_xlsEmpty;ws[addr].v='—';continue}
+      if(c===nameCol){ws[addr].s=_xlsCellName;continue}
+      if(numSet.has(c)){
+        ws[addr].s=_xlsCellN;ws[addr].z='#,##0';
+        if(opts.colorNeg&&typeof v==='number'&&v<0)ws[addr].s=_xlsRed;
+      }else{
+        ws[addr].s=_xlsCellT;
+      }
+    }
+  }
+  // Column widths
+  if(opts.colWidths)ws['!cols']=opts.colWidths.map(w=>({wch:w}));
+  ws['!rows']=[{hpt:22}];
+  return ws;
+}
+
 function exportMrrXLSX(){
   if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
   const wb=XLSX.utils.book_new();
@@ -1002,21 +1052,13 @@ function exportMrrXLSX(){
   const cc=S.mrrCols;
   const pm=calcPayments();const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
 
-  // Style helpers
-  const brd={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'thin',color:{rgb:'CCCCCC'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
-  const brdB={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'medium',color:{rgb:'999999'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
-  const hdrS={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'center',vertical:'center'},border:brd};
-  const hdrL={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'},border:brd};
-  const jamiS={font:{bold:true,sz:11,name:'Calibri'},fill:{fgColor:{rgb:'E8EDF4'},patternType:'solid'},border:brdB,numFmt:'#,##0'};
-  const momGreen={font:{bold:false,color:{rgb:'117A52'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'F6FAF7'},patternType:'solid'},border:brd,alignment:{horizontal:'center'}};
-  const momRed={font:{bold:false,color:{rgb:'C42B1C'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FEF6F5'},patternType:'solid'},border:brd,alignment:{horizontal:'center'}};
-  const momNone={font:{color:{rgb:'999999'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FAFAFA'},patternType:'solid'},border:brd,alignment:{horizontal:'center'}};
-  const cellS={font:{sz:10,name:'Calibri'},border:brd,numFmt:'#,##0'};
-  const cellTxt={font:{sz:10,name:'Calibri'},border:brd};
-  const cellName={font:{sz:10,name:'Calibri',bold:true},border:brd};
-  const greenS={font:{sz:10,name:'Calibri',color:{rgb:'117A52'}},fill:{fgColor:{rgb:'E0F4EC'},patternType:'solid'},border:brd,numFmt:'#,##0'};
-  const yellowS={font:{sz:10,name:'Calibri',color:{rgb:'A06810'}},fill:{fgColor:{rgb:'FDF2DC'},patternType:'solid'},border:brd,numFmt:'#,##0'};
-  const emptyS={font:{sz:10,color:{rgb:'CCCCCC'},name:'Calibri'},border:brd,alignment:{horizontal:'center'}};
+  // Style helpers — umumiy _xls* dan qo'shimchalar
+  const hdrS=_xlsHdrS,hdrL=_xlsHdrL,jamiS=_xlsJami;
+  const cellS=_xlsCellN,cellTxt=_xlsCellT,cellName=_xlsCellName;
+  const greenS=_xlsGreen,yellowS=_xlsYellow,emptyS=_xlsEmpty;
+  const momGreen={font:{color:{rgb:'117A52'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'F6FAF7'},patternType:'solid'},border:_xlsBrd,alignment:{horizontal:'center'}};
+  const momRed={font:{color:{rgb:'C42B1C'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FEF6F5'},patternType:'solid'},border:_xlsBrd,alignment:{horizontal:'center'}};
+  const momNone={font:{color:{rgb:'999999'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FAFAFA'},patternType:'solid'},border:_xlsBrd,alignment:{horizontal:'center'}};
 
   for(let yr=minY;yr<=maxY;yr++){
     const d=mrrData(yr);
@@ -1126,7 +1168,20 @@ function exportXLSX(type){
   const rows=_dlRows(type);
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return;}
   if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
-  const ws=XLSX.utils.json_to_sheet(rows);
+  const headers=Object.keys(rows[0]);
+  const dataRows=rows.map(r=>headers.map(h=>r[h]));
+  // Raqamli ustunlarni aniqlash
+  const numericCols=[];
+  headers.forEach((h,i)=>{
+    const hl=h.toLowerCase();
+    if(/usd|so'm|summa|qarz|paid|rate|jami|qoldiq|oylik|farq|kun|kechikish|to'langan|kutilgan|undiruv|mrr/i.test(hl)){
+      // Qiymatlarning kamida bittasi raqammi?
+      if(rows.some(r=>typeof r[h]==='number'))numericCols.push(i);
+    }
+  });
+  // Ustun kengliklari — asosiy ustun 20, qolganlari 14
+  const colWidths=headers.map((h,i)=>i===0?22:Math.max(12,Math.min(18,h.length+4)));
+  const ws=_styleWs(headers,dataRows,{numericCols,nameCol:0,colWidths,colorNeg:true});
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Ma'lumot");
   const fn={contracts:'Shartnomalar',debts:'Qarzdorlik',araging:'AR_Aging',collection:'Inkasso',audit:'Tahlil'}[type]||type;
   XLSX.writeFile(wb,fn+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
