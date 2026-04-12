@@ -1412,9 +1412,11 @@ let _rdT;function render(){clearTimeout(_rdT);_rdT=setTimeout(_render,0)}
 let _lastSec=null;
 function _render(){
   if(!S.rows.length){showWelcome();return}
+  // Migrate: 'tahlil' endi contracts > tahlil tab
+  if(S.sec==='tahlil'){S.sec='contracts';S.cView='tahlil';localStorage.setItem('uysot_sec','contracts')}
   const ae=document.activeElement;const isInput=ae&&ae.tagName==='INPUT'&&ae.type==='text';
   const sel=isInput?{s:ae.selectionStart,e:ae.selectionEnd,sec:S.sec,ph:ae.placeholder}:null;
-  const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT,debts:rDebt,tahlil:rTahlil,moliya:rMoliya};
+  const f={dashboard:rD,contracts:rC,mrrtable:rMRR,managers:rM,clients:rCl,topmrr:rT,debts:rDebt,moliya:rMoliya};
   // Save scroll positions before re-render
   const tbl=document.querySelector('.tbl-scroll');
   const savedTop=tbl?tbl.scrollTop:0;

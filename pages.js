@@ -868,9 +868,11 @@ const t=d.length,pg=Math.ceil(t/S.cN),sl=d.slice(S.cP*S.cN,(S.cP+1)*S.cN);
 const so=[{v:'',l:'Barcha'},{v:'A',l:'Aktiv'},{v:'D',l:'Bajarildi'},{v:'Q',l:'Eski qarz'},{v:'P',l:'Muammo'},{v:'O',l:'Ortiqcha'},{v:'X',l:'Bekor'}];
 const hasPay=S.payRows.length||S.y2024Rows.length||S.perevodRows.length;
 const view=S.cView||'royyat';
-let h=_pageTabs([{v:'royyat',l:"Ro'yxat"},{v:'qoshimcha',l:"Qo'shimcha"},{v:'muddatlar',l:'Muddatlar'}],view,'cView');
+let h=_pageTabs([{v:'royyat',l:"Ro'yxat"},{v:'qoshimcha',l:"Qo'shimcha"},{v:'muddatlar',l:'Muddatlar'},{v:'tahlil',l:'Tahlil'}],view,'cView');
 
-if(view==='muddatlar'){
+if(view==='tahlil'){
+  h+=_rAuditSection();
+}else if(view==='muddatlar'){
   // Extended renewal calendar: 90 days ahead + 30 days expired
   const now=new Date();const rnMap={};
   [...S.rows,...S.qRows].forEach(r=>{
@@ -1289,10 +1291,7 @@ if(view==='inkasso') return _rInkassoSection();
 return h;
 }
 
-// === TAHLIL (standalone) ===
-function rTahlil(){
-  return _rAuditSection();
-}
+// Tahlil endi Shartnomalar > Tahlil tab ichida
 
 // === SHARED SECTIONS ===
 function _rAgingSection(){
