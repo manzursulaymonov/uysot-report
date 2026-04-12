@@ -707,7 +707,7 @@ function calcCumExpectedUZS(year){
 
 // === DATA AUDIT ===
 function calcDataAudit(){
-  return cached('dataAudit_v6',()=>{
+  return cached('dataAudit_v7',()=>{
     const issues=[];
     const clientContracts={};
     S.rows.forEach(r=>{
@@ -796,8 +796,9 @@ function calcDataAudit(){
       }
     });
 
-    // 6. Sana-muddat nomuvofiqligi: day-based proratsiya > sheet sum
-    // Yangi Davr: 31.07→30.09 da 1 kun iyul aktiv → +$20 oshiqcha
+    // 6. Sana-muddat nomuvofiqligi: clean N oy shartnoma tekshiruvi
+    // Case A: start=1 AND end=lastDayOfMonth AND monthsDiff+1=nRound
+    // Case B: end.day=start.day-1 (yoki lmDays agar start.day>lmDays+1) AND monthsDiff=nRound
     S.rows.forEach(r=>{
       if(!r.Client||!r.sanasi||!r._mUSD||!r._sUSD)return;
       const st=pd(r.sanasi),en=pd(r['amal qilishi']);
@@ -807,31 +808,20 @@ function calcDataAudit(){
       const nMonths=net/r._mUSD;
       const nRound=Math.round(nMonths);
       if(Math.abs(nMonths-nRound)>0.05||nRound<1)return;
-      // Day-based proratsiya hisoblash (calcCumExpected _fmp/_lmp logikasi)
-      const fmE=new Date(st.getFullYear(),st.getMonth()+1,0);
-      const fmDays=fmE.getDate();
-      const lmE=new Date(en.getFullYear(),en.getMonth()+1,0);
-      const lmDays=lmE.getDate();
-      const calMonths=(en.getFullYear()-st.getFullYear())*12+(en.getMonth()-st.getMonth())+1;
-      let proratedSum;
-      if(calMonths===1){
-        proratedSum=r._mUSD*(en.getDate()-st.getDate()+1)/fmDays;
-      }else{
-        const firstAmt=r._mUSD*(fmDays-st.getDate()+1)/fmDays;
-        const lastAmt=r._mUSD*en.getDate()/lmDays;
-        const middleMonths=calMonths-2;
-        proratedSum=firstAmt+middleMonths*r._mUSD+lastAmt;
-      }
-      const diff=Math.round(proratedSum-net);
-      // Faqat prorata > sheet bo'lgan holatlarni belgilaymiz (dates oshiqcha kun beradi)
-      // Kichik farq (<$2): normal rounding
-      // Katta farq (>musd/2): whole-month farqlari (skip — boshqa tekshiruv)
-      if(diff<=2)return;// prorata ≤ sheet yoki kichik farq — OK
-      if(diff>r._mUSD*0.5)return;// yarim oydan katta farq — skip
+      const monthsDiff=(en.getFullYear()-st.getFullYear())*12+(en.getMonth()-st.getMonth());
+      const lmDays=new Date(en.getFullYear(),en.getMonth()+1,0).getDate();
+      const fmDaysSt=new Date(st.getFullYear(),st.getMonth()+1,0).getDate();
+      // Case A: start=1, end=last day
+      const caseA=st.getDate()===1&&en.getDate()===lmDays&&monthsDiff+1===nRound;
+      // Case B: end.day = start.day - 1 (yoki Feb kabi qisqa oyda lmDays)
+      const expectedEndDay=Math.min(st.getDate()-1,lmDays);
+      const caseB=en.getDate()===expectedEndDay&&monthsDiff===nRound&&st.getDate()>1;
+      if(caseA||caseB)return;
+      // Xato: sanalar clean integer oy ga mos emas
       issues.push({
         client:r.Client,raqami:r.raqami||'',
         type:'Sana-muddat nomuvofiq',
-        detail:`${nRound} oy shartnoma ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}): ${r.sanasi} → ${r['amal qilishi']}. Dates bo'yicha proratsiya $${fmt(Math.round(proratedSum))} beradi, +$${fmt(diff)} oshiqcha. Sanalar noto'g'ri — oy oxiri qarzdorlik ko'rinadi.`
+        detail:`${nRound} oy shartnoma ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}): ${r.sanasi} → ${r['amal qilishi']}. Clean ${nRound} oy uchun tugash ${st.getDate()===1?'oy oxirgi kuni':('kun '+Math.min(st.getDate()-1,lmDays))} bo'lishi kerak edi.`
       });
     });
 
