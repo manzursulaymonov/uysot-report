@@ -707,7 +707,7 @@ function calcCumExpectedUZS(year){
 
 // === DATA AUDIT ===
 function calcDataAudit(){
-  return cached('dataAudit_v4',()=>{
+  return cached('dataAudit_v5',()=>{
     const issues=[];
     const clientContracts={};
     S.rows.forEach(r=>{
@@ -796,7 +796,7 @@ function calcDataAudit(){
       }
     });
 
-    // 6. Sana-muddat nomuvofiqligi — proratsiya xato chiqadi
+    // 6. Sana-muddat nomuvofiqligi: sheet=N oy, dates=M kalendar oy (N!=M)
     S.rows.forEach(r=>{
       if(!r.Client||!r.sanasi||!r._mUSD||!r._sUSD)return;
       const st=pd(r.sanasi),en=pd(r['amal qilishi']);
@@ -806,35 +806,16 @@ function calcDataAudit(){
       const nMonths=net/r._mUSD;
       const nRound=Math.round(nMonths);
       if(Math.abs(nMonths-nRound)>0.05||nRound<1)return;
-      // Proratsiya hisoblash (calcCumExpected/calcDebtTable logikasi bilan bir xil)
-      // Birinchi oy: start day X → (days_in_month - X + 1) / days_in_month * musd
-      // O'rta oylar: to'liq musd
-      // Oxirgi oy: end day Y → Y / days_in_month * musd
-      const fmE=new Date(st.getFullYear(),st.getMonth()+1,0);
-      const fmDays=fmE.getDate();
-      const on1st=st.getDate()===1;
-      const firstAmt=on1st?r._mUSD:r._mUSD*(fmDays-st.getDate()+1)/fmDays;
-      const lmE=new Date(en.getFullYear(),en.getMonth()+1,0);
-      const lmDays=lmE.getDate();
-      const lastFull=(en.getDate()===lmDays);
-      const lastAmt=on1st?(lastFull?r._mUSD:r._mUSD*en.getDate()/lmDays):(r._mUSD-firstAmt);
-      // Oylar soni (inclusive)
+      // Dates qamragan kalendar oylar soni
       const calMonths=(en.getFullYear()-st.getFullYear())*12+(en.getMonth()-st.getMonth())+1;
-      const middleMonths=Math.max(0,calMonths-2);
-      let proratedSum;
-      if(calMonths===1){
-        proratedSum=r._mUSD*(en.getDate()-st.getDate()+1)/fmDays;
-      }else{
-        proratedSum=firstAmt+middleMonths*r._mUSD+lastAmt;
-      }
-      const diff=Math.round(proratedSum-net);
-      if(Math.abs(diff)>=1){
-        issues.push({
-          client:r.Client,raqami:r.raqami||'',
-          type:'Sana-muddat nomuvofiq',
-          detail:`${nRound} oy shartnoma ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}): ${r.sanasi} → ${r['amal qilishi']}. Proratsiya $${fmt(Math.round(proratedSum))} beradi — ${diff>0?'+':''}$${fmt(diff)} farq. Sanalar aniq emas.`
-        });
-      }
+      if(nRound===calMonths)return;// mos — xato yo'q
+      const diff=nRound-calMonths;
+      const sgn=diff>0?'+':'';
+      issues.push({
+        client:r.Client,raqami:r.raqami||'',
+        type:'Sana-muddat nomuvofiq',
+        detail:`Shartnoma ${nRound} oy ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}), lekin sanalar ${calMonths} kalendar oyni qamraydi: ${r.sanasi} → ${r['amal qilishi']}. Farq ${sgn}${diff} oy.`
+      });
     });
 
     // 7. To'lov shartnomaga bog'lanmagan
