@@ -1344,7 +1344,7 @@ function calcCollectionRate(mode){
         const expected=Math.max(0,oyBoshi);
         if(expected<1)return null;
         const rate=expected>0?Math.round(mPaid/expected*100):0;
-        return{name:d.name,expected:Math.round(expected),paid:Math.round(mPaid),rate,delta:Math.round(mPaid-expected)};
+        return{name:d.name,expected,paid:mPaid,rate,delta:mPaid-expected};
       }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
     }
 
@@ -1360,7 +1360,7 @@ function calcCollectionRate(mode){
       const expected=Math.max(0,oyBoshiQarz+oyKutilgan);
       if(expected<1)return null;
       const rate=expected>0?Math.round(mPaid/expected*100):0;
-      return{name,expected:Math.round(expected),paid:Math.round(mPaid),rate,delta:Math.round(mPaid-expected)};
+      return{name,expected,paid:mPaid,rate,delta:mPaid-expected};
     }).filter(Boolean).sort((a,b)=>a.rate-b.rate);
   });
 }
