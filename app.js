@@ -627,7 +627,7 @@ function calcCumExpected(year,renewal){
   return cached('cumExp_'+year+(renewal?'_rnw':''),()=>{
     const result={};const allCts={};
     S.rows.forEach(r=>{if(!r.Client||!r.sanasi)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st||!r._mUSD||r._mUSD<=0)return;const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd:r._mUSD,tUSD:r._tUSD||0,sTotal:Math.max(0,(r._sUSD||0)-(r._tUSD||0)),st,endD,isQ:false})});
-    S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUSD=pn(r['Tadbiq USD'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD,sTotal:Math.max(0,(pn(r['sum USD'])||0)-tUSD),st,endD,isQ:true})});
+    S.qRows.forEach(r=>{if(!r.Client||!r.sanasi)return;const musd=pn(r['Oylik USD']);if(!musd)return;const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);const tUSD=pn(r['Tadbiq USD'])||0;const sSum=pn(r['sum USD'])||0;const c=r.Client;if(!allCts[c])allCts[c]=[];allCts[c].push({musd,tUSD,sTotal:sSum?sSum-tUSD:0,st,endD,isQ:true})});
     Object.entries(allCts).forEach(([name,cts])=>{
       _precomputeMP(cts);
       const minSt=cts.reduce((a,c)=>c.st<a?c.st:a,cts[0].st);

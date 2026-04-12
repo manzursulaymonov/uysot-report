@@ -321,11 +321,11 @@ function calcDebtTable(reportDate){
     const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);
     const c=r.Client;
     if(!clients[c])clients[c]={name:c,contracts:[],totalSum:0,firma:''};
-    if(musd>0){
+    if(musd){
       const sheetSum=pn(r['sum USD'])||0;
       let actualSum=tUSD||0;
-      if(sheetSum>0){
-        // Use sheet total directly to avoid proration rounding errors
+      if(sheetSum){
+        // Use sheet total directly (positive or negative)
         actualSum+=sheetSum;
       } else {
         let d=new Date(st.getFullYear(),st.getMonth(),1);
