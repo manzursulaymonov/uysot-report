@@ -707,7 +707,7 @@ function calcCumExpectedUZS(year){
 
 // === DATA AUDIT ===
 function calcDataAudit(){
-  return cached('dataAudit_v3',()=>{
+  return cached('dataAudit_v4',()=>{
     const issues=[];
     const clientContracts={};
     S.rows.forEach(r=>{
@@ -796,29 +796,43 @@ function calcDataAudit(){
       }
     });
 
-    // 6. Sana-muddat nomuvofiqligi — JAMI/musd integer, lekin sanalar clean oy emas
+    // 6. Sana-muddat nomuvofiqligi — proratsiya xato chiqadi
     S.rows.forEach(r=>{
       if(!r.Client||!r.sanasi||!r._mUSD||!r._sUSD)return;
       const st=pd(r.sanasi),en=pd(r['amal qilishi']);
       if(!st||!en)return;
-      const net=(r._sUSD||0)-(r._tUSD||0);// tadbiqdan tashqari oylik summa
+      const net=(r._sUSD||0)-(r._tUSD||0);
       if(net<=0)return;
       const nMonths=net/r._mUSD;
       const nRound=Math.round(nMonths);
-      if(Math.abs(nMonths-nRound)>0.05||nRound<1)return;// integer oy emas
-      // Clean N oy: start day X → end day should be such that (end - start + 1 day) = N months
-      // Standart: start day S → end day is (S-1) of (start_month + N)
-      // Misol: 01.08 → 30.09 (2 oy, S=1, N=2, end=30.09)
-      // Misol: 31.07 → 30.09 (2 oy, S=31, end day should be 30 of Sep, but span is 62 kun — noto'g'ri)
-      // Oson tekshiruv: expected end = (start + N months) - 1 kun
-      const expEnd=new Date(st.getFullYear(),st.getMonth()+nRound,st.getDate()-1);
-      const diffDays=Math.round((en-expEnd)/864e5);
-      if(Math.abs(diffDays)>=1){
-        const sgn=diffDays>0?'+':'';
+      if(Math.abs(nMonths-nRound)>0.05||nRound<1)return;
+      // Proratsiya hisoblash (calcCumExpected/calcDebtTable logikasi bilan bir xil)
+      // Birinchi oy: start day X → (days_in_month - X + 1) / days_in_month * musd
+      // O'rta oylar: to'liq musd
+      // Oxirgi oy: end day Y → Y / days_in_month * musd
+      const fmE=new Date(st.getFullYear(),st.getMonth()+1,0);
+      const fmDays=fmE.getDate();
+      const on1st=st.getDate()===1;
+      const firstAmt=on1st?r._mUSD:r._mUSD*(fmDays-st.getDate()+1)/fmDays;
+      const lmE=new Date(en.getFullYear(),en.getMonth()+1,0);
+      const lmDays=lmE.getDate();
+      const lastFull=(en.getDate()===lmDays);
+      const lastAmt=on1st?(lastFull?r._mUSD:r._mUSD*en.getDate()/lmDays):(r._mUSD-firstAmt);
+      // Oylar soni (inclusive)
+      const calMonths=(en.getFullYear()-st.getFullYear())*12+(en.getMonth()-st.getMonth())+1;
+      const middleMonths=Math.max(0,calMonths-2);
+      let proratedSum;
+      if(calMonths===1){
+        proratedSum=r._mUSD*(en.getDate()-st.getDate()+1)/fmDays;
+      }else{
+        proratedSum=firstAmt+middleMonths*r._mUSD+lastAmt;
+      }
+      const diff=Math.round(proratedSum-net);
+      if(Math.abs(diff)>=1){
         issues.push({
           client:r.Client,raqami:r.raqami||'',
           type:'Sana-muddat nomuvofiq',
-          detail:`${nRound} oy shartnoma ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}): ${r.sanasi} → ${r['amal qilishi']}. Kutilgan tugash: ${fmtD(expEnd)} (${sgn}${diffDays} kun). Sana xato, proratsiya noto'g'ri chiqadi.`
+          detail:`${nRound} oy shartnoma ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}): ${r.sanasi} → ${r['amal qilishi']}. Proratsiya $${fmt(Math.round(proratedSum))} beradi — ${diff>0?'+':''}$${fmt(diff)} farq. Sanalar aniq emas.`
         });
       }
     });
