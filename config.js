@@ -2,6 +2,184 @@
    UYSOT — Charts, Config, Data Loading, Report, Init
    ============================================================ */
 
+// === AES-GCM CONFIG ENCRYPTION ===
+async function _deriveKey(password,salt){
+  const enc=new TextEncoder();
+  const keyMaterial=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+
+async function encryptConfig(jsonStr,password){
+  const enc=new TextEncoder();
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await _deriveKey(password,salt);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(jsonStr));
+  const buf=new Uint8Array(salt.length+iv.length+ct.byteLength);
+  buf.set(salt,0);buf.set(iv,salt.length);buf.set(new Uint8Array(ct),salt.length+iv.length);
+  return JSON.stringify({encrypted:btoa(String.fromCharCode(...buf))});
+}
+
+async function decryptConfig(encObj,password){
+  const raw=atob(encObj.encrypted);
+  const buf=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)buf[i]=raw.charCodeAt(i);
+  const salt=buf.slice(0,16);
+  const iv=buf.slice(16,28);
+  const ct=buf.slice(28);
+  const key=await _deriveKey(password,salt);
+  const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+  return new TextDecoder().decode(dec);
+}
+
+function _askPassword(title,callback){
+  const o=document.createElement('div');o.className='overlay';
+  o.innerHTML='<div class="modal" style="max-width:360px">'
+    +'<h2 style="margin-bottom:12px">'+title+'</h2>'
+    +'<input type="password" class="flt" style="width:100%;padding:10px 12px;font-size:13px;margin-bottom:14px" placeholder="Parol kiriting..." id="_cfgPwd" autofocus>'
+    +'<div class="modal-btns">'
+    +'<button class="btn" onclick="this.closest(\'.overlay\').remove()">Bekor</button>'
+    +'<button class="btn btn-primary" id="_cfgPwdOk">Tasdiqlash</button>'
+    +'</div></div>';
+  document.body.appendChild(o);
+  const inp=o.querySelector('#_cfgPwd');
+  const ok=o.querySelector('#_cfgPwdOk');
+  const submit=()=>{const v=inp.value.trim();if(!v){inp.style.borderColor='var(--red)';return}o.remove();callback(v)};
+  ok.onclick=submit;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+  inp.focus();
+}
+
+function exportEncryptedConfig(){
+  const raw=localStorage.getItem('uysot_config');
+  if(!raw){showToast('Config topilmadi','error');return}
+  _askPassword('🔐 Eksport uchun parol kiriting',async pwd=>{
+    try{
+      const encStr=await encryptConfig(raw,pwd);
+      const blob=new Blob([encStr],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='uysot_config_encrypted.json';
+      a.click();URL.revokeObjectURL(a.href);
+      showToast('Shifrlangan config yuklandi','success');
+    }catch(e){showToast('Shifrlash xatosi: '+e.message,'error')}
+  });
+}
+
+// === ANALYTICS PAGE ===
+function showAnalytics(){
+  const d=_A.getData();
+  const now=Date.now();
+  const day=864e5;
+
+  // === Page views ===
+  const pagesSorted=Object.entries(d.pages).sort((a,b)=>b[1]-a[1]);
+  const pageNames={dashboard:'Dashboard',mrrtable:'MRR jadval',managers:'Menejerlar',clients:'Mijozlar',topmrr:'Top MRR',debts:'Qarzdorlik',moliya:'Finance',contracts:'Shartnomalar'};
+  let pagesHtml=pagesSorted.map(([k,v])=>`<tr><td class="font-medium">${pageNames[k]||k}</td><td class="text-r mono font-bold">${v}</td></tr>`).join('');
+
+  // === Top clients ===
+  const clientsSorted=Object.entries(d.clients).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  let clientsHtml=clientsSorted.map(([k,v],i)=>`<tr><td class="text-subtle text-[11px]">${i+1}</td><td class="font-medium">${k}</td><td class="text-r mono font-bold">${v}</td></tr>`).join('');
+
+  // === Features ===
+  const featSorted=Object.entries(d.features).sort((a,b)=>b[1]-a[1]);
+  let featHtml=featSorted.map(([k,v])=>{
+    const label=k.replace('export_csv_','CSV: ').replace('ai_recommend_','AI: ').replace('theme_','Tema: ').replace('project_switch_','Loyiha: ');
+    return`<tr><td class="font-medium">${label}</td><td class="text-r mono font-bold">${v}</td></tr>`;
+  }).join('');
+
+  // === Recent searches ===
+  const recentSearches=d.searches.slice(-20).reverse();
+  let searchHtml=recentSearches.map(s=>{
+    const ago=Math.round((now-s.t)/60000);
+    const agoStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+    return`<tr><td class="font-medium">"${s.q}"</td><td class="text-subtle text-[11px]">${s.s||''}</td><td class="text-r text-subtle text-[11px]">${agoStr}</td></tr>`;
+  }).join('');
+
+  // === Fetch performance ===
+  const recentFetches=d.fetches.slice(-30).reverse();
+  const avgMs=recentFetches.length?Math.round(recentFetches.reduce((s,f)=>s+f.ms,0)/recentFetches.length):0;
+  const failCount=recentFetches.filter(f=>!f.ok).length;
+  let fetchHtml=recentFetches.slice(0,15).map(f=>{
+    const ago=Math.round((now-f.t)/60000);
+    const agoStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+    const col=f.ok?(f.ms<2000?'var(--green)':f.ms<5000?'var(--amber)':'var(--red)'):'var(--red)';
+    return`<tr><td class="font-medium">${f.l}</td><td class="text-r mono" style="color:${col}">${f.ok?f.ms+'ms':'XATO'}</td><td class="text-r text-subtle text-[11px]">${agoStr}</td></tr>`;
+  }).join('');
+
+  // === Errors ===
+  const recentErrors=d.errors.slice(-15).reverse();
+  let errHtml=recentErrors.map(e=>{
+    const ago=Math.round((now-e.t)/60000);
+    const agoStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+    return`<tr><td class="text-danger text-[11px]" style="max-width:300px;word-break:break-all">${e.m}</td><td class="text-subtle text-[11px]">${e.s}</td><td class="text-r text-subtle text-[11px]">${agoStr}</td></tr>`;
+  }).join('');
+
+  // === Sessions ===
+  const sessions=d.sessions.slice(-30).reverse();
+  const avgDur=sessions.filter(s=>s.end).length?Math.round(sessions.filter(s=>s.end).reduce((sum,s)=>sum+(s.end-s.start),0)/sessions.filter(s=>s.end).length/60000):0;
+  const totalEvents=d.events.length;
+
+  // === Render ===
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+  o.innerHTML=`<div class="modal" style="max-width:900px;max-height:92vh;padding:0;display:flex;flex-direction:column">
+    <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div><div style="font-weight:700;font-size:16px">📊 App Analytics</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${totalEvents} ta event · ${sessions.length} ta sessiya · O'rtacha ${avgDur} daqiqa</div></div>
+      <div class="flex gap-2">
+        <button class="btn text-[11px] text-danger border-danger" onclick="if(confirm('Barcha analytics tozalansinmi?')){_A.clear();this.closest('.overlay').remove();showAnalytics()}">Tozalash</button>
+        <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
+      </div>
+    </div>
+    <div style="padding:20px 24px;overflow-y:auto;flex:1">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Sahifa ko'rishlar</div>
+          <div style="font-size:24px;font-weight:700;margin-top:4px">${pagesSorted.reduce((s,p)=>s+p[1],0)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Mijoz kartalari</div>
+          <div style="font-size:24px;font-weight:700;color:var(--accent);margin-top:4px">${clientsSorted.reduce((s,c)=>s+c[1],0)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">O'rtacha fetch</div>
+          <div style="font-size:24px;font-weight:700;margin-top:4px" style="color:${avgMs<2000?'var(--green)':'var(--amber)'}">${avgMs>0?avgMs+'ms':'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Xatolar</div>
+          <div style="font-size:24px;font-weight:700;color:${d.errors.length?'var(--red)':'var(--green)'};margin-top:4px">${d.errors.length||'0'}</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">📄 Sahifalar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden">${pagesHtml?'<table class="w-full"><tbody>'+pagesHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Ma\'lumot yo\'q</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">🔧 Funksiyalar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden">${featHtml?'<table class="w-full"><tbody>'+featHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Hali ishlatilmagan</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">👤 Top mijozlar (karta ochilgan)</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${clientsHtml?'<table class="w-full"><thead><tr><th>#</th><th>Mijoz</th><th class="text-r">Marta</th></tr></thead><tbody>'+clientsHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Ma\'lumot yo\'q</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">🔍 So'nggi qidiruvlar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:280px;overflow-y:auto">${searchHtml?'<table class="w-full"><thead><tr><th>So\'rov</th><th>Sahifa</th><th class="text-r">Vaqt</th></tr></thead><tbody>'+searchHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Hali qidirilmagan</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">🌐 Fetch tezligi <span style="font-weight:400;color:var(--text3)">(o'rtacha ${avgMs}ms${failCount?' · <span style="color:var(--red)">'+failCount+' xato</span>':''})</span></div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto">${fetchHtml?'<table class="w-full"><thead><tr><th>Manba</th><th class="text-r">Vaqt</th><th class="text-r">Qachon</th></tr></thead><tbody>'+fetchHtml+'</tbody></table>':'<div class="text-center text-subtle p-4 text-[12px]">Hali fetch qilinmagan</div>'}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text2)">❌ Xatolar</div>
+          <div style="background:var(--bg3);border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto">${errHtml?'<table class="w-full"><thead><tr><th>Xabar</th><th>Manba</th><th class="text-r">Vaqt</th></tr></thead><tbody>'+errHtml+'</tbody></table>':'<div class="text-center p-4 text-[12px]" style="color:var(--green)">Xato yo\'q ✓</div>'}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
 // === CHARTS ===
 function iC(){
 const s=getComputedStyle(document.documentElement);
@@ -110,7 +288,8 @@ const e6=document.getElementById('chT');if(e6){if(Chart.getChart(e6)) Chart.getC
 
 const e7=document.getElementById('chK');if(e7){if(Chart.getChart(e7)) Chart.getChart(e7)?.destroy();const a=activeR().sort((x,y)=>y._mUSD-x._mUSD);const t=a.reduce((s,r)=>s+r._mUSD,0);const s=[a.slice(0,5),a.slice(5,10),a.slice(10,20),a.slice(20)].map(g=>g.reduce((s,r)=>s+r._mUSD,0));new Chart(e7,{type:'doughnut',data:{labels:['Top 5','Top 6-10','Top 11-20','Qolgan'],datasets:[{data:s,backgroundColor:['#c42b1c','#a36207','#1746a2','#cccbc5'],borderWidth:0}]},options:{...bo,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{boxWidth:10,padding:8,font:{size:11},color:tc}}}}})}
 
-// MRR tooltip
+// MRR tooltip — eski tooltip tozalash
+const _oldTip=document.getElementById('mrrTip');if(_oldTip)_oldTip.remove();
 document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
   el.addEventListener('mouseenter',e=>{
     let t=document.getElementById('mrrTip');
@@ -121,7 +300,61 @@ document.querySelectorAll('.mcell-y[data-tip]').forEach(el=>{
     t.style.top=(r.top-t.offsetHeight-6)+'px';
   });
   el.addEventListener('mouseleave',()=>{const t=document.getElementById('mrrTip');if(t)t.style.display='none'});
-})}
+})
+
+// Debt dashboard charts
+const _debtChartIds=['chDebtTotal','chDebtDso','chDebtMrr','chDebtColl','chDebtAging','chDebtHealth'];
+if(document.getElementById('chDebtTotal')){
+  const _now=new Date();
+  const trend=calcDebtTrend(new Date(_now.getFullYear()-1,_now.getMonth(),1),_now);
+  const labels=trend.map(m=>m.label);
+  _debtChartIds.forEach(id=>{const el=document.getElementById(id);if(el&&Chart.getChart(el))Chart.getChart(el).destroy()});
+  const lineOpts=(color,label,cb)=>({type:'line',options:{...bo,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>label+': '+(cb?cb(c.raw):c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:cb||(v=>v)},beginAtZero:true}}}});
+  // 1. Total debt bar
+  new Chart(document.getElementById('chDebtTotal'),{type:'bar',data:{labels,datasets:[{data:trend.map(m=>m.totalOy),backgroundColor:'rgba(196,43,28,.6)',borderRadius:4}]},options:{...bo,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Qarz: $'+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true}}}});
+  // 2. DSO line
+  new Chart(document.getElementById('chDebtDso'),{...lineOpts('#f0b020','DSO',v=>v+' kun'),data:{labels,datasets:[{data:trend.map(m=>m.dso),borderColor:'#f0b020',borderWidth:2,backgroundColor:'rgba(240,176,32,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#f0b020',tension:.3}]}});
+  // 3. Debt/MRR line
+  new Chart(document.getElementById('chDebtMrr'),{...lineOpts('#6941b8','Qarz/MRR',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.debtMrr),borderColor:'#6941b8',borderWidth:2,backgroundColor:'rgba(105,65,184,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#6941b8',tension:.3}]}});
+  // 4. Collection: kutilgan vs to'langan bar + % line
+  new Chart(document.getElementById('chDebtColl'),{type:'bar',data:{labels,datasets:[
+    {label:'Kutilgan',data:trend.map(m=>m.collExp),backgroundColor:'rgba(196,43,28,.25)',borderRadius:4,order:2},
+    {label:"To'langan",data:trend.map(m=>m.mPaid),backgroundColor:'rgba(17,122,82,.6)',borderRadius:4,order:2},
+    {label:'Undiruv %',data:trend.map(m=>m.collPct),type:'line',borderColor:'#117a52',borderWidth:2,pointRadius:3,pointBackgroundColor:'#117a52',tension:.3,yAxisID:'y1',order:1}
+  ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': '+(c.dataset.type==='line'?c.raw+'%':'$'+fmt(c.raw))}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true},y1:{position:'right',grid:{display:false},ticks:{color:'#117a52',font:{size:10},callback:v=>v+'%'},min:0,max:100}}}});
+  // 5. AR Aging stacked bar
+  new Chart(document.getElementById('chDebtAging'),{type:'bar',data:{labels,datasets:[
+    {label:'0-30 kun',data:trend.map(m=>m.b0),backgroundColor:'#f0b020'},
+    {label:'31-60 kun',data:trend.map(m=>m.b30),backgroundColor:'#e06050'},
+    {label:'61-90 kun',data:trend.map(m=>m.b60),backgroundColor:'#c42b1c'},
+    {label:'90+ kun',data:trend.map(m=>m.b90),backgroundColor:'#6941b8'}
+  ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{stacked:true,grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)}}}}});
+  // 6. Healthy % line
+  new Chart(document.getElementById('chDebtHealth'),{...lineOpts('#117a52','Sog\'lom',v=>v+'%'),data:{labels,datasets:[{data:trend.map(m=>m.healthyPct),borderColor:'#20c997',borderWidth:2,backgroundColor:'rgba(32,201,151,.1)',fill:true,pointRadius:3,pointBackgroundColor:'#20c997',tension:.3}]}});
+}
+
+// Revenue chart
+const eRev=document.getElementById('chRevenue');
+if(eRev){
+  if(Chart.getChart(eRev))Chart.getChart(eRev).destroy();
+  const now=new Date();
+  const selY=S.revYear||now.getFullYear();
+  const rRev=_calcMonthlyRevenue(selY);
+  const allPays=_clientPaysByDate();
+  const rLabels=[],rPaid=[];
+  for(let m=0;m<12;m++){
+    const mE=new Date(selY,m+1,0);const mS=new Date(selY,m,1);
+    if(mS>now)break;
+    rLabels.push(MOS[m]);
+    let p=0;allPays.forEach(v=>{if(v.date>=mS&&v.date<=mE)p+=v.amount});
+    rPaid.push(Math.round(p));
+  }
+  new Chart(eRev,{type:'bar',data:{labels:rLabels,datasets:[
+    {label:'Revenue',data:rRev.slice(0,rLabels.length),backgroundColor:'rgba(23,70,162,.5)',borderRadius:4},
+    {label:"To'lovlar",data:rPaid,backgroundColor:'rgba(17,122,82,.5)',borderRadius:4}
+  ]},options:{...bo,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:tc}},tooltip:{mode:'index',callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:tc,font:{size:10},callback:v=>fk(v)},beginAtZero:true}}}});
+}
+}
 
 // === CONFIG ===
 function showConfig(){
@@ -140,24 +373,21 @@ o.innerHTML=`<div class="modal max-w-[520px] max-h-[90vh] overflow-y-auto">
 <h2 class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</h2>
 
 <div class="mb-4">
-<div class="text-xs font-semibold text-muted mb-2">Ma'lumot manbalari holati</div>
-<div class="flex flex-col gap-1">
-${sheets.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:6px;font-size:12px">
-<div><span class="font-semibold">${s.l}</span><span style="color:var(--text3);margin-left:6px;font-size:10.5px">${s.d}</span></div>
-<div class="flex items-center gap-2">
-${s.n?`<span style="color:var(--green);font-weight:600;font-size:11px">${s.n} qator</span>`:'<span style="color:var(--text3);font-size:11px">yuklanmagan</span>'}
-<label style="cursor:pointer;display:flex;align-items:center;padding:3px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--text2);white-space:nowrap">CSV<input type="file" accept=".csv" onchange="loadFile(this,'${s.ft}')" class="hidden"></label>
-</div></div>`).join('')}
-</div></div>
-
-<div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">JSON config bilan yuklash</div>
 <div class="flex gap-2">
-<label class="btn btn-primary cursor-pointer flex-1 justify-center p-2.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
-${hasSaved?`<button class="btn p-2.5" onclick="if(S.config)loadFromConfig(S.config)">Qayta yuklash</button>`:''}
+<label class="btn cursor-pointer flex-1 justify-center p-2.5" style="background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent);font-weight:600"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
+${hasSaved?`<button class="btn p-2.5" onclick="if(S.config){this.closest('.overlay').remove();loadFromConfig(S.config)}">Qayta yuklash</button>`:''}
 </div>
-<div class="text-[10.5px] text-subtle mt-1.5 leading-normal">5 ta sheet havolalari yozilgan <b>uysot_config.json</b> file yuklang.<br>
-Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CSV</b>.</div></div>
+<div class="text-[10.5px] text-subtle mt-1.5 leading-normal"><b>uysot_config.json</b> fayli orqali Google Sheets havolalarini yuklang.</div>
+${hasSaved?'<button class="btn text-[11px] mt-2 w-100" onclick="exportEncryptedConfig()">🔒 Shifrlangan config yuklab olish</button>':''}
+</div>
+
+<div class="mb-4">
+<div class="text-xs font-semibold text-muted mb-2">Interfeys temasi</div>
+<select class="flt text-xs py-1.5 px-2.5" style="width:100%" onchange="applyThemeStyle(this.value);render()">
+${EO_STYLES.map(s=>'<option value="'+s.id+'"'+((localStorage.getItem('uysot_style')||'default')===s.id?' selected':'')+'>'+s.name+'</option>').join('')}
+</select>
+</div>
 
 <div class="mb-4">
 <div class="text-xs font-semibold text-muted mb-2">AI hisobot (ixtiyoriy)</div>
@@ -174,7 +404,8 @@ Havolalar: Google Sheets → <b>Publish to web</b> → har bir sheet uchun <b>CS
 
 ${hasSaved?`<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
 <div class="flex gap-1.5 flex-wrap">
-<button class="btn text-danger border-danger text-[11px]" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_data');S.config=null;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn text-danger border-danger text-[11px]" onclick="if(confirm('Saqlangan config o\\'chiriladi')){localStorage.removeItem('uysot_config');localStorage.removeItem('uysot_projectIdx');for(let i=0;i<10;i++)localStorage.removeItem('uysot_data_'+i);localStorage.removeItem('uysot_data');S.config=null;S.projects=null;S.projectIdx=0;S.rows=[];S.qRows=[];S.payRows=[];S.y2024Rows=[];S.perevodRows=[];S.mgrRows=[];clearCache();updateProjectUI();this.closest('.overlay').remove();showWelcome()}">Ma'lumot keshini tozalash</button>
+<button class="btn text-[11px]" onclick="this.closest('.overlay').remove();showAnalytics()">📊 Analytics</button>
 <button class="btn text-[11px]" onclick="if('caches' in window){caches.keys().then(k=>Promise.all(k.map(n=>caches.delete(n)))).then(()=>{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(w=>w.unregister()));showToast('Brauzer keshi tozalandi','success');setTimeout(()=>location.reload(),500)})}else{showToast('Cache API mavjud emas','error')}">Brauzer keshini tozalash</button>
 </div>
 <button class="btn" onclick="this.closest('.overlay').remove()">Yopish</button>
@@ -470,13 +701,15 @@ function hideSmartLoader(){
 
 // === DATA LOADING ===
 async function fetchCsv(url,label){
-  console.log('['+label+'] Yuklanmoqda: '+url);
+  const t0=performance.now();
   try{const r=await fetch(url);if(r.ok){const t=await r.text();
   if(t.startsWith('<!') || t.startsWith('<html')){throw new Error('HTML')}
-  if(t.length>10){return t}}}catch(e){console.warn('['+label+'] Direct:',e.message)}
+  if(t.length>10){_A.fetch('',label,performance.now()-t0,true);return t}}}catch(e){}
   try{const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url));
-  if(r.ok){const j=await r.json();if(j.contents&&j.contents.length>10&&!j.contents.startsWith('<!'))return j.contents}
-  }catch(e){console.warn('['+label+'] allorigins:',e.message)}
+  if(r.ok){const j=await r.json();if(j.contents&&j.contents.length>10&&!j.contents.startsWith('<!'))
+  {_A.fetch('',label,performance.now()-t0,true);return j.contents}}
+  }catch(e){}
+  _A.fetch('',label,performance.now()-t0,false);
   throw new Error('['+label+'] Yuklab bo\'lmadi.')
 }
 
@@ -508,24 +741,103 @@ async function loadFromConfig(config){
     console.error('Xatolik:',e);
     hideSmartLoader();
     showToast('Yuklanmadi: '+e.message,'error');
-    document.getElementById('root').innerHTML=errPage('Yuklanmadi',e.message.replace(/\n/g,'<br>')+'<br><br>CSV fayllarni qo\'lda yuklang (Sozlamalar → CSV tugmalari)')
+    document.getElementById('root').innerHTML=errPage('Yuklanmadi',e.message.replace(/\n/g,'<br>')+'<br><br>JSON config faylni qayta yuklang')
   }
 }
 
-function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem('uysot_data',JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
-function loadCache(){try{const raw=localStorage.getItem('uysot_data');if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
+// === BACKGROUND REFRESH ===
+let _refreshing=false;
+async function refreshData(){
+  if(_refreshing||!S.config)return;
+  _refreshing=true;
+  const btn=document.getElementById('refreshBtn');
+  const lbl=btn?.querySelector('span');
+  if(btn)btn.classList.add('bc-spin');
+  if(lbl)lbl.textContent='Yangilanmoqda...';
+  try{
+    const cfg=S.config;
+    if(cfg.shartnomalar){try{const csv=await fetchCsv(cfg.shartnomalar,'Shartnomalar');S.rows=parse(csv)}catch(e){}}
+    if(cfg.qoshimcha){try{const csv=await fetchCsv(cfg.qoshimcha,"Qo'shimcha");S.qRows=parse(csv)}catch(e){}}
+    if(cfg.payments&&cfg.payments!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.payments,'Payments');S.payRows=parseRaw(csv)}catch(e){}}
+    if(cfg['2024']&&cfg['2024']!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg['2024'],'2024');S.y2024Rows=parseRaw(csv)}catch(e){}}
+    if(cfg.perevod&&cfg.perevod!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.perevod,'Perevod');S.perevodRows=parseRaw(csv)}catch(e){}}
+    if(cfg.mkt&&cfg.mkt!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.mkt,'Marketing');S.mktRows=parseMkt(csv)}catch(e){}}
+    if(cfg.menejerlar&&cfg.menejerlar!=='HAVOLA_KIRITING'){try{const csv=await fetchCsv(cfg.menejerlar,'Menejerlar');S.mgrRows=parseRaw(csv)}catch(e){}}
+    saveCache();clearCache();
+    document.getElementById('upd').textContent=new Date().toLocaleTimeString('uz');
+    render();
+    showToast('Yangilandi','success');
+  }catch(e){
+    showToast('Yangilashda xatolik','error');
+  }finally{
+    _refreshing=false;
+    if(btn)btn.classList.remove('bc-spin');
+    if(lbl)lbl.textContent='Yangilash';
+  }
+}
+
+function _cacheKey(){const p=S.projects&&S.projects[S.projectIdx];return p?'uysot_data_'+S.projectIdx:'uysot_data'}
+function saveCache(){try{const cache={rows:S.rows,qRows:S.qRows,payRows:S.payRows,y2024Rows:S.y2024Rows,perevodRows:S.perevodRows,mktRows:S.mktRows,mgrRows:S.mgrRows,ts:Date.now()};localStorage.setItem(_cacheKey(),JSON.stringify(cache))}catch(e){console.warn('[Cache]',e.message)}}
+function loadCache(){try{const raw=localStorage.getItem(_cacheKey());if(!raw)return false;const cache=JSON.parse(raw);if(!cache.rows||!cache.rows.length)return false;S.rows=cache.rows;S.qRows=cache.qRows||[];S.payRows=cache.payRows||[];S.y2024Rows=cache.y2024Rows||[];S.perevodRows=cache.perevodRows||[];S.mktRows=cache.mktRows||[];S.mgrRows=cache.mgrRows||[];return true}catch(e){return false}}
+
+function _applyConfig(raw,rawStr){
+  // Multi-project format
+  if(raw.projects&&Array.isArray(raw.projects)){
+    if(!raw.projects.length||!raw.projects[0].shartnomalar)throw new Error('projects[0].shartnomalar havolasi topilmadi');
+    S.projects=raw.projects;
+    const savedIdx=parseInt(localStorage.getItem('uysot_projectIdx'))||0;
+    S.projectIdx=savedIdx<raw.projects.length?savedIdx:0;
+    S.config=raw.projects[S.projectIdx];
+  }
+  // Legacy single-project format
+  else{
+    if(!raw.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');
+    S.projects=null;S.projectIdx=0;
+    S.config=raw;
+  }
+  localStorage.setItem('uysot_config',rawStr);
+  updateProjectUI();
+  applyMenuVisibility();
+  loadFromConfig(S.config);
+}
 
 function loadJsonConfig(input){const f=input.files[0];if(!f)return;
-const r=new FileReader();r.onload=e=>{try{const config=JSON.parse(e.target.result);if(!config.shartnomalar)throw new Error('"shartnomalar" havolasi topilmadi');localStorage.setItem('uysot_config',e.target.result);S.config=config;loadFromConfig(config)}catch(e){alert('JSON xatolik: '+e.message)}};r.readAsText(f)}
+const r=new FileReader();r.onload=e=>{try{const raw=JSON.parse(e.target.result);
+  // Encrypted config
+  if(raw.encrypted){
+    _askPassword('🔒 Config parolini kiriting',async pwd=>{
+      try{
+        const decrypted=await decryptConfig(raw,pwd);
+        const cfg=JSON.parse(decrypted);
+        // Store encrypted version, keep password in memory for re-export
+        S._configPwd=pwd;
+        _applyConfig(cfg,decrypted);
+      }catch(err){showToast('Parol noto\'g\'ri yoki fayl buzilgan','error')}
+    });
+    return;
+  }
+  // Plain config — ask to encrypt
+  _askPassword('🔐 Config uchun parol o\'rnating',async pwd=>{
+    try{
+      S._configPwd=pwd;
+      const encStr=await encryptConfig(e.target.result,pwd);
+      // Save encrypted to localStorage
+      localStorage.setItem('uysot_config_enc',encStr);
+      _applyConfig(raw,e.target.result);
+      showToast('Config shifrlandi va saqlandi','success');
+    }catch(err){
+      // If user cancels or error, load without encryption
+      _applyConfig(raw,e.target.result);
+    }
+  });
+}catch(err){alert('JSON xatolik: '+err.message)}};r.readAsText(f)}
 
 function errPage(title,detail){return`<div class="loading gap-3">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
 <div style="font-weight:600;color:var(--red);font-size:16px">${title}</div>
 <div style="color:var(--text2);font-size:12px;text-align:left;max-width:520px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;line-height:1.7">${detail}</div>
 <div class="flex gap-1.5 mt-1">
-<label class="btn btn-primary cursor-pointer">JSON config<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
-<label class="btn cursor-pointer">Shartnomalar CSV<input type="file" accept=".csv" onchange="loadFile(this,'main')" class="hidden"></label>
-<label class="btn cursor-pointer">Qo'shimcha CSV<input type="file" accept=".csv" onchange="loadFile(this,'extra')" class="hidden"></label>
+<label class="btn btn-primary cursor-pointer">JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label>
 </div><button class="btn" onclick="showConfig()">Sozlamalar</button></div>`}
 
 function loadFile(i,type){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{
@@ -541,7 +853,7 @@ showToast(S[key].length+' ta qator yuklandi','success');
 showConfig();render()
 }catch(e){alert('Xatolik: '+e.message)}};r.readAsText(f)}
 
-function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark w-[52px] h-[52px] text-xl rounded-xl">U</div><h2 class="text-xl font-bold mt-1">UYSOT Shartnomalar</h2><p class="text-muted text-center max-w-[400px] text-[13px] leading-[1.7]">Google Sheets ma'lumotlarini <b>uysot_config.json</b> file orqali ulang.<br>JSON ichida shartnomalar va qo'shimcha CSV havolalari bo'ladi.</p><div class="flex gap-2.5 mt-4"><label class="btn btn-primary py-2.5 px-[22px] cursor-pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label><button class="btn" onclick="showConfig()" class="py-2.5 px-[22px]">Boshqa usullar</button></div></div>`}
+function showWelcome(){document.getElementById('root').innerHTML=`<div class="loading"><div class="logo-mark w-[52px] h-[52px] text-xl rounded-xl">U</div><h2 class="text-xl font-bold mt-1">UYSOT Shartnomalar</h2><p class="text-muted text-center max-w-[400px] text-[13px] leading-[1.7]">Ma'lumotlarni <b>uysot_config.json</b> fayli orqali ulang.<br>JSON ichida Google Sheets havolalari bo'ladi.</p><div class="flex gap-2.5 mt-4"><label class="btn btn-primary py-2.5 px-[22px] cursor-pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>JSON config yuklash<input type="file" accept=".json" onchange="loadJsonConfig(this)" class="hidden"></label><button class="btn" onclick="showConfig()" class="py-2.5 px-[22px]">Boshqa usullar</button></div></div>`}
 
 // === REPORT & SLIDES ENGINE ===
 
@@ -573,7 +885,7 @@ function _buildReportData(){
 
 async function _callGemini(prompt){
   if(!S.geminiKey)throw new Error("Gemini kaliti yo'q");
-  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='+S.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.6,maxOutputTokens:2000}})});
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+S.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.6,maxOutputTokens:2000}})});
   const d=await r.json();
   if(d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts[0].text)return d.candidates[0].content.parts[0].text;
   throw new Error(d.error&&d.error.message||'Gemini xatosi');
@@ -982,17 +1294,31 @@ window.debugMRR=debugMRRcompare;
 
 // === INIT ===
 (function(){
+  const saved=localStorage.getItem('uysot_config');
+  if(saved){
+    try{
+      const raw=JSON.parse(saved);
+      // Restore multi-project state
+      if(raw.projects&&Array.isArray(raw.projects)){
+        S.projects=raw.projects;
+        const savedIdx=parseInt(localStorage.getItem('uysot_projectIdx'))||0;
+        S.projectIdx=savedIdx<raw.projects.length?savedIdx:0;
+        S.config=raw.projects[S.projectIdx];
+      }else{
+        S.config=raw;
+      }
+      updateProjectUI();
+      applyMenuVisibility();
+    }catch(e){}
+  }
   if(loadCache()){
-    const saved=localStorage.getItem('uysot_config');
-    if(saved){try{S.config=JSON.parse(saved)}catch(e){}}
-    const ts=JSON.parse(localStorage.getItem('uysot_data')||'{}').ts;
+    const ts=JSON.parse(localStorage.getItem(_cacheKey())||'{}').ts;
     const ago=ts?Math.round((Date.now()-ts)/60000):0;
     const lbl=ago<60?ago+' daq. oldin':ago<1440?Math.round(ago/60)+' soat oldin':Math.round(ago/1440)+' kun oldin';
     document.getElementById('upd').textContent=lbl;
     render();return;
   }
-  const saved=localStorage.getItem('uysot_config');
-  if(saved){try{const c=JSON.parse(saved);S.config=c;loadFromConfig(c);return}catch(e){}}
+  if(S.config){loadFromConfig(S.config);return}
   showWelcome();
 })();
 

@@ -1,0 +1,46 @@
+/* ============================================================
+   Executive Obsidian — Theme Override
+   Overrides standard --bg, --text, --accent etc. variables
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap');
+
+/* === Executive Obsidian Dark === */
+[data-style="obsidian"][data-theme="dark"]{
+  --bg:#0f1117;--bg2:#13151e;--bg3:#1e2130;--bg4:#0a0c12;
+  --text:#f0edff;--text2:#9990b8;--text3:#555a7a;
+  --accent:#d4b896;--accent2:#9b7fd4;--accent-bg:#1a1630;
+  --green:#7ab87a;--green-bg:#1a2e1a;
+  --red:#c47070;--red-bg:#2d1818;
+  --amber:#d4a060;--amber-bg:#2d2010;
+  --purple:#9b7fd4;--purple-bg:#1e1630;
+  --teal:#6090c4;--teal-bg:#151d2d;
+  --border:#1e2130;--border2:#2a2d40;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.2);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.4),0 8px 32px rgba(0,0,0,.3);
+  --font:'DM Sans',system-ui,sans-serif;
+  --sidebar-bg:#0a0c12;
+  --sidebar-text:#7a7fa0;
+  --sidebar-active-bg:rgba(155,127,212,.1);
+  --sidebar-hover-bg:rgba(155,127,212,.05);
+}
+
+/* === Executive Obsidian Light === */
+[data-style="obsidian"]:not([data-theme="dark"]){
+  --bg:#f4f3f8;--bg2:#ffffff;--bg3:#eceaf4;--bg4:#f8f7fc;
+  --text:#1a1730;--text2:#5a5470;--text3:#9590b0;
+  --accent:#a07840;--accent2:#6b4fbf;--accent-bg:#f0ecfa;
+  --green:#3a7a3a;--green-bg:#e6f4e6;
+  --red:#a03030;--red-bg:#fde8e8;
+  --amber:#9a6010;--amber-bg:#fdf0dc;
+  --purple:#6b4fbf;--purple-bg:#f0ecfa;
+  --teal:#2060a0;--teal-bg:#e0eaf8;
+  --border:#e2e0ec;--border2:#d0cde0;
+  --shadow:0 1px 2px rgba(26,23,48,.05),0 2px 8px rgba(26,23,48,.04);
+  --shadow-lg:0 4px 16px rgba(26,23,48,.08),0 8px 32px rgba(26,23,48,.05);
+  --font:'DM Sans',system-ui,sans-serif;
+  --sidebar-bg:#ffffff;
+  --sidebar-text:#5a5470;
+  --sidebar-active-bg:rgba(107,79,191,.08);
+  --sidebar-hover-bg:rgba(26,23,48,.03);
+}

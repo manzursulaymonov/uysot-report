@@ -1,26 +1,30 @@
-const CACHE_NAME = 'uysot-v2';
+const CACHE_NAME = 'uysot-v49';
 const STATIC_ASSETS = [
   './',
   'index.html',
   'styles.css',
+  'executive-obsidian.css',
+  'themes.css',
   'core.js',
   'app.js',
   'pages.js',
   'config.js',
   'manifest.json',
   'icon.svg',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
   'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
-  'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-// Install: cache all static assets
+// Install: cache all static assets (bypass HTTP cache for local files)
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS);
+      return Promise.all(STATIC_ASSETS.map(url => {
+        const opts = url.startsWith('http') ? {} : {cache: 'reload'};
+        return fetch(url, opts).then(r => cache.put(url, r));
+      }));
     }).then(() => self.skipWaiting())
   );
 });
@@ -69,17 +73,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static assets: cache-first, fallback to network
+  // Static assets: network-first, fallback to cache
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (response.ok && (url.origin === self.location.origin || url.hostname.includes('cdnjs') || url.hostname.includes('cdn.sheetjs'))) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-    })
+    fetch(event.request).then(response => {
+      if (response.ok && (url.origin === self.location.origin || url.hostname.includes('cdnjs') || url.hostname.includes('cdn.jsdelivr'))) {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+      }
+      return response;
+    }).catch(() => caches.match(event.request))
   );
 });

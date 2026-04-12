@@ -11,6 +11,8 @@
 <title>UYSOT — Shartnomalar Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="executive-obsidian.css">
+<link rel="stylesheet" href="themes.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -72,7 +74,7 @@ tailwind.config = {
 
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
-<div class="logo"><div class="logo-mark">U</div><div class="logo-text">UYSOT</div></div>
+<div class="logo" id="projectSwitcher" style="cursor:pointer" onclick="showProjectSwitcher()"><div class="logo-mark">U</div><div class="logo-text" id="projectName">UYSOT</div></div>
 <nav class="nav">
 <div class="nav-group">Asosiy</div>
 <div class="nav-item active" data-sec="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</div>
@@ -81,27 +83,30 @@ tailwind.config = {
 <div class="nav-item" data-sec="managers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Menejerlar</div>
 <div class="nav-item" data-sec="clients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Mijozlar</div>
 <div class="nav-sub" id="clients-sub">
-  <div class="nav-sub-item active" data-clview="shartnomalar">Shartnomalar</div>
+  <div class="nav-sub-item" data-clview="shartnomalar">Shartnomalar</div>
   <div class="nav-sub-item" data-clview="tahlil">Tahlil</div>
 </div>
 <div class="nav-item" data-sec="topmrr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,7 13.5,15.5 8.5,10.5 2,17"/><polyline points="16,7 22,7 22,13"/></svg>Top MRR</div>
 <div class="nav-sub" id="topmrr-sub">
-  <div class="nav-sub-item active" data-subview="topView:metrka">Ko'rsatkichlar</div>
+  <div class="nav-sub-item" data-subview="topView:metrka">Ko'rsatkichlar</div>
   <div class="nav-sub-item" data-subview="topView:jadval">Ro'yxat</div>
 </div>
 <div class="nav-item" data-sec="debts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Qarzdorlik</div>
 <div class="nav-sub" id="debts-sub">
-  <div class="nav-sub-item active" data-subview="debtView:umumiy">Ko'rsatkichlar</div>
+  <div class="nav-sub-item" data-subview="debtView:umumiy">Ko'rsatkichlar</div>
   <div class="nav-sub-item" data-subview="debtView:jadval">Qarz jadvali</div>
+  <div class="nav-sub-item" data-subview="debtView:aging">AR Aging</div>
+  <div class="nav-sub-item" data-subview="debtView:inkasso">Inkasso</div>
 </div>
 <div class="nav-item" data-sec="moliya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>Finance</div>
 <div class="nav-sub" id="moliya-sub">
-  <div class="nav-sub-item active" data-subview="molView:aging">AR Aging</div>
-  <div class="nav-sub-item" data-subview="molView:inkasso">Inkasso</div>
-  <div class="nav-sub-item" data-subview="molView:tahlil">Tahlil</div>
+  <div class="nav-sub-item" data-subview="molView:revenue">Revenue</div>
+  <div class="nav-sub-item" data-subview="molView:pnl">P&amp;L</div>
+  <div class="nav-sub-item" data-subview="molView:cashflow">Cash Flow</div>
 </div>
 </nav>
 <div class="sidebar-bottom">
+  <div class="bc" onclick="refreshData()" id="refreshBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" id="refreshIcon"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg><span>Yangilash</span></div>
   <div class="bc" onclick="showConfig()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Sozlamalar</div>
   <div class="theme-toggle" onclick="toggleTheme()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -120,7 +125,7 @@ tailwind.config = {
 <!-- CDN Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <!-- App Modules -->
@@ -131,7 +136,8 @@ tailwind.config = {
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').then(r=>{
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{
+      r.update();
       console.log('[SW] Registered:', r.scope);
     }).catch(e=>console.warn('[SW] Registration failed:', e));
   });

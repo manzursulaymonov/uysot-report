@@ -6,18 +6,41 @@
 let _sc=localStorage.getItem('uysot_cards'); _sc=_sc?JSON.parse(_sc):{mrr:{s:1,arr:1,g:1},nrr:{s:1,n:1,c:1,e:1},cust:{s:1,g:1,c:1},arpa:{s:1,g:1},cac:{s:1,d:1},cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1}};
 // Migrate: backfill any missing card keys for existing users
 const _defs={cash:{s:1},dso:{s:1},conc:{s:1},ltv:{s:1},qr:{s:1},lc:{s:1},tRenew:{s:1},tRegion:{s:1},tMgr:{s:1},tHealth:{s:1},cMrrGr:{s:1},cNetMov:{s:1}};Object.keys(_defs).forEach(k=>{if(!_sc[k])_sc[k]=_defs[k]});
-const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,sec:'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
+const S={rows:[],qRows:[],payRows:[],y2024Rows:[],perevodRows:[],mktRows:[],mgrRows:[],marketingCosts:JSON.parse(localStorage.getItem('uysot_mkt')||'{}'),config:null,projects:null,projectIdx:0,sec:localStorage.getItem('uysot_sec')||'dashboard',cP:0,cN:40,cQ:'',cS:'',cM:'',cR:'',mP:0,mN:40,mQ:'',clP:0,clN:40,clQ:'',mrrP:0,mrrQ:'',mrrYear:2026,mrrView:'main',clView:'umumiy',mgrView:'umumiy',topView:'metrka',debtView:'umumiy',cView:'royyat',molView:'aging',dashPre:'y',dashFrom:new Date(2026,0,1),dashTo:new Date(),mrrCols:{mgr:true,hudud:false,mrr:false,deal:false,end:false},mrrSet:false,mrrFs:false,debtDate:new Date(),debtQ:'',debtFs:false,arAgingFilter:null,apiKey:localStorage.getItem('uysot_apikey')||'',geminiKey:localStorage.getItem('uysot_geminikey')||'',aiProvider:localStorage.getItem('uysot_ai')||'none',repSec:null,dashCards:_sc,_cache:{}};
+
+// === GLOBAL CONSTANTS ===
+const MOS=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+const MOS_FULL=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
 
 // === THEME ===
+const EO_STYLES=[
+  {id:'default',name:'Standart'},
+  {id:'obsidian',name:'Executive Obsidian'},
+  {id:'midnight',name:'Midnight Blue'},
+  {id:'forest',name:'Forest Green'},
+  {id:'sunset',name:'Warm Sunset'},
+  {id:'nordic',name:'Nordic Frost'},
+  {id:'cyber',name:'Cyber Neon'}
+];
+function applyThemeStyle(styleId){
+  if(typeof _A!=='undefined')_A.feature('theme_'+styleId);
+  const html=document.documentElement;
+  if(styleId&&styleId!=='default')html.setAttribute('data-style',styleId);
+  else html.removeAttribute('data-style');
+  localStorage.setItem('uysot_style',styleId||'default');
+}
 function initTheme(){
-  const saved=localStorage.getItem('uysot_theme');
-  if(saved)document.documentElement.setAttribute('data-theme',saved);
-  else if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.setAttribute('data-theme','dark');
+  const savedMode=localStorage.getItem('uysot_theme');
+  const savedStyle=localStorage.getItem('uysot_style');
+  if(savedMode==='dark')document.documentElement.setAttribute('data-theme','dark');
+  else if(!savedMode&&window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.setAttribute('data-theme','dark');
+  if(savedStyle&&savedStyle!=='default')document.documentElement.setAttribute('data-style',savedStyle);
 }
 function toggleTheme(){
   const cur=document.documentElement.getAttribute('data-theme');
   const next=cur==='dark'?'light':'dark';
-  document.documentElement.setAttribute('data-theme',next);
+  if(next==='dark')document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
   localStorage.setItem('uysot_theme',next);
   render();
 }
@@ -54,6 +77,76 @@ function showToast(msg,type='info'){
 
 // === DEBOUNCE ===
 function debounce(fn,ms=250){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms)}}
+
+// === ANALYTICS TRACKER ===
+const _A=(function(){
+  const KEY='uysot_analytics';
+  let data;
+  try{data=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){data={}}
+  if(!data.events)data.events=[];
+  if(!data.pages)data.pages={};
+  if(!data.clients)data.clients={};
+  if(!data.searches)data.searches=[];
+  if(!data.fetches)data.fetches=[];
+  if(!data.errors)data.errors=[];
+  if(!data.features)data.features={};
+  if(!data.sessions)data.sessions=[];
+  // Session start
+  const sessId=Date.now();
+  data.sessions.push({start:sessId,pages:0});
+  // Cap arrays to prevent localStorage overflow
+  const cap=(arr,max)=>{if(arr.length>max)arr.splice(0,arr.length-max)};
+
+  function save(){
+    cap(data.events,500);cap(data.searches,200);cap(data.fetches,200);cap(data.errors,100);cap(data.sessions,90);
+    try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+  }
+  function track(cat,action,label,value){
+    data.events.push({t:Date.now(),c:cat,a:action,l:label||'',v:value||0});
+    // Update session page count
+    const s=data.sessions[data.sessions.length-1];
+    if(s)s.pages++;
+    save();
+  }
+  function page(name){
+    data.pages[name]=(data.pages[name]||0)+1;
+    track('page','view',name);
+  }
+  function client(name){
+    data.clients[name]=(data.clients[name]||0)+1;
+    track('client','open',name);
+  }
+  function search(query,source){
+    if(query&&query.length>1)data.searches.push({t:Date.now(),q:query,s:source||'search'});
+    save();
+  }
+  function fetch_(url,label,ms,ok){
+    data.fetches.push({t:Date.now(),l:label,ms:Math.round(ms),ok});
+    save();
+  }
+  function error(msg,source){
+    data.errors.push({t:Date.now(),m:msg,s:source||''});
+    save();
+  }
+  function feature(name){
+    data.features[name]=(data.features[name]||0)+1;
+    track('feature','use',name);
+  }
+  function getData(){return data}
+  function clear(){
+    data={events:[],pages:{},clients:{},searches:[],fetches:[],errors:[],features:{},sessions:[]};
+    save();
+  }
+  // Auto-save session end on unload
+  window.addEventListener('beforeunload',()=>{
+    const s=data.sessions[data.sessions.length-1];
+    if(s)s.end=Date.now();
+    save();
+  });
+  return{track,page,client,search,fetch:fetch_,error,feature,getData,clear,save};
+})();
+window.addEventListener('error',e=>{_A.error(e.message||'Unknown','js')});
+window.addEventListener('unhandledrejection',e=>{_A.error(e.reason?.message||String(e.reason)||'Promise','promise')});
 
 // === MEMOIZATION ===
 function clearCache(){S._cache={}}
@@ -228,11 +321,11 @@ function calcDebtTable(reportDate){
     const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);endD.setHours(23,59,59,999);
     const c=r.Client;
     if(!clients[c])clients[c]={name:c,contracts:[],totalSum:0,firma:''};
-    if(musd>0){
+    if(musd){
       const sheetSum=pn(r['sum USD'])||0;
       let actualSum=tUSD||0;
-      if(sheetSum>0){
-        // Use sheet total directly to avoid proration rounding errors
+      if(sheetSum){
+        // Use sheet total directly (positive or negative)
         actualSum+=sheetSum;
       } else {
         let d=new Date(st.getFullYear(),st.getMonth(),1);
@@ -262,10 +355,10 @@ function calcDebtTable(reportDate){
   });
   const result=[];
   Object.values(clients).forEach(cl=>{
-    const paid=clPay[cl.name]||0;const qoldiq=Math.round(cl.totalSum-paid);
+    const paid=clPay[cl.name]||0;const qoldiq=cl.totalSum-paid;
     // oyQarz: use calcCumExpected (same as MRR table)
     const ce=cumExp[cl.name];
-    const oyQarz=ce?Math.round(ce.cum[repMonth]-paid):Math.round(cl.totalSum-paid);
+    const oyQarz=ce?(ce.cum[repMonth]-paid):(cl.totalSum-paid);
     const mainCts=cl.contracts.filter(c=>c.isMain&&c.musd>0);
     const anchor=mainCts.length?mainCts.reduce((a,c)=>c.st<a.st?c:a,mainCts[0]):cl.contracts.find(c=>c.musd>0);
     const anchorPre=anchor?(anchor.pre||1):1;
@@ -296,18 +389,18 @@ function calcDebtTable(reportDate){
           for(let mi=ctM0;mi<=dueEnd;mi++){
             const y=Math.floor(mi/12),m=mi%12;const mS=new Date(y,m,1),mE=new Date(y,m+1,0);
             const isF=(mi===ctM0&&ct.st.getDate()!==1);const isL=(mi===ctM1);
-            if(isF&&isL){kelExp+=Math.round(ct.musd*Math.round((ct.endD-ct.st)/864e5+1)/mE.getDate())}
-            else if(isF){kelExp+=Math.round(ct.musd*Math.round((mE-ct.st)/864e5+1)/mE.getDate())}
-            else if(isL){kelExp+=Math.round(ct.musd*Math.round((ct.endD-mS)/864e5+1)/mE.getDate())}
+            if(isF&&isL){kelExp+=ct.musd*(Math.round((ct.endD-ct.st)/864e5)+1)/mE.getDate()}
+            else if(isF){kelExp+=ct.musd*(Math.round((mE-ct.st)/864e5)+1)/mE.getDate()}
+            else if(isL){kelExp+=ct.musd*(Math.round((ct.endD-mS)/864e5)+1)/mE.getDate()}
             else{kelExp+=ct.musd}
           }
         }
       });
-      kelQarz=Math.round(kelExp-paid);
+      kelQarz=kelExp-paid;
     }
     const lastP=calcLastPayments();const lp=lastP[cl.name]||null;
     const payDay=anchor?anchor.st.getDate():null;
-    if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:Math.round(cl.totalSum),paid:Math.round(paid),lastPay:lp,payDay});
+    if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:cl.totalSum,paid,lastPay:lp,payDay});
   });
   result.sort((a,b)=>b.kelQarz-a.kelQarz);return result;
 }
@@ -315,6 +408,442 @@ function calcDebtTable(reportDate){
 // === DASHBOARD PRESETS ===
 function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function toDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+
+// === SPOTLIGHT CLIENT SEARCH ===
+function openSpotlight(initialChar){
+  if(document.querySelector('.spot-overlay'))return;
+  _A.feature('spotlight');
+  const {all,qAll}=buildContracts();
+  const now=new Date();
+  const snap=mrrOnDate(now,all,qAll);
+  // Build unique client list with metadata
+  const cMap={};
+  S.rows.forEach(r=>{
+    if(!r.Client)return;
+    const n=r.Client.trim();
+    if(!cMap[n])cMap[n]={name:n,firma:r['Firma nomi']||'',mgr:r.Manager||'',hudud:r.Hudud||'',mrr:0,status:r.status||''};
+  });
+  snap.contracts.forEach(c=>{if(cMap[c.client])cMap[c.client].mrr+=c.musd});
+  const dt=calcDebtTable(now);
+  const debtMap={};dt.forEach(d=>{if(d.oyQarz>0)debtMap[d.name]=d.oyQarz});
+  const clients=Object.values(cMap).sort((a,b)=>b.mrr-a.mrr);
+  let idx=-1;
+
+  const o=document.createElement('div');o.className='spot-overlay';
+  o.innerHTML=`<div class="spot-box">
+    <div class="spot-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="spot-input" placeholder="Search clients..." autocomplete="off" spellcheck="false">
+      <kbd>ESC</kbd>
+    </div>
+    <div class="spot-list"></div>
+    <div class="spot-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>Enter</kbd> open</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>`;
+
+  const inp=o.querySelector('.spot-input');
+  const list=o.querySelector('.spot-list');
+
+  function renderList(q){
+    const query=(q||'').toLowerCase();
+    let filtered=clients;
+    if(query)filtered=clients.filter(c=>c.name.toLowerCase().includes(query)||c.firma.toLowerCase().includes(query)||(c.mgr||'').toLowerCase().includes(query)||(c.hudud||'').toLowerCase().includes(query));
+    filtered=filtered.slice(0,30);
+    idx=filtered.length?0:-1;
+    const colors=['#1746a2','#117a52','#6941b8','#0e7c7b','#a36207','#c42b1c','#d4537e','#854f0b'];
+    list.innerHTML=filtered.map((c,i)=>{
+      const ini=c.name.charAt(0).toUpperCase();
+      const col=colors[ini.charCodeAt(0)%colors.length];
+      const debt=debtMap[c.name];
+      const mrrTag=c.mrr>0?`<span class="spot-tag tag-mrr">${fk(c.mrr)} $/mo</span>`:'<span class="spot-tag" style="opacity:.3">—</span>';
+      const debtTag=debt?`<span class="spot-tag tag-debt">${fk(debt)}</span>`:(c.mrr>0?`<span class="spot-tag tag-ok">OK</span>`:'');
+      return`<div class="spot-item${i===0?' spot-active':''}" data-idx="${i}" data-name="${c.name.replace(/"/g,'&quot;')}">
+        <div class="spot-ava" style="background:${col}">${ini}</div>
+        <div class="spot-col1">
+          <div class="spot-name">${_hl(c.name,query)}</div>
+          ${c.firma?'<div class="spot-firma">'+_hl(c.firma,query)+'</div>':''}
+        </div>
+        <div class="spot-col2">${c.hudud||''}</div>
+        <div class="spot-col3">${mrrTag}</div>
+        <div class="spot-col4">${debtTag}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function _hl(text,q){
+    if(!q)return text;
+    const i=text.toLowerCase().indexOf(q);
+    if(i===-1)return text;
+    return text.slice(0,i)+'<mark style="background:var(--accent-bg);color:var(--accent);border-radius:2px;padding:0 1px">'+text.slice(i,i+q.length)+'</mark>'+text.slice(i+q.length);
+  }
+
+  function setActive(newIdx){
+    const items=list.querySelectorAll('.spot-item');
+    if(!items.length)return;
+    if(newIdx<0)newIdx=items.length-1;
+    if(newIdx>=items.length)newIdx=0;
+    items.forEach(el=>el.classList.remove('spot-active'));
+    items[newIdx].classList.add('spot-active');
+    items[newIdx].scrollIntoView({block:'nearest'});
+    idx=newIdx;
+  }
+
+  function openSelected(){
+    const active=list.querySelector('.spot-active');
+    if(!active)return;
+    const name=active.dataset.name;
+    o.remove();
+    showClientCard(name);
+  }
+
+  inp.addEventListener('input',()=>renderList(inp.value));
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){e.preventDefault();setActive(idx+1)}
+    else if(e.key==='ArrowUp'){e.preventDefault();setActive(idx-1)}
+    else if(e.key==='Enter'){e.preventDefault();openSelected()}
+    else if(e.key==='Escape'){e.preventDefault();e._escHandled=true;o.remove()}
+  });
+  o.addEventListener('click',e=>{
+    if(e.target===o)o.remove();
+    const item=e.target.closest('.spot-item');
+    if(item){const name=item.dataset.name;o.remove();showClientCard(name)}
+  });
+
+  document.body.appendChild(o);
+  renderList('');
+  if(initialChar){inp.value=initialChar;renderList(initialChar)}
+  inp.focus();
+}
+
+// Global keyboard listener — open spotlight or focus search on typing
+(function(){
+  document.addEventListener('keydown',function(e){
+    const t=e.target.tagName;
+    // Esc — clear search input (works even when input is focused)
+    if(e.key==='Escape'){
+      if(e._escHandled)return;
+      // 1. Overlay ochiq bo'lsa — eng oxirgisini yopish
+      const overlays=document.querySelectorAll('.overlay');
+      if(overlays.length){e.preventDefault();overlays[overlays.length-1].remove();e._escHandled=true;return}
+      // 2. Spotlight ochiq bo'lsa
+      const spot=document.querySelector('.spot-overlay');
+      if(spot){e.preventDefault();spot.remove();e._escHandled=true;return}
+      // 3. Search input to'liq bo'lsa — tozalash
+      const si=document.querySelector('.search input');
+      if(si&&si.value){e.preventDefault();si.value='';si.dispatchEvent(new Event('input'));si.blur();e._escHandled=true;return}
+      // 4. Input fokusda — blur
+      if(t==='INPUT'){e.target.blur();return}
+    }
+    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
+    // Ctrl/Cmd+K — always spotlight
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSpotlight();return}
+    // Single printable character
+    if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&/[a-zA-Z0-9\u0400-\u04FF\u0600-\u06FF]/.test(e.key)){
+      // Pages with search input — focus it instead of spotlight
+      const searchInput=document.querySelector('.search input[type="text"], .search input:not([type])');
+      if(searchInput&&(S.sec==='mrrtable'||S.sec==='debts'||S.sec==='contracts'||S.sec==='clients')){
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.value+=e.key;
+        searchInput.dispatchEvent(new Event('input'));
+        return;
+      }
+      e.preventDefault();
+      openSpotlight(e.key);
+    }
+  });
+})();
+
+// === TABLE ROW SELECTION + CELL COPY ===
+(function(){
+  let selRow=null,selCell=null;
+
+  function clearSel(){
+    if(selRow)selRow.classList.remove('tr-sel');
+    if(selCell)selCell.classList.remove('td-sel');
+    selRow=null;selCell=null;
+  }
+
+  function selectRow(tr,td){
+    clearSel();
+    if(!tr)return;
+    tr.classList.add('tr-sel');
+    selRow=tr;
+    if(td){td.classList.add('td-sel');selCell=td}
+    // Scroll into view if needed
+    tr.scrollIntoView({block:'nearest'});
+  }
+
+  function moveRow(dir){
+    if(!selRow)return false;
+    const next=dir>0?selRow.nextElementSibling:selRow.previousElementSibling;
+    if(!next||next.tagName!=='TR')return false;
+    const cellIdx=selCell?Array.from(selRow.children).indexOf(selCell):0;
+    selectRow(next,next.children[cellIdx]||null);
+    return true;
+  }
+
+  function moveCell(dir){
+    if(!selRow)return false;
+    if(!selCell){selectRow(selRow,selRow.children[0]);return true}
+    const cells=Array.from(selRow.children);
+    const idx=cells.indexOf(selCell);
+    const next=cells[idx+dir];
+    if(!next)return false;
+    selCell.classList.remove('td-sel');
+    next.classList.add('td-sel');
+    selCell=next;
+    return true;
+  }
+
+  // Click on table row/cell
+  document.addEventListener('click',function(e){
+    const td=e.target.closest('tbody td');
+    if(!td)return;
+    const tr=td.closest('tr');
+    if(!tr||!tr.closest('tbody'))return;
+    // Don't interfere with client links
+    if(e.target.closest('.client-link'))return;
+    selectRow(tr,td);
+  });
+
+  // Arrow keys + Ctrl+C
+  document.addEventListener('keydown',function(e){
+    if(!selRow)return;
+    // Skip if in input
+    const t=e.target.tagName;
+    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
+    if(document.querySelector('.overlay')||document.querySelector('.spot-overlay'))return;
+
+    if(e.key==='ArrowDown'){e.preventDefault();moveRow(1)}
+    else if(e.key==='ArrowUp'){e.preventDefault();moveRow(-1)}
+    else if(e.key==='ArrowRight'){e.preventDefault();moveCell(1)}
+    else if(e.key==='ArrowLeft'){e.preventDefault();moveCell(-1)}
+    else if((e.ctrlKey||e.metaKey)&&e.key==='c'&&selCell){
+      e.preventDefault();
+      const text=selCell.textContent.trim();
+      navigator.clipboard.writeText(text).then(()=>{
+        showToast('Nusxalandi: '+text,'success');
+      });
+    }
+    else if(e.key==='Escape'&&!e._escHandled){clearSel()}
+  });
+
+  // Clear selection on re-render
+  const _origRender=window.render;
+  if(typeof render==='function'){
+    const _obs=new MutationObserver(()=>{selRow=null;selCell=null});
+    _obs.observe(document.getElementById('root')||document.body,{childList:true,subtree:false});
+  }
+})();
+
+// === PROJECT SWITCHER ===
+function updateProjectUI(){
+  const el=document.getElementById('projectName');
+  if(!el)return;
+  const p=S.projects&&S.projects[S.projectIdx];
+  if(p){
+    el.innerHTML=p.name+'<span style="font-size:9px;opacity:.5;margin-left:4px">▼</span>';
+  }else{
+    el.textContent='UYSOT';
+  }
+}
+
+function applyMenuVisibility(){
+  const p=S.projects&&S.projects[S.projectIdx];
+  const menu=p&&p.menu;
+  const navItems=document.querySelectorAll('.nav-item[data-sec]');
+  navItems.forEach(item=>{
+    const sec=item.getAttribute('data-sec');
+    const sub=item.nextElementSibling;
+    if(!menu||!menu.length){
+      item.style.display='';
+      if(sub&&sub.classList.contains('nav-sub'))sub.style.display='';
+    }else{
+      const visible=menu.includes(sec);
+      item.style.display=visible?'':'none';
+      if(sub&&sub.classList.contains('nav-sub'))sub.style.display=visible?'':'none';
+    }
+  });
+  // If current page is hidden, switch to dashboard
+  if(menu&&menu.length&&!menu.includes(S.sec)){
+    S.sec=menu[0]||'dashboard';
+  }
+}
+
+function showProjectSwitcher(){
+  if(!S.projects||S.projects.length<2)return;
+  const o=document.createElement('div');o.className='overlay';o.onclick=e=>{if(e.target===o)o.remove()};
+  const items=S.projects.map((p,i)=>{
+    const active=i===S.projectIdx;
+    const bg=active?'var(--accent)':'var(--bg3)';
+    const fg=active?'#fff':'var(--text2)';
+    return'<div class="spot-item'+(active?' spot-active':'')+'" style="display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-radius:10px" onclick="switchProject('+i+');this.closest(\'.overlay\').remove()">'
+      +'<div class="spot-ava" style="background:'+bg+';color:'+fg+'">'+p.name.charAt(0).toUpperCase()+'</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-weight:600;font-size:14px;color:var(--text)">'+p.name+'</div>'
+      +(p.menu?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+p.menu.length+' ta bo\'lim</div>':'')
+      +'</div>'
+      +(active?'<span style="color:var(--accent);font-size:16px">✓</span>':'')
+      +'</div>';
+  }).join('');
+  o.innerHTML=`<div class="modal" style="max-width:400px;padding:0">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px">Loyihani tanlang</div>
+    <div style="padding:8px">${items}</div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
+function switchProject(idx){
+  if(!S.projects||!S.projects[idx])return;
+  _A.feature('project_switch_'+S.projects[idx].name);
+  S.projectIdx=idx;
+  localStorage.setItem('uysot_projectIdx',idx);
+  const p=S.projects[idx];
+  S.config=p;
+  updateProjectUI();
+  applyMenuVisibility();
+  clearCache();
+  // Keshdan yuklash — fetch qilmasdan tez almashish
+  if(loadCache()){
+    const ts=JSON.parse(localStorage.getItem(_cacheKey())||'{}').ts;
+    const ago=ts?Math.round((Date.now()-ts)/60000):0;
+    const lbl=ago<60?ago+' daq. oldin':ago<1440?Math.round(ago/60)+' soat oldin':Math.round(ago/1440)+' kun oldin';
+    document.getElementById('upd').textContent=lbl;
+    render();
+  }else{
+    // Kesh yo'q — fetch qilish shart
+    loadFromConfig(p);
+  }
+}
+
+// === AI METRIC RECOMMENDATION ===
+async function aiRecommend(metricKey){
+  _A.feature('ai_recommend_'+metricKey);
+  // Auto-detect provider based on available keys
+  if(S.aiProvider==='none'||(S.aiProvider==='gemini'&&!S.geminiKey)||(S.aiProvider==='claude'&&!S.apiKey)){
+    if(S.geminiKey)S.aiProvider='gemini';
+    else if(S.apiKey)S.aiProvider='claude';
+    else S.aiProvider='none';
+    localStorage.setItem('uysot_ai',S.aiProvider);
+  }
+  if(!S.apiKey&&!S.geminiKey){
+    // Show inline message
+    const overlays=document.querySelectorAll('.overlay .modal');
+    const m=overlays.length?overlays[overlays.length-1]:null;
+    if(m){let b=m.querySelector('.ai-rec-box');if(!b){b=document.createElement('div');b.className='ai-rec-box';const cb=m.querySelector('.btn-primary');if(cb)cb.parentNode.insertBefore(b,cb);else m.appendChild(b);}b.innerHTML='<div class="p-3 rounded-lg mt-2 text-[12px]" style="background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber)">⚠️ AI sozlamalarida API kalit kiritilmagan. <span style="text-decoration:underline;cursor:pointer" onclick="document.querySelectorAll(\'.overlay\').forEach(o=>o.remove());showConfig()">Sozlamalarni ochish →</span></div>';}
+    return;
+  }
+  // Close the metric info modal and open a dedicated AI modal
+  const existingMetricOverlays=document.querySelectorAll('.overlay');
+  // Keep client card overlay (first one), remove metric info (last one)
+  if(existingMetricOverlays.length>1)existingMetricOverlays[existingMetricOverlays.length-1].remove();
+  else if(existingMetricOverlays.length===1){
+    // Only metric info open (from dashboard), remove it
+    const m=existingMetricOverlays[0].querySelector('.modal');
+    if(m&&!m.querySelector('.client-card-scroll'))existingMetricOverlays[0].remove();
+  }
+
+  // Create dedicated AI recommendation overlay
+  const aiOverlay=document.createElement('div');aiOverlay.className='overlay';
+  aiOverlay.onclick=e=>{if(e.target===aiOverlay)aiOverlay.remove()};
+  aiOverlay.innerHTML=`<div class="modal" style="max-width:600px;max-height:90vh;display:flex;flex-direction:column;padding:0">
+    <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div style="font-weight:700;font-size:15px;color:var(--accent)">💡 AI Tavsiya</div>
+      <button onclick="this.closest('.overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0 4px">×</button>
+    </div>
+    <div class="ai-rec-body" style="padding:20px 24px;overflow-y:auto;flex:1">
+      <div class="text-center py-6 text-[13px] text-subtle"><span class="inline-block animate-pulse" style="font-size:20px">⏳</span><div style="margin-top:8px">AI tahlil qilmoqda...</div></div>
+    </div>
+  </div>`;
+  document.body.appendChild(aiOverlay);
+  const box=aiOverlay.querySelector('.ai-rec-body');
+
+  // === BUILD RICH CONTEXT ===
+  const names={mrr:'MRR (Monthly Recurring Revenue)',nrr:'NRR (Net Revenue Retention)',grr:'GRR (Gross Revenue Retention)',cust:'Active Customers',arpa:'ARPA (Average Revenue Per Account)',cac:'CAC (Customer Acquisition Cost)',cash:'Net Cash In',qr:'SaaS Quick Ratio',dso:'DSO (Days Sales Outstanding)',conc:'Revenue Concentration',ltv:'LTV (Customer Lifetime Value)',lc:'Logo vs Revenue Churn',cur_mrr:'Current MRR',total_cv:'Total Contract Value',total_paid:'Total Paid',outstanding:'Outstanding Balance',health:'Health Score',pay_rate:'Payment Rate',days_exp:'Days to Expiry',avg_monthly:'Avg. Monthly Payment'};
+  const mName=names[metricKey]||metricKey;
+  let ctx='';
+
+  try{
+    const isClientMetric=['cur_mrr','total_cv','total_paid','outstanding','health','pay_rate','days_exp','avg_monthly'].includes(metricKey);
+
+    if(isClientMetric){
+      // --- CLIENT CARD CONTEXT ---
+      const ccModal=document.querySelector('.client-card-scroll');
+      if(ccModal){
+        const parentModal=ccModal.closest('.modal');
+        // Client name from header
+        const nameEl=parentModal?.querySelector('.font-bold.text-lg');
+        const clientName=nameEl?nameEl.textContent.trim():'';
+        // All 8 KPIs
+        const kpis=parentModal?.querySelectorAll('.client-kpi-grid .mono, .client-kpi-grid2 .mono');
+        const kLabels=['Current MRR','Total Contract Value','Total Paid','Outstanding Balance','Health Score','Payment Rate','Days to Expiry','Avg Monthly Payment'];
+        let kpiData=[];
+        if(kpis)kpis.forEach((el,i)=>{if(i<8)kpiData.push(kLabels[i]+': '+el.textContent.trim())});
+        // Health badge
+        const badge=parentModal?.querySelector('.badge');
+        const healthStatus=badge?badge.textContent.trim():'';
+        // Contract count & tenure from subtitle
+        const subtles=parentModal?.querySelectorAll('.text-subtle');
+        let tenure='',contracts='';
+        subtles?.forEach(el=>{const t=el.textContent;if(t.includes('oy'))tenure=t.trim();if(t.includes('shartnoma'))contracts=t.trim()});
+        // Debt info
+        const warnEl=parentModal?.querySelector('.text-warn');
+        const debtInfo=warnEl?warnEl.textContent.trim():'';
+
+        ctx='MIJOZ: '+clientName+'\n';
+        if(tenure)ctx+='Hamkorlik: '+tenure+'\n';
+        if(contracts)ctx+='Shartnomalar: '+contracts+'\n';
+        ctx+='KO\'RSATKICHLAR:\n'+kpiData.join('\n')+'\n';
+        if(healthStatus)ctx+='Sog\'liq holati: '+healthStatus+'\n';
+        if(debtInfo)ctx+='Qarz: '+debtInfo+'\n';
+      }
+    }else{
+      // --- DASHBOARD CONTEXT ---
+      if(typeof dashRange==='function'){
+        const dr=dashRange();
+        const t=dr.totals;const curMRR=t[t.length-1]||0;const startMRR=dr.baseMRR||0;
+        const mrrGrowth=startMRR?Math.round((curMRR-startMRR)/startMRR*100):0;
+        const curCl=dr.cpmArr[dr.cpmArr.length-1]||0;
+        ctx='DASHBOARD KO\'RSATKICHLARI:\n';
+        ctx+='MRR: '+fmt(curMRR)+' $ ('+(mrrGrowth>=0?'+':'')+mrrGrowth+'% o\'sish)\n';
+        ctx+='NRR: '+(dr.nrr||0)+'%\n';
+        ctx+='GRR: '+(dr.grr||0)+'%\n';
+        ctx+='Aktiv mijozlar: '+curCl+'\n';
+        ctx+='ARPA: '+fmt(dr.arpa||0)+' $\n';
+        ctx+='Cash In: '+fmt(dr.cashIn||0)+' $\n';
+        ctx+='DSO: '+Math.round(dr.dso||0)+' kun\n';
+        ctx+='Quick Ratio: '+(dr.quickRatio?.toFixed(2)||'?')+'x\n';
+        ctx+='LTV: '+fmt(dr.ltv||0)+' $\n';
+        ctx+='Top-5 konsentratsiya: '+Math.round(dr.top5Conc||0)+'%\n';
+        ctx+='Yangi: '+dr.newClients.length+' ta (+'+fmt(dr.newClients.reduce((s,c)=>s+c.mrr,0))+' $)\n';
+        ctx+='Churn: '+dr.churnClients.length+' ta (-'+fmt(dr.churnClients.reduce((s,c)=>s+c.mrr,0))+' $)\n';
+        if(dr.logoChurnRate)ctx+='Logo Churn: '+Math.round(dr.logoChurnRate*10)/10+'%\n';
+        if(dr.revenueChurnRate)ctx+='Revenue Churn: '+Math.round(dr.revenueChurnRate*10)/10+'%\n';
+      }
+    }
+  }catch(e){}
+
+  const prompt='Sen tajribali SaaS CRM moliyaviy maslahatchisan. Quyidagi real ma\'lumotlar asosida '+mName+' ko\'rsatkichini tahlil qil.\n\n'
+    +ctx
+    +'\nSORALGAN METRIKA: '+mName
+    +'\n\nVAZIFA: O\'zbek tilida 3-4 ta ANIQ tavsiya ber. Har bir tavsiya:\n'
+    +'- Yuqoridagi real raqamlarga asoslangan bo\'lsin\n'
+    +'- Qanday harakat qilish kerakligi aniq ko\'rsatilsin\n'
+    +'- Kutilgan natija yoki maqsad raqam berilsin\n'
+    +'Faqat tavsiyalar yoz, boshqa narsa emas.';
+
+  try{
+    const result=await _callAI(prompt);
+    box.innerHTML='<div style="font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap">'+result.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</div>';
+  }catch(e){
+    box.innerHTML='<div class="p-3 rounded-lg text-[12px]" style="background:var(--red-bg);border:1px solid var(--red);color:var(--red)">❌ '+e.message+'</div>';
+  }
+}
+
 function dashPreset(key){
   const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
   const dow=now.getDay()||7;const wkS=new Date(y,m,d-(dow-1));
@@ -415,6 +944,7 @@ function showPeriodPicker(){
 }
 
 function downloadCSV(rows,filename){
+  _A.feature('export_csv_'+filename);
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return}
   const hs=Object.keys(rows[0]);
   const esc=v=>{const s=v==null?'':String(v);return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s};
@@ -464,11 +994,194 @@ function _dlRows(type){
   return null;
 }
 
+// === XLSX STYLE HELPERS ===
+const _xlsBrd={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'thin',color:{rgb:'CCCCCC'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
+const _xlsBrdB={top:{style:'thin',color:{rgb:'CCCCCC'}},bottom:{style:'medium',color:{rgb:'999999'}},left:{style:'thin',color:{rgb:'CCCCCC'}},right:{style:'thin',color:{rgb:'CCCCCC'}}};
+const _xlsHdrS={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'center',vertical:'center'},border:_xlsBrd};
+const _xlsHdrL={font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},fill:{fgColor:{rgb:'1746A2'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'},border:_xlsBrd};
+const _xlsJami={font:{bold:true,sz:11,name:'Calibri'},fill:{fgColor:{rgb:'E8EDF4'},patternType:'solid'},border:_xlsBrdB,numFmt:'#,##0'};
+const _xlsCellN={font:{sz:10,name:'Calibri'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsCellT={font:{sz:10,name:'Calibri'},border:_xlsBrd};
+const _xlsCellName={font:{sz:10,name:'Calibri',bold:true},border:_xlsBrd};
+const _xlsGreen={font:{sz:10,name:'Calibri',color:{rgb:'117A52'}},fill:{fgColor:{rgb:'E0F4EC'},patternType:'solid'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsYellow={font:{sz:10,name:'Calibri',color:{rgb:'A06810'}},fill:{fgColor:{rgb:'FDF2DC'},patternType:'solid'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsRed={font:{sz:10,name:'Calibri',color:{rgb:'C42B1C'}},fill:{fgColor:{rgb:'FEF0EE'},patternType:'solid'},border:_xlsBrd,numFmt:'#,##0'};
+const _xlsEmpty={font:{sz:10,color:{rgb:'CCCCCC'},name:'Calibri'},border:_xlsBrd,alignment:{horizontal:'center'}};
+
+// Build styled worksheet from headers + rows.
+// opts: {numericCols: [col indices that are numbers], nameCol: index of name column (bold), colWidths: [widths]}
+function _styleWs(headers,dataRows,opts){
+  opts=opts||{};
+  const aoa=[headers,...dataRows];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  const C=headers.length,R=aoa.length;
+  const numSet=new Set(opts.numericCols||[]);
+  const nameCol=opts.nameCol!=null?opts.nameCol:0;
+  // Header
+  for(let c=0;c<C;c++){
+    const addr=XLSX.utils.encode_cell({r:0,c});
+    if(ws[addr])ws[addr].s=c===nameCol?_xlsHdrL:_xlsHdrS;
+  }
+  // Data rows
+  for(let r=1;r<R;r++){
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r,c});
+      if(!ws[addr])continue;
+      const v=ws[addr].v;
+      if(v===''||v==null){ws[addr].s=_xlsEmpty;ws[addr].v='—';continue}
+      if(c===nameCol){ws[addr].s=_xlsCellName;continue}
+      if(numSet.has(c)){
+        ws[addr].s=_xlsCellN;ws[addr].z='#,##0';
+        if(opts.colorNeg&&typeof v==='number'&&v<0)ws[addr].s=_xlsRed;
+      }else{
+        ws[addr].s=_xlsCellT;
+      }
+    }
+  }
+  // Column widths
+  if(opts.colWidths)ws['!cols']=opts.colWidths.map(w=>({wch:w}));
+  ws['!rows']=[{hpt:22}];
+  return ws;
+}
+
+function exportMrrXLSX(){
+  if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
+  const wb=XLSX.utils.book_new();
+  const now=new Date();let minY=now.getFullYear(),maxY=now.getFullYear();
+  S.rows.forEach(r=>{const d=pd(r.sanasi);if(d){const y=d.getFullYear();if(y<minY)minY=y;if(y>maxY)maxY=y}});
+  const cc=S.mrrCols;
+  const pm=calcPayments();const clPay={};Object.values(pm).forEach(v=>{clPay[v.client]=(clPay[v.client]||0)+v.total});
+
+  // Style helpers — umumiy _xls* dan qo'shimchalar
+  const hdrS=_xlsHdrS,hdrL=_xlsHdrL,jamiS=_xlsJami;
+  const cellS=_xlsCellN,cellTxt=_xlsCellT,cellName=_xlsCellName;
+  const greenS=_xlsGreen,yellowS=_xlsYellow,emptyS=_xlsEmpty;
+  const momGreen={font:{color:{rgb:'117A52'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'F6FAF7'},patternType:'solid'},border:_xlsBrd,alignment:{horizontal:'center'}};
+  const momRed={font:{color:{rgb:'C42B1C'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FEF6F5'},patternType:'solid'},border:_xlsBrd,alignment:{horizontal:'center'}};
+  const momNone={font:{color:{rgb:'999999'},sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FAFAFA'},patternType:'solid'},border:_xlsBrd,alignment:{horizontal:'center'}};
+
+  for(let yr=minY;yr<=maxY;yr++){
+    const d=mrrData(yr);
+    const cumExp=calcCumExpected(yr);
+    // Qo'shimcha ustunlar soni
+    const extraCols=[];
+    if(cc.mgr)extraCols.push({k:'mgr',l:'Menejer',w:14});
+    if(cc.hudud)extraCols.push({k:'hudud',l:'Hudud',w:12});
+    if(cc.mrr)extraCols.push({k:'mrr',l:'MRR $',w:9});
+    if(cc.deal)extraCols.push({k:'deal',l:'Boshi',w:11});
+    if(cc.end)extraCols.push({k:'end',l:'Tugashi',w:11});
+    const nExtra=extraCols.length;
+    const monCol=1+nExtra;// oy ustunlari boshlanihi
+
+    // AOA qurilish
+    const aoa=[];
+    // 0: Header
+    const hdr=['Mijoz',...extraCols.map(c=>c.l),...MOS];
+    aoa.push(hdr);
+    // 1: MoM%
+    const momRow=['O\'sish %',...Array(nExtra).fill(''),...d.mom.map(v=>v?(v>0?'+':'')+v.toFixed(1)+'%':'—')];
+    aoa.push(momRow);
+    // 2: JAMI
+    const jamiRow=['JAMI',...Array(nExtra).fill(''),...d.totals.map(v=>v||0)];
+    aoa.push(jamiRow);
+    // 3+: Mijozlar
+    d.clients.forEach(c=>{
+      const row=[c.name];
+      extraCols.forEach(ec=>{
+        if(ec.k==='mrr')row.push(c.mrr||0);
+        else if(ec.k==='deal')row.push(c.dealStart||'');
+        else if(ec.k==='end')row.push(c.dealEnd||'');
+        else row.push(c[ec.k]||'');
+      });
+      c.monthly.forEach(v=>row.push(v||0));
+      aoa.push(row);
+    });
+
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+
+    // Stillar
+    const R=aoa.length,C=hdr.length;
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r:0,c});
+      if(ws[addr])ws[addr].s=c===0?hdrL:hdrS;
+    }
+    // MoM% row (r=1)
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r:1,c});
+      if(!ws[addr])continue;
+      if(c<monCol){ws[addr].s=momNone;continue;}
+      const v=d.mom[c-monCol];
+      ws[addr].s=v>0?momGreen:v<0?momRed:momNone;
+    }
+    // JAMI row (r=2)
+    for(let c=0;c<C;c++){
+      const addr=XLSX.utils.encode_cell({r:2,c});
+      if(ws[addr]){ws[addr].s=jamiS;if(c>=monCol&&typeof ws[addr].v==='number')ws[addr].z='#,##0';}
+    }
+    // Mijoz rows (r=3+)
+    d.clients.forEach((client,ri)=>{
+      const r=ri+3;
+      const ce=cumExp[client.name];const paid=clPay[client.name]||0;
+      for(let c=0;c<C;c++){
+        const addr=XLSX.utils.encode_cell({r,c});
+        if(!ws[addr])continue;
+        if(c===0){ws[addr].s=cellName;continue;}
+        if(c<monCol){
+          // Extra ustunlar
+          const ec=extraCols[c-1];
+          if(ec&&ec.k==='mrr'){ws[addr].s=cellS;ws[addr].z='#,##0';}
+          else{ws[addr].s=cellTxt;}
+          continue;
+        }
+        // Oy ustunlari
+        const m=c-monCol;
+        const v=client.monthly[m];
+        if(!v){ws[addr].s=emptyS;continue;}
+        // To'lov rangi
+        let sty=cellS;
+        if(ce){
+          const cur=ce.cum[m]||0;const prev=m>0?(ce.cum[m-1]||0):ce.preYear;
+          if(cur>0){
+            const remaining=Math.round(cur-paid);
+            const paidThisMonth=Math.round(paid-prev);
+            if(remaining<=1)sty=greenS;
+            else if(paidThisMonth>0)sty=yellowS;
+          }
+        }
+        ws[addr].s=sty;ws[addr].z='#,##0';
+      }
+    });
+
+    // Ustun kengliklari
+    ws['!cols']=[{wch:22},...extraCols.map(c=>({wch:c.w})),...MOS.map(()=>({wch:9}))];
+    // Qatorlar: header balandroq
+    ws['!rows']=[{hpt:22},{hpt:18},{hpt:20}];
+
+    XLSX.utils.book_append_sheet(wb,ws,String(yr));
+  }
+  XLSX.writeFile(wb,'MRR_jadval_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('MRR jadval XLSX yuklandi','success');
+  _A.feature('export_mrr_xlsx');
+}
+
 function exportXLSX(type){
   const rows=_dlRows(type);
   if(!rows||!rows.length){showToast("Ma'lumot yo'q",'error');return;}
   if(typeof XLSX==='undefined'){showToast('XLSX kutubxona yuklanmadi','error');return;}
-  const ws=XLSX.utils.json_to_sheet(rows);
+  const headers=Object.keys(rows[0]);
+  const dataRows=rows.map(r=>headers.map(h=>r[h]));
+  // Raqamli ustunlarni aniqlash
+  const numericCols=[];
+  headers.forEach((h,i)=>{
+    const hl=h.toLowerCase();
+    if(/usd|so'm|summa|qarz|paid|rate|jami|qoldiq|oylik|farq|kun|kechikish|to'langan|kutilgan|undiruv|mrr/i.test(hl)){
+      // Qiymatlarning kamida bittasi raqammi?
+      if(rows.some(r=>typeof r[h]==='number'))numericCols.push(i);
+    }
+  });
+  // Ustun kengliklari — asosiy ustun 20, qolganlari 14
+  const colWidths=headers.map((h,i)=>i===0?22:Math.max(12,Math.min(18,h.length+4)));
+  const ws=_styleWs(headers,dataRows,{numericCols,nameCol:0,colWidths,colorNeg:true});
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Ma'lumot");
   const fn={contracts:'Shartnomalar',debts:'Qarzdorlik',araging:'AR_Aging',collection:'Inkasso',audit:'Tahlil'}[type]||type;
   XLSX.writeFile(wb,fn+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
