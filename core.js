@@ -355,10 +355,10 @@ function calcDebtTable(reportDate){
   });
   const result=[];
   Object.values(clients).forEach(cl=>{
-    const paid=clPay[cl.name]||0;const qoldiq=Math.round(cl.totalSum-paid);
+    const paid=clPay[cl.name]||0;const qoldiq=cl.totalSum-paid;
     // oyQarz: use calcCumExpected (same as MRR table)
     const ce=cumExp[cl.name];
-    const oyQarz=ce?Math.round(ce.cum[repMonth]-paid):Math.round(cl.totalSum-paid);
+    const oyQarz=ce?(ce.cum[repMonth]-paid):(cl.totalSum-paid);
     const mainCts=cl.contracts.filter(c=>c.isMain&&c.musd>0);
     const anchor=mainCts.length?mainCts.reduce((a,c)=>c.st<a.st?c:a,mainCts[0]):cl.contracts.find(c=>c.musd>0);
     const anchorPre=anchor?(anchor.pre||1):1;
@@ -389,18 +389,18 @@ function calcDebtTable(reportDate){
           for(let mi=ctM0;mi<=dueEnd;mi++){
             const y=Math.floor(mi/12),m=mi%12;const mS=new Date(y,m,1),mE=new Date(y,m+1,0);
             const isF=(mi===ctM0&&ct.st.getDate()!==1);const isL=(mi===ctM1);
-            if(isF&&isL){kelExp+=Math.round(ct.musd*Math.round((ct.endD-ct.st)/864e5+1)/mE.getDate())}
-            else if(isF){kelExp+=Math.round(ct.musd*Math.round((mE-ct.st)/864e5+1)/mE.getDate())}
-            else if(isL){kelExp+=Math.round(ct.musd*Math.round((ct.endD-mS)/864e5+1)/mE.getDate())}
+            if(isF&&isL){kelExp+=ct.musd*(Math.round((ct.endD-ct.st)/864e5)+1)/mE.getDate()}
+            else if(isF){kelExp+=ct.musd*(Math.round((mE-ct.st)/864e5)+1)/mE.getDate()}
+            else if(isL){kelExp+=ct.musd*(Math.round((ct.endD-mS)/864e5)+1)/mE.getDate()}
             else{kelExp+=ct.musd}
           }
         }
       });
-      kelQarz=Math.round(kelExp-paid);
+      kelQarz=kelExp-paid;
     }
     const lastP=calcLastPayments();const lp=lastP[cl.name]||null;
     const payDay=anchor?anchor.st.getDate():null;
-    if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:Math.round(cl.totalSum),paid:Math.round(paid),lastPay:lp,payDay});
+    if(qoldiq>1||oyQarz>1||kelQarz>1)result.push({name:cl.name,firma:cl.firma,qoldiq,oyQarz,kelQarz,totalSum:cl.totalSum,paid,lastPay:lp,payDay});
   });
   result.sort((a,b)=>b.kelQarz-a.kelQarz);return result;
 }

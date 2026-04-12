@@ -1032,7 +1032,7 @@ function calcDebtTrend(from,to){
         if(cumCur<=0)return;
         const cumPrev=curM>0?(data.cum[curM-1]||0):data.preYear;
         const paidToDate=(clPay[name]||0)-(clPayAfter[name]||0);
-        const oyQarz=Math.round(cumCur-paidToDate);
+        const oyQarz=cumCur-paidToDate;
         const isActive=snap.active.has(name);
 
         if(oyQarz>0){
@@ -1063,9 +1063,10 @@ function calcDebtTrend(from,to){
 
       months.push({
         label:mos[curM],
-        totalOy,debtors,total:totalClients,mrr,dso,debtMrr,
+        totalOy:Math.round(totalOy),debtors,total:totalClients,mrr,dso,debtMrr,
         debtorPct:totalClients?Math.round(debtors/totalClients*100):0,
-        b0,b30,b60,b90,collPct,collExp,mPaid:Math.round(mPaidTotal),
+        b0:Math.round(b0),b30:Math.round(b30),b60:Math.round(b60),b90:Math.round(b90),
+        collPct,collExp:Math.round(collExp),mPaid:Math.round(mPaidTotal),
         healthyPct:Math.max(0,Math.min(100,healthyPct))
       });
       d=new Date(d.getFullYear(),d.getMonth()+1,1);
