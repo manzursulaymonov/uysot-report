@@ -1076,14 +1076,13 @@ function calcDebtTrend(from,to){
 
 // === DAILY DEBT KPIs (kunlik prorata) ===
 function calcDailyDebtKPIs(){
-  return cached('dailyDebtKPIs_v2',()=>{
+  return cached('dailyDebtKPIs_v3',()=>{
     const now=new Date();
     const year=now.getFullYear(),month=now.getMonth();
     const dayOfMonth=now.getDate();
     const daysInMonth=new Date(year,month+1,0).getDate();
+    const dayFrac=dayOfMonth/daysInMonth;
     const mS=new Date(year,month,1);
-    const mE=new Date(year,month+1,0);
-    const today=new Date(year,month,dayOfMonth);
 
     const cumExp=calcCumExpected(year);
     const pm=calcPayments();
@@ -1094,85 +1093,25 @@ function calcDailyDebtKPIs(){
     const snap=mrrOnDate(now,all,qAll);
     const mrr=snap.total||1;
 
-    // Shartnomalarni qurilishi — faqat joriy oyda faol
-    const allCts={};
-    S.rows.forEach(r=>{
-      if(!r.Client||!r.sanasi)return;
-      const st=pd(r.sanasi),en=pd(r['amal qilishi']);
-      if(!st||!r._mUSD||r._mUSD<=0)return;
-      const endD=en||new Date(st.getTime()+(r._dur||12)*30.44*24*3600*1000);
-      endD.setHours(23,59,59,999);
-      if(st>mE||endD<mS)return;
-      const c=r.Client;
-      if(!allCts[c])allCts[c]=[];
-      allCts[c].push({musd:r._mUSD,tUSD:r._tUSD||0,sTotal:Math.max(0,(r._sUSD||0)-(r._tUSD||0)),st,endD,isQ:false});
-    });
-    S.qRows.forEach(r=>{
-      if(!r.Client||!r.sanasi)return;
-      const musd=pn(r['Oylik USD']);if(!musd)return;
-      const st=pd(r.sanasi),en=pd(r['amal qilishi']);if(!st)return;
-      const endD=en||new Date(st.getTime()+(parseFloat(r['muddati (oy)'])||12)*30.44*24*3600*1000);
-      if(st>mE||endD<mS)return;
-      const tUSD=pn(r['Tadbiq USD'])||0;
-      const c=r.Client;
-      if(!allCts[c])allCts[c]=[];
-      allCts[c].push({musd,tUSD,sTotal:Math.max(0,(pn(r['sum USD'])||0)-tUSD),st,endD,isQ:true});
-    });
-
-    Object.values(allCts).forEach(cts=>_precomputeMP(cts));
-
     let totalDailyDebt=0,debtorCount=0,totalClients=0;
     let dailyExpMonth=0;
 
-    // Shu oydagi to'lovlar — yagona manbadan
+    // Shu oydagi to'lovlar (progress bar uchun)
     let monthPaidTotal=0;
     _clientPaysByDate().forEach(p=>{
       if(p.date>=mS&&p.date<=now)monthPaidTotal+=p.amount;
     });
 
     Object.entries(cumExp).forEach(([name,data])=>{
+      const cumCur=data.cum[month]||0;
       const cumPrev=month>0?(data.cum[month-1]||0):data.preYear;
-      const cts=allCts[name]||[];
-
-      let monthProrata=0;
-      cts.forEach(ct=>{
-        const isFirst=(ct.st>=mS&&ct.st<=mE);
-        const isLast=(ct.endD>=mS&&ct.endD<=mE);
-
-        // Tadbiq: shartnoma boshlanish sanasida to'liq
-        if(isFirst&&today>=ct.st)monthProrata+=ct.tUSD||0;
-
-        // fullAmt — calcCumExpected bilan bir xil logika
-        let fullAmt=0;
-        if(isFirst&&isLast){
-          fullAmt=ct.musd*Math.max(1,Math.round((ct.endD-ct.st)/864e5)+1)/daysInMonth;
-          if(ct.sTotal>0)fullAmt=ct.sTotal-ct._added;
-        }
-        else if(isFirst){fullAmt=ct._fmp}
-        else if(isLast){
-          if(ct.sTotal>0){fullAmt=ct.sTotal-ct._added}
-          else if(!ct.isQ){fullAmt=ct._lmp}
-          else{fullAmt=ct.musd*Math.max(1,ct.endD.getDate())/daysInMonth}
-        }
-        else{fullAmt=ct.musd}
-        ct._added+=fullAmt;
-
-        // Kunlik prorata: faol kunlar bo'yicha
-        const aStart=isFirst?ct.st:mS;
-        const aEnd=isLast?ct.endD:mE;
-        if(today<aStart)return;
-
-        const effEnd=today<aEnd?today:aEnd;
-        const totalDays=Math.round((aEnd-aStart)/864e5)+1;
-        const toDate=Math.round((effEnd-aStart)/864e5)+1;
-        monthProrata+=fullAmt*toDate/totalDays;
-      });
-
+      const monthObl=Math.max(0,cumCur-cumPrev);
+      const monthProrata=monthObl*dayFrac;
       const dailyCumExp=cumPrev+monthProrata;
       const paid=clPay[name]||0;
       const debt=dailyCumExp-paid;
 
-      dailyExpMonth+=Math.max(0,monthProrata);
+      dailyExpMonth+=monthProrata;
       const isActive=snap.active.has(name);
       if(debt>0){totalDailyDebt+=debt;debtorCount++;totalClients++}
       else if(isActive){totalClients++}
