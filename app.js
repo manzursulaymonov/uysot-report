@@ -707,7 +707,7 @@ function calcCumExpectedUZS(year){
 
 // === DATA AUDIT ===
 function calcDataAudit(){
-  return cached('dataAudit_v7',()=>{
+  return cached('dataAudit_v8',()=>{
     const issues=[];
     const clientContracts={};
     S.rows.forEach(r=>{
@@ -813,9 +813,9 @@ function calcDataAudit(){
       const fmDaysSt=new Date(st.getFullYear(),st.getMonth()+1,0).getDate();
       // Case A: start=1, end=last day
       const caseA=st.getDate()===1&&en.getDate()===lmDays&&monthsDiff+1===nRound;
-      // Case B: end.day = start.day - 1 (yoki Feb kabi qisqa oyda lmDays)
+      // Case B: end.day = start.day - 1, lekin start oxirgi kun emas
       const expectedEndDay=Math.min(st.getDate()-1,lmDays);
-      const caseB=en.getDate()===expectedEndDay&&monthsDiff===nRound&&st.getDate()>1;
+      const caseB=en.getDate()===expectedEndDay&&monthsDiff===nRound&&st.getDate()>1&&st.getDate()!==fmDaysSt;
       if(caseA||caseB)return;
       // Xato: sanalar clean integer oy ga mos emas
       issues.push({
