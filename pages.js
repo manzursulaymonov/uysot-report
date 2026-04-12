@@ -1142,10 +1142,21 @@ if(view==='jadval'){
     Object.values(pmUZS).forEach(v=>{if(uzsMap[v.client])uzsMap[v.client].paid=(uzsMap[v.client].paid||0)+v.total});
   }
   const ccy=isUZS?"so'm":'$';
-  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'56':'120'}px)"><table><thead><tr><th>Mijoz</th>
-${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq ${ccy}</th>`:''}
-${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Oy oxiri ${ccy}</th>`:''}
-${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Kelishuv ${ccy}</th>`:''}
+  // Jami summalar — filtrlangan mijozlar bo'yicha
+  let tShQol=0,tOy=0,tKel=0;
+  filtered.forEach(r=>{
+    const uz=uzsMap[r.name];
+    const q=isUZS?(uz?(uz.sUZS-(uz.paid||0)):0):r.qoldiq;
+    const oy=isUZS?q:r.oyQarz;
+    const kel=isUZS?q:r.kelQarz;
+    if(q>0)tShQol+=q;
+    if(oy>0)tOy+=oy;
+    if(kel>0)tKel+=kel;
+  });
+  h+=mobTabs+`<div class="tbl-wrap"><div class="tbl-scroll" style="max-height:calc(100vh - ${S.debtFs?'56':'120'}px)"><table><thead><tr><th>Mijoz<div class="text-[10px] text-subtle font-normal mt-0.5">${filtered.length} mijoz</div></th>
+${(!isM||S.debtMobCol==='sh')?`<th class="text-r">Sh. qoldiq ${ccy}<div class="text-[10px] text-subtle font-normal mono mt-0.5">${fmt(tShQol)}</div></th>`:''}
+${(!isM||S.debtMobCol==='oy')?`<th class="text-r">Oy oxiri ${ccy}<div class="text-[10px] mono font-normal mt-0.5" style="color:var(--amber)">${fmt(tOy)}</div></th>`:''}
+${(!isM||S.debtMobCol==='kel')?`<th class="text-r">Kelishuv ${ccy}<div class="text-[10px] mono font-normal mt-0.5" style="color:var(--red)">${fmt(tKel)}</div></th>`:''}
 ${(!isM||S.debtMobCol==='lp')?`<th class="text-r">Oxirgi to'lov</th>`:''}
 </tr></thead><tbody>${filtered.length?filtered.map(r=>{
 const uz=uzsMap[r.name];
