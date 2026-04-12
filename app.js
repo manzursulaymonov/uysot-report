@@ -707,7 +707,7 @@ function calcCumExpectedUZS(year){
 
 // === DATA AUDIT ===
 function calcDataAudit(){
-  return cached('dataAudit_v2',()=>{
+  return cached('dataAudit_v3',()=>{
     const issues=[];
     const clientContracts={};
     S.rows.forEach(r=>{
@@ -796,7 +796,34 @@ function calcDataAudit(){
       }
     });
 
-    // 6. To'lov shartnomaga bog'lanmagan
+    // 6. Sana-muddat nomuvofiqligi — JAMI/musd integer, lekin sanalar clean oy emas
+    S.rows.forEach(r=>{
+      if(!r.Client||!r.sanasi||!r._mUSD||!r._sUSD)return;
+      const st=pd(r.sanasi),en=pd(r['amal qilishi']);
+      if(!st||!en)return;
+      const net=(r._sUSD||0)-(r._tUSD||0);// tadbiqdan tashqari oylik summa
+      if(net<=0)return;
+      const nMonths=net/r._mUSD;
+      const nRound=Math.round(nMonths);
+      if(Math.abs(nMonths-nRound)>0.05||nRound<1)return;// integer oy emas
+      // Clean N oy: start day X → end day should be such that (end - start + 1 day) = N months
+      // Standart: start day S → end day is (S-1) of (start_month + N)
+      // Misol: 01.08 → 30.09 (2 oy, S=1, N=2, end=30.09)
+      // Misol: 31.07 → 30.09 (2 oy, S=31, end day should be 30 of Sep, but span is 62 kun — noto'g'ri)
+      // Oson tekshiruv: expected end = (start + N months) - 1 kun
+      const expEnd=new Date(st.getFullYear(),st.getMonth()+nRound,st.getDate()-1);
+      const diffDays=Math.round((en-expEnd)/864e5);
+      if(Math.abs(diffDays)>=1){
+        const sgn=diffDays>0?'+':'';
+        issues.push({
+          client:r.Client,raqami:r.raqami||'',
+          type:'Sana-muddat nomuvofiq',
+          detail:`${nRound} oy shartnoma ($${fmt(r._mUSD)}×${nRound}=$${fmt(net)}): ${r.sanasi} → ${r['amal qilishi']}. Kutilgan tugash: ${fmtD(expEnd)} (${sgn}${diffDays} kun). Sana xato, proratsiya noto'g'ri chiqadi.`
+        });
+      }
+    });
+
+    // 7. To'lov shartnomaga bog'lanmagan
     const pm=calcPayments();
     const contractKeys=new Set();
     S.rows.forEach(r=>{if(r.Client&&r.raqami)contractKeys.add(r.Client.trim()+'|'+r.raqami.trim())});
